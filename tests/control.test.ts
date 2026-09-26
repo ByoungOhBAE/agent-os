@@ -50,6 +50,12 @@ async function fixture(options: { healthFails?: boolean; paperclipFails?: boolea
     if (route === "/v1/runs/run_1/stop") return reply(200, { run_id: "run_1", status: "stopping" });
     if (route === "/v1/runs/run_1/approval") return reply(200, { run_id: "run_1", resolved: 1, choice: "once" });
     if (route === "/v1/runs/run_1") return reply(200, { run_id: "run_1", status: "running", session_id: "s-1", last_event: "tool.started", model: "m", internal: "DO_NOT_SEND" });
+    if (route === "/v1/runs/run_1/events") {
+      res.writeHead(200, { "Content-Type": "text/event-stream" });
+      res.write('event: message.delta\ndata: {"event":"message.delta","delta":"pong"}\n\n');
+      res.end('event: run.completed\ndata: {"event":"run.completed"}\n\n');
+      return;
+    }
     reply(404, { error: "not found" });
   });
   const hermesPort = await listen(upstream);
@@ -62,6 +68,10 @@ async function fixture(options: { healthFails?: boolean; paperclipFails?: boolea
     if (options.paperclipFails) return res.writeHead(500).end();
     if (req.url === "/api/heartbeat-runs/2f1c2a8e-7c1b-4a55-9d2f-0f1e2d3c4b5a/cancel" && req.method === "POST")
       return res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ id: "2f1c2a8e-7c1b-4a55-9d2f-0f1e2d3c4b5a", status: "cancelled", agentId: "a", resultJson: { secret: "DO_NOT_SEND" } }));
+    if (req.url === "/api/companies/db6f5310-0afc-4b67-8ca2-8059bd26f0cb/live-runs" && req.method === "GET")
+      return res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify([
+        { id: "r1", agentId: "a1", agentName: "비서실장", status: "running", adapterType: "claude_local", startedAt: "2026-09-26T00:00:00Z", error: "DO_NOT_SEND" },
+      ]));
     res.writeHead(404).end();
   });
   const paperclipPort = await listen(paperclip);
@@ -171,6 +181,32 @@ it("cancels a Paperclip heartbeat run by UUID only and returns only the run stat
   expect(paperclipCalls.map((c) => `${c.method} ${c.url}`)).toEqual([`POST /api/heartbeat-runs/${id}/cancel`]);
   expect((await post(`${base}/api/control/paperclip/runs/not-a-uuid/cancel`, {})).status).toBe(400);
   expect(paperclipCalls).toHaveLength(1);
+});
+
+it("streams a Hermes run's events through unchanged as SSE", async () => {
+  const { base, calls } = await fixture();
+  const response = await fetch(`${base}/api/control/hermes/runs/run_1/events?profile=bot-1`);
+  expect(response.status).toBe(200);
+  expect(response.headers.get("content-type")).toContain("text/event-stream");
+  const text = await response.text();
+  expect(text).toContain('"delta":"pong"');
+  expect(text).toContain("run.completed");
+  expect(calls.find((c) => c.url === "/p/bot-1/v1/runs/run_1/events")!.auth).toBe(`Bearer ${BOT_KEY}`);
+});
+
+it("lists Paperclip live runs for a company with only allow-listed fields and a UUID-checked company", async () => {
+  const { base, paperclipCalls } = await fixture();
+  const company = "db6f5310-0afc-4b67-8ca2-8059bd26f0cb";
+  const data = await (await fetch(`${base}/api/control/paperclip/live-runs?company=${company}`)).json();
+  expect(data).toEqual({ status: "available", runs: [{ id: "r1", agentId: "a1", status: "running", adapterType: "claude_local", startedAt: "2026-09-26T00:00:00Z" }] });
+  expect((await fetch(`${base}/api/control/paperclip/live-runs?company=../x`)).status).toBe(400);
+  expect(paperclipCalls).toHaveLength(1);
+});
+
+it("reports Paperclip live-run failure as unavailable, not as zero running runs", async () => {
+  const { base } = await fixture({ paperclipFails: true });
+  const data = await (await fetch(`${base}/api/control/paperclip/live-runs?company=db6f5310-0afc-4b67-8ca2-8059bd26f0cb`)).json();
+  expect(data).toEqual({ status: "unavailable" });
 });
 
 it("never writes API keys to responses or logs", async () => {

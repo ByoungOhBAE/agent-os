@@ -72,6 +72,44 @@ export function createControlRoutes(deps) {
     return json(res, 200, pick(data, ["id", "status"]));
   }
 
+  async function paperclipLiveRuns(res, company) {
+    if (!UUID.test(company)) throw new HttpError(400, "회사 ID 값이 올바르지 않습니다.");
+    try {
+      const response = await fetch(new URL(`/api/companies/${company}/live-runs`, paperclip), {
+        redirect: "error",
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!response.ok) throw new Error(String(response.status));
+      const rows = await response.json();
+      if (!Array.isArray(rows)) throw new Error("shape");
+      return json(res, 200, {
+        status: "available",
+        runs: rows.slice(0, 50).map((r) => pick(r, ["id", "agentId", "status", "adapterType", "startedAt"])),
+      });
+    } catch {
+      // Unknown is not "nothing running".
+      return json(res, 200, { status: "unavailable" });
+    }
+  }
+
+  async function streamEvents(req, res, prefix, profile) {
+    const upstream = await apiRequest(`${prefix}/events`, { stream: true, timeout: 12000, profile });
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    const reader = upstream.body.getReader();
+    res.on("close", () => reader.cancel().catch(() => {}));
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done || res.destroyed) break;
+      res.write(value);
+    }
+    res.end();
+  }
+
   /** Returns true when the request was handled. */
   return async function control(req, res, url) {
     const { pathname } = url;
@@ -81,6 +119,10 @@ export function createControlRoutes(deps) {
     const cancel = pathname.match(/^\/api\/control\/paperclip\/runs\/([^/]+)\/cancel$/);
     if (cancel && method === "POST") {
       await paperclipCancel(res, decodeURIComponent(cancel[1]));
+      return true;
+    }
+    if (pathname === "/api/control/paperclip/live-runs" && method === "GET") {
+      await paperclipLiveRuns(res, url.searchParams.get("company") || "");
       return true;
     }
 
@@ -100,18 +142,23 @@ export function createControlRoutes(deps) {
       json(res, 202, pick(data, ["run_id", "status", "replayed"]));
       return true;
     }
-    const run = pathname.match(/^\/api\/control\/hermes\/runs\/([^/]+)(?:\/(steer|stop|approval))?$/);
+    const run = pathname.match(/^\/api\/control\/hermes\/runs\/([^/]+)(?:\/(steer|stop|approval|events))?$/);
     if (run) {
       const id = runId(decodeURIComponent(run[1]), HttpError);
       const prefix = `/v1/runs/${encodeURIComponent(id)}`;
       const action = run[2];
+      if (method === "GET" && action === "events") {
+        if (!hasKey(profile)) throw new HttpError(503, `${profile} 프로필의 Hermes API 키가 설정되지 않았습니다.`);
+        await streamEvents(req, res, prefix, profile);
+        return true;
+      }
       if (method === "GET" && !action) {
         if (!hasKey(profile)) throw new HttpError(503, `${profile} 프로필의 Hermes API 키가 설정되지 않았습니다.`);
         const data = await apiRequest(prefix, { profile });
         json(res, 200, pick(data, ["run_id", "status", "session_id", "last_event", "error"]));
         return true;
       }
-      if (method === "POST" && action) {
+      if (method === "POST" && action && action !== "events") {
         const input = await body(req);
         let payload;
         if (action === "steer") payload = { input: instruction(input.input, HttpError) };
