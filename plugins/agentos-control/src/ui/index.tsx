@@ -458,7 +458,8 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
   .c-root[data-selected="yes"] .c-roster{display:none}
   .c-root[data-selected="no"] .c-conv{display:none}
   .c-back{display:inline-flex;align-items:center;justify-content:center}
-  .c-conv{height:calc(100dvh - 300px);min-height:420px}
+  .c-conv{height:calc(100dvh - 150px);min-height:460px}
+  .c-input{min-height:56px}
   /* The host's mobile tab bar is position:fixed (64px) and main has no matching padding. */
   .c-root{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
   .c-title{font-size:20px}
