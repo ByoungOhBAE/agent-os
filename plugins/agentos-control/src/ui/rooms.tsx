@@ -607,7 +607,7 @@ export const ROOMS_CSS = `
 .r-typing{font-size:11px}
 .r-sys{list-style:none;justify-self:center;color:var(--c-muted);font-size:11px;padding:2px 10px;border:1px dashed var(--c-line);border-radius:999px;max-width:100%;overflow-wrap:anywhere;text-align:center}
 .r-section{padding:14px 16px 6px;font-size:11px;color:var(--c-muted);border-top:1px solid var(--c-line);letter-spacing:.02em}
-.r-live{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;padding:10px 16px;border-bottom:1px solid var(--c-line);max-height:42%;overflow:auto}
+.r-live{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:start;gap:8px;padding:10px 16px;border-bottom:1px solid var(--c-line);max-height:42%;overflow:auto}
 .r-card{display:grid;gap:6px;align-content:start;min-width:0;padding:10px 12px;border:1px solid var(--c-line);border-radius:8px}
 .r-card[data-state="working"]{border-color:rgba(189,209,170,.5);background:var(--c-raised)}
 .r-card-head{display:flex;align-items:center;gap:8px;min-width:0}
@@ -616,7 +616,7 @@ export const ROOMS_CSS = `
 .r-badge-working{color:var(--c-accent);border-color:rgba(189,209,170,.5)}
 .r-badge-stalled{color:#e0b16a;border-color:rgba(224,177,106,.5)}
 .r-card-line{margin:0;font-size:11px;word-break:keep-all}
-.r-now{margin:0;font-size:12px;overflow-wrap:anywhere}
+.r-now{margin:0;font-size:12px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .r-steps{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:11px;color:var(--c-secondary)}
 .r-steps li{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:14px;position:relative}
 .r-steps li::before{content:"✓";position:absolute;left:0;color:var(--c-muted)}
