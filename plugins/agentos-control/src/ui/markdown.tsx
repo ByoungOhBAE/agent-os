@@ -111,7 +111,7 @@ export function Markdown({ text, className }: { text: string; className?: string
 }
 
 export const MARKDOWN_CSS = `
-.k-md{display:grid;gap:8px;font-size:14px;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere;min-width:0}
+.k-md{display:grid;grid-auto-rows:max-content;gap:8px;font-size:14px;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere;min-width:0}
 .k-md p,.k-md ul,.k-md ol{margin:0}
 .k-md ul,.k-md ol{padding-left:20px;display:grid;gap:2px}
 .k-md-h{margin:6px 0 0;font-weight:650;line-height:1.35;color:var(--c-text)}
@@ -122,7 +122,7 @@ h3.k-md-h{font-size:16px}h4.k-md-h{font-size:15px}h5.k-md-h{font-size:14px;color
 .k-link:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px;border-radius:2px}
 .k-code{font-family:var(--c-mono,ui-monospace,monospace);font-size:12.5px;padding:1px 5px;border-radius:4px;background:var(--c-input);border:1px solid var(--c-line)}
 .k-md-pre{margin:0;padding:10px 12px;border-radius:6px;background:var(--c-input);border:1px solid var(--c-line);font-family:var(--c-mono,ui-monospace,monospace);font-size:12.5px;white-space:pre-wrap;overflow-wrap:anywhere}
-.k-md-table{overflow-x:auto;max-width:100%;border:1px solid var(--c-line);border-radius:6px}
+.k-md-table{overflow-x:auto;max-width:100%;flex-shrink:0;border:1px solid var(--c-line);border-radius:6px}
 .k-md-table:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 .k-md table{border-collapse:collapse;width:100%;font-size:13px}
 .k-md th,.k-md td{padding:6px 10px;border-bottom:1px solid var(--c-line);text-align:left;vertical-align:top;min-width:64px}

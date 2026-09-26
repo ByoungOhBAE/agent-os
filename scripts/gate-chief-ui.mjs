@@ -76,6 +76,11 @@ try {
       await page.getByRole("list", { name: "진행 단계" }).waitFor({ timeout: 15000 });
       await settle(page, 800);
       stages = await page.locator(".k-flow li").count();
+      // Plan/report blocks must keep their natural height (a flex column once squeezed tables to 2px).
+      await page.waitForTimeout(1500);
+      const squashed = await page.evaluate(() => [...document.querySelectorAll(".k-md-table, .k-md pre")]
+        .filter((el) => { const inner = el.firstElementChild ?? el; return el.getBoundingClientRect().height + 4 < Math.min(inner.scrollHeight, 400); }).length);
+      if (squashed) fails.push(`${w}: ${squashed} markdown table/code block(s) squashed`);
       if (stages !== 5) fails.push(`${w}: flow shows ${stages} steps`);
       if (!(await page.locator('.k-flow li[aria-current="step"]').count()) && !(await page.locator(".k-stage-blocked, .k-stage-cancelled").count()))
         fails.push(`${w}: no current step marked`);
@@ -99,6 +104,9 @@ try {
       if (await ta.count()) {
         lockedComposer = String(await ta.isDisabled());
         if (lockedComposer !== "true") fails.push(`${w}: non-chief composer is enabled`);
+        // Let the conversation settle, then no copy may invite typing into a locked composer.
+        await page.waitForFunction(() => !document.body.innerText.includes("대화를 불러오는 중"), null, { timeout: 15000 }).catch(() => fails.push(`${w}: locked agent stuck loading`));
+        if (await page.getByText("아래에서 첫 지시를 보내세요").count()) fails.push(`${w}: locked agent invites typing below`);
       }
       await measure(page, `${w} locked agent`);
       await page.screenshot({ path: `${SHOT}locked-${w}.png`, fullPage: false });

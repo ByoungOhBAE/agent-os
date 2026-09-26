@@ -309,7 +309,7 @@ function Conversation({ entry, companyId, onBack, onChanged, locked }: { entry: 
         {transcript.loading && !transcript.data && <li className="c-state">대화를 불러오는 중</li>}
         {transcript.error && <li className="c-state c-bad">대화를 불러오지 못했습니다 · {errorText(transcript.error)}</li>}
         {transcript.data && turns.length === 0 && history.length === 0 && (
-          <li className="c-state">아직 이 화면에서 나눈 대화가 없습니다. 아래에서 첫 지시를 보내세요.</li>
+          <li className="c-state">{locked ? "아직 이 화면에서 나눈 대화가 없습니다. 지시는 비서실장 탭에서 보내 주세요." : "아직 이 화면에서 나눈 대화가 없습니다. 아래에서 첫 지시를 보내세요."}</li>
         )}
         {turns.map((t) => <TurnView key={t.id} turn={t} canApprove={caps.approval && t.id === transcript.data?.active} busy={busy}
           onApprove={(choice, requestId) => run(() => approve({ ...params, choice, requestId }), choice === "deny" ? "거절했습니다" : "승인했습니다")} />)}
