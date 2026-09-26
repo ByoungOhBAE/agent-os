@@ -35,3 +35,12 @@
 ## 정리한 것
 
 - 오래된 미리보기 서버 2개(3101 `paperclip-host-ui/ui`, 3102 `agentos-paperclip-verify/ui`, `0.0.0.0` 바인드)를 종료했다. 운영 3100은 200을 유지했다.
+
+## 구현 후 확인된 사실 (2026-09-26)
+
+- 플러그인 스트림 버스 없음: `/api/plugins/:id/bridge/stream/*`가 운영·검증 모두 501. 화면은 폴링(실행 중 1초, 평소 5초)으로 갱신한다.
+- 스트림 채널은 회사 범위로 `ctx.streams.open(channel, companyId)` 후 emit해야 한다(버스가 생기면 그대로 동작).
+- Paperclip 플러그인 세션은 실행이 끝나면 호스트가 행을 지운다 → 다음 지시 때 "Session not found"면 새 세션으로 1회 재시도.
+- 플러그인 워커 환경변수는 전달되지 않는다. 회사별 인스턴스 설정 `bffOrigin`(127.0.0.1 HTTP만 허용)으로 BFF 주소를 바꾼다(검증용 4299).
+- 그룹방 스레드 사용자 행은 방 프롬프트 래퍼(`[Group chat: "…"] … New messages in the room…`)라 기록 표시 때 방에 올라온 줄만 추린다. 압축 인계문은 숨긴다.
+- 봇 프로필 키: `scripts/provision-hermes-profile-keys.mjs`로 4개 프로필에 추가, BFF `HERMES_PROFILE_KEYS_JSON` 연결. 되돌리기 `--revert <backup>`.
