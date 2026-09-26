@@ -58,6 +58,47 @@ function uid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/** Hermes session ids (e.g. 20260926_143638_f2b522, run_…); same charset the BFF accepts. */
+const SESSION_ID = /^[\w.:-]{1,180}$/;
+const HISTORY_LIMIT = 200;
+export type HistoryMessage = { id: number | string; role: "user" | "assistant"; text: string; at: number | null };
+
+/**
+ * What a person would recognise as "the message" in a stored user row. Hermes group rooms feed each member a
+ * wrapper prompt (header, "New messages in the room since your last turn", rules); show only the room lines.
+ * Returns null for pure bookkeeping rows (context-compaction handoffs).
+ */
+export function readableUserText(content: string): string | null {
+  const text = content.replace(/^\s*\[STILL IN PROGRESS[^\]]*\]\s*/, "");
+  if (/^\s*\[CONTEXT COMPACTION\b/.test(text)) return null;
+  if (!/^\s*\[Group chat: "/.test(text)) return text;
+  const lines = text.split("\n");
+  const start = lines.findIndex((l) => l.startsWith("New messages in the room since your last turn"));
+  if (start < 0) return text;
+  const end = lines.findIndex((l, i) => i > start && l.startsWith("Rules for this room:"));
+  const body = lines.slice(start + 1, end < 0 ? undefined : end).map((l) => l.replace(/^ {2}/, "")).join("\n").trim();
+  return body || null;
+}
+
+/** Readable transcript rows only: user/assistant text, newest HISTORY_LIMIT, capped length. */
+function historyFrom(data: unknown): HistoryMessage[] {
+  const rows = Array.isArray((data as { messages?: unknown })?.messages) ? (data as { messages: unknown[] }).messages : [];
+  const out: HistoryMessage[] = [];
+  for (const row of rows) {
+    const m = row as Record<string, unknown>;
+    if ((m.role !== "user" && m.role !== "assistant") || typeof m.content !== "string" || !m.content.trim()) continue;
+    const text = m.role === "user" ? readableUserText(m.content) : m.content;
+    if (!text) continue;
+    out.push({
+      id: typeof m.id === "number" || typeof m.id === "string" ? m.id : out.length,
+      role: m.role,
+      text: text.slice(0, 8000),
+      at: typeof m.timestamp === "number" ? Math.round(m.timestamp * 1000) : null,
+    });
+  }
+  return out.slice(-HISTORY_LIMIT);
+}
+
 export function createControl(ctx: PluginContext, deps: Deps = {}) {
   // Each company may point at its own loopback BFF via plugin config (`bffOrigin`); cache per company.
   const bffCache = new Map<string, Promise<Bff>>();
@@ -258,10 +299,19 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
     if (bots.status === "fulfilled") {
       const list = Array.isArray(bots.value?.bots) ? bots.value.bots : [];
       const profiles = list.filter((b: any) => typeof b?.profile === "string" && BOT_PROFILE.test(b.profile));
-      const statuses = await Promise.all(profiles.map((b: any) => bff.hermesStatus(b.profile).catch(() => ({ keyReady: false, gateway: { status: "unavailable" } }))));
+      // BFF contract: { status: "available" | "unconfigured" | "unavailable", busy?, activeAgents? }.
+      const statuses = await Promise.all(profiles.map((b: any) => bff.hermesStatus(b.profile).catch(() => ({ status: "unavailable" }))));
       hermes = {
         status: "available",
-        bots: profiles.map((b: any, i: number) => ({ profile: b.profile, title: typeof b.title === "string" ? b.title : "", keyReady: Boolean(statuses[i].keyReady), gateway: statuses[i].gateway ?? { status: "unknown" } })),
+        bots: profiles.map((b: any, i: number) => {
+          const s = statuses[i] ?? {};
+          return {
+            profile: b.profile,
+            title: typeof b.title === "string" ? b.title : "",
+            keyReady: s.status !== "unconfigured",
+            gateway: { status: s.status === "available" ? "available" : s.status === "unconfigured" ? "unconfigured" : "unavailable", busy: s.busy === true || Number(s.activeAgents) > 0 },
+          };
+        }),
       };
     }
     const paperclip = agents.status === "fulfilled"
@@ -294,13 +344,25 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
     };
   }
 
-  async function history(key: string, sessionId: string, companyId: string) {
-    const conv = conversation(key);
-    if (conv.kind !== "hermes") return { messages: [] };
+  /**
+   * Point a Hermes conversation at one of the bot's existing sessions (1:1 Bot Chat or a group thread)
+   * and return that session's recorded messages; `sessionId: null` starts a new conversation.
+   */
+  async function select(params: Record<string, unknown>) {
+    const conv = conversation(conversationKey(params.kind, params.ref));
+    if (conv.kind !== "hermes") throw new BffError("세션 선택은 Hermes 봇만 지원합니다.", 400);
+    const companyId = companyOf(params);
+    const raw = params.sessionId;
+    if (raw !== null && raw !== undefined && raw !== "" && (typeof raw !== "string" || !SESSION_ID.test(raw)))
+      throw new BffError("세션 ID 형식이 올바르지 않습니다.", 400);
+    if (activeTurn(conv)) throw new BffError("진행 중인 작업이 있어 세션을 바꿀 수 없습니다.", 409);
     conv.companyId = companyId;
-    const data = await (await bffFor(companyId)).messages(conv.ref, sessionId);
-    conv.sessionId = sessionId;
-    return data;
+    const next = typeof raw === "string" && raw ? raw : null;
+    if (next !== conv.sessionId) conv.turns = [];
+    conv.sessionId = next;
+    if (!next) return { sessionId: null, history: [] as HistoryMessage[] };
+    const data = await (await bffFor(companyId)).messages(conv.ref, next);
+    return { sessionId: next, history: historyFrom(data) };
   }
 
   const actions = {
@@ -364,8 +426,30 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
     },
   };
 
+  /** A bot's resumable sessions (1:1 Bot Chat and group-room threads), newest activity first. */
+  async function sessions(params: Record<string, unknown>) {
+    const conv = conversation(conversationKey(params.kind, params.ref));
+    if (conv.kind !== "hermes") return { sessions: [] };
+    const data = await (await bffFor(companyOf(params))).bots();
+    const bot = (Array.isArray(data?.bots) ? data.bots : []).find((b: any) => b?.profile === conv.ref);
+    const list = Array.isArray(bot?.sessions) ? bot.sessions : [];
+    return {
+      sessions: list
+        .filter((s: any) => typeof s?.id === "string" && SESSION_ID.test(s.id) && !s.archived)
+        .map((s: any) => ({
+          id: s.id,
+          kind: s.kind === "group" ? "group" : "direct",
+          room: typeof s.room_name === "string" ? s.room_name.slice(0, 120) : null,
+          label: typeof s.thread_label === "string" ? s.thread_label.slice(0, 160) : null,
+          messages: Number.isSafeInteger(s.message_count) ? s.message_count : 0,
+          lastActive: typeof s.last_active === "number" ? Math.round(s.last_active * 1000) : null,
+        }))
+        .sort((a: any, b: any) => (b.lastActive ?? 0) - (a.lastActive ?? 0)),
+    };
+  }
+
   return {
-    roster, transcript, history, actions,
+    roster, transcript, select, sessions, actions,
     /** For tests. */
     conversations,
     stopAll() {
@@ -394,8 +478,9 @@ export const plugin = definePlugin({
     active = control;
     ctx.data.register("roster", wrap((p) => control.roster(companyOf(p))));
     ctx.data.register("transcript", wrap((p) => control.transcript(conversationKey(p.kind, p.ref))));
-    ctx.data.register("history", wrap((p) => control.history(conversationKey(p.kind, p.ref), String(p.sessionId ?? ""), companyOf(p))));
+    ctx.data.register("sessions", wrap((p) => control.sessions(p)));
     for (const [name, handler] of Object.entries(control.actions)) ctx.actions.register(name, wrap(handler));
+    ctx.actions.register("select", wrap((p) => control.select(p)));
   },
   async onHealth() {
     return { status: "ok", message: "통합 관제 준비됨" };

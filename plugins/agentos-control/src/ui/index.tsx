@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
-  useHostContext, useHostNavigation, usePluginAction, usePluginData, usePluginStream, type PluginPageProps,
+  useHostContext, useHostNavigation, usePluginAction, usePluginData, type PluginPageProps,
 } from "@paperclipai/plugin-sdk/ui";
 import type { AgentState, RosterEntry, UiEvent, ApprovalChoice } from "../model.js";
 
@@ -10,6 +10,15 @@ type Turn = {
   status: "sending" | "running" | "completed" | "failed" | "cancelled"; error?: string;
 };
 type Transcript = { key: string; sessionId: string | null; turns: Turn[]; active: string | null };
+type BotSession = { id: string; kind: "direct" | "group"; room: string | null; label: string | null; messages: number; lastActive: number | null };
+type HistoryMessage = { id: number | string; role: "user" | "assistant"; text: string; at: number | null };
+
+function sessionLabel(s: BotSession) {
+  const when = s.lastActive ? new Date(s.lastActive).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }) : "";
+  const head = s.kind === "group" ? `그룹 · ${s.room ?? "이름 없는 방"}` : "1:1 봇 채팅";
+  const label = s.label ? ` · ${s.label.length > 24 ? `${s.label.slice(0, 24)}…` : s.label}` : "";
+  return `${head}${label} · ${s.messages}개${when ? ` · ${when}` : ""}`;
+}
 
 const STATE_LABEL: Record<AgentState, string> = {
   working: "작업중", waiting: "승인 대기", idle: "대기", paused: "멈춤", error: "오류", unknown: "확인 불가",
@@ -24,21 +33,6 @@ function useInterval(fn: () => void, ms: number) {
     const id = setInterval(() => ref.current(), ms);
     return () => clearInterval(id);
   }, [ms]);
-}
-
-function useThrottled(fn: () => void, ms: number) {
-  const last = useRef(0);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  return () => {
-    const wait = ms - (Date.now() - last.current);
-    if (wait <= 0) {
-      last.current = Date.now();
-      fn();
-    } else if (!timer.current) {
-      timer.current = setTimeout(() => { timer.current = null; last.current = Date.now(); fn(); }, wait);
-    }
-  };
 }
 
 function errorText(error: unknown) {
@@ -140,16 +134,8 @@ function RosterPanel({ entries, loading, error, selected, onSelect }: {
 function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEntry; companyId: string | null; onBack: () => void; onChanged: () => void }) {
   const params = { kind: entry.kind, ref: entry.ref };
   const transcript = usePluginData<Transcript>("transcript", params);
-  const stream = usePluginStream<{ turnId: string; status: string; event?: UiEvent }>(`conv:${entry.id}`, companyId ? { companyId } : undefined);
-  const refresh = useThrottled(() => transcript.refresh(), 250);
-  useEffect(() => {
-    if (!stream.lastEvent) return;
-    refresh();
-    if (stream.lastEvent.event?.type === "done") onChanged();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream.lastEvent]);
-  // The stream pushes updates when the host has a stream bus; polling keeps the view live either way
-  // (fast while a run is active, slow otherwise to pick up work started elsewhere).
+  // This Paperclip build ships without a plugin stream bus (bridge/stream answers 501), so the view is kept
+  // live by polling: every second while a run is active, every 5 seconds otherwise.
   const wasActive = useRef(false);
   useEffect(() => {
     const active = Boolean(transcript.data?.active);
@@ -157,7 +143,7 @@ function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEn
     wasActive.current = active;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcript.data?.active]);
-  useInterval(() => transcript.refresh(), transcript.data?.active ? (stream.connected ? 3000 : 1000) : 8000);
+  useInterval(() => transcript.refresh(), transcript.data?.active ? 1000 : 5000);
 
   const send = usePluginAction("send");
   const steer = usePluginAction("steer");
@@ -165,6 +151,11 @@ function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEn
   const approve = usePluginAction("approve");
   const pause = usePluginAction("pause");
   const resume = usePluginAction("resume");
+  const select = usePluginAction("select");
+  const sessionList = usePluginData<{ sessions: BotSession[] }>(
+    "sessions", entry.kind === "hermes" && companyId ? { ...params, companyId } : undefined,
+  );
+  const [history, setHistory] = useState<HistoryMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ tone: "bad" | "ok"; text: string } | null>(null);
@@ -212,6 +203,17 @@ function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEn
     }
   }
 
+  async function chooseSession(id: string) {
+    const ok = await run(async () => {
+      const result = (await select({ ...params, sessionId: id || null, companyId })) as { history?: HistoryMessage[] };
+      setHistory(Array.isArray(result?.history) ? result.history : []);
+    });
+    if (!ok) setHistory([]);
+  }
+  const currentSession = transcript.data?.sessionId ?? "";
+  const sessionOptions = sessionList.data?.sessions ?? [];
+  const knownSession = sessionOptions.some((s) => s.id === currentSession);
+
   const canType = running ? caps.steer : caps.chat;
   const placeholder = !caps.chat && !running
     ? caps.reason ?? "지시할 수 없습니다"
@@ -239,10 +241,40 @@ function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEn
         </div>
       </header>
 
+      {entry.kind === "hermes" && (
+        <div className="c-session-bar">
+          <label className="c-session-label" htmlFor={`c-session-${entry.id}`}>대화</label>
+          <select id={`c-session-${entry.id}`} className="c-select" value={currentSession} disabled={running || busy}
+            onChange={(e) => void chooseSession(e.target.value)}>
+            <option value="">새 대화</option>
+            {currentSession && !knownSession && <option value={currentSession}>이 화면에서 시작한 대화</option>}
+            {sessionOptions.map((s) => (
+              <option key={s.id} value={s.id}>{sessionLabel(s)}</option>
+            ))}
+          </select>
+          {sessionOptions.find((s) => s.id === currentSession)?.kind === "group" && (
+            <p className="c-session-note">그룹방 스레드에 이어 씁니다. 방 화면에는 데스크톱 앱이 방을 다시 열 때 반영됩니다.</p>
+          )}
+        </div>
+      )}
+
       <ol className="c-log" ref={logRef} aria-live="polite" aria-relevant="additions">
+        {history.length > 0 && (
+          <li className="c-history" aria-label="이전 기록">
+            <p className="c-history-label">이전 기록 · 최근 {history.length}개</p>
+            <ol className="c-history-list">
+              {history.map((m) => (
+                <li key={m.id} className={`c-hist c-hist-${m.role}`}>
+                  <span className="c-turn-meta c-mono">{m.role === "user" ? "사용자" : "봇"}{m.at ? ` · ${new Date(m.at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })}` : ""}</span>
+                  <p className="c-turn-text">{m.text}</p>
+                </li>
+              ))}
+            </ol>
+          </li>
+        )}
         {transcript.loading && !transcript.data && <li className="c-state">대화를 불러오는 중</li>}
         {transcript.error && <li className="c-state c-bad">대화를 불러오지 못했습니다 · {errorText(transcript.error)}</li>}
-        {transcript.data && turns.length === 0 && (
+        {transcript.data && turns.length === 0 && history.length === 0 && (
           <li className="c-state">아직 이 화면에서 나눈 대화가 없습니다. 아래에서 첫 지시를 보내세요.</li>
         )}
         {turns.map((t) => <TurnView key={t.id} turn={t} canApprove={caps.approval && t.id === transcript.data?.active} busy={busy}
@@ -255,7 +287,7 @@ function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEn
         <textarea id={`c-input-${entry.id}`} className="c-input" rows={3} value={draft} maxLength={12000}
           placeholder={placeholder} disabled={!canType || busy} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKey} />
         <div className="c-composer-row">
-          <span className="c-muted c-mono">{stream.connected ? "실시간 연결됨" : stream.connecting ? "연결 중" : "실시간 끊김 · 주기적으로 갱신"}</span>
+          <span className="c-muted c-mono">{running ? "1초마다 갱신 중" : "5초마다 갱신"}</span>
           <button type="submit" className="c-btn c-btn-primary" disabled={!canType || busy || !draft.trim()}>{running ? "끼어들기" : "보내기"}</button>
         </div>
       </form>
@@ -347,8 +379,8 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .c-src-ok::before,.c-src-bad::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .c-src-ok{color:var(--c-secondary)}.c-src-ok::before{background:var(--c-accent)}
 .c-src-bad{color:var(--c-error)}.c-src-bad::before{background:var(--c-error)}
-.c-body{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;margin-top:16px;min-height:560px}
-.c-roster{border:1px solid var(--c-line);background:var(--c-panel);border-radius:8px;overflow:auto;max-height:calc(100vh - 200px);min-height:0}
+.c-body{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;margin-top:16px;height:calc(100dvh - 240px);min-height:520px}
+.c-roster{border:1px solid var(--c-line);background:var(--c-panel);border-radius:8px;overflow:auto;min-height:0}
 .c-roster-head{display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px;border-bottom:1px solid var(--c-line)}
 .c-count{font-size:13px;color:var(--c-secondary)}.c-count b{font-size:20px;color:var(--c-accent);margin-right:6px;font-weight:650}
 .c-group-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--c-muted);font-weight:680;padding:12px 16px 6px}
@@ -366,7 +398,7 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .c-dot-unknown{background:transparent;box-shadow:inset 0 0 0 1.5px var(--c-line-strong)}
 @keyframes c-pulse{0%{box-shadow:0 0 0 0 rgba(189,209,170,.45)}70%{box-shadow:0 0 0 7px rgba(189,209,170,0)}100%{box-shadow:0 0 0 0 rgba(189,209,170,0)}}
 @media (prefers-reduced-motion:reduce){.c-dot-working{animation:none}}
-.c-conv{display:flex;flex-direction:column;border:1px solid var(--c-line);background:var(--c-panel);border-radius:8px;min-width:0;min-height:0;max-height:calc(100vh - 200px)}
+.c-conv{display:flex;flex-direction:column;border:1px solid var(--c-line);background:var(--c-panel);border-radius:8px;min-width:0;min-height:0;overflow:hidden}
 .c-conv-empty{justify-content:center;align-items:flex-start;padding:32px}
 .c-empty-title{margin:0 0 6px;font-size:16px;font-weight:600}
 .c-conv-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--c-line)}
@@ -374,6 +406,18 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .c-conv-id{min-width:0;flex:1}
 .c-conv-name{display:flex;gap:8px;align-items:center;margin:0;font-size:16px;font-weight:650}
 .c-conv-tools{display:flex;gap:8px}
+.c-session-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 16px;border-bottom:1px solid var(--c-line)}
+.c-session-label{font-size:12px;color:var(--c-muted);font-weight:600}
+.c-select{flex:1;min-width:0;max-width:100%;min-height:40px;padding:0 10px;background:var(--c-input);border:1px solid var(--c-line-strong);border-radius:6px;color:var(--c-text);font:inherit;font-size:13px}
+.c-select:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
+.c-select:disabled{opacity:.6}
+.c-session-note{flex-basis:100%;margin:0;font-size:12px;color:var(--c-warn)}
+.c-history{display:grid;gap:8px;padding-bottom:12px;border-bottom:1px dashed var(--c-line-strong)}
+.c-history-label{margin:0;font-size:11px;color:var(--c-muted);font-weight:650;letter-spacing:.06em}
+.c-history-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;opacity:.82}
+.c-hist{display:grid;gap:4px;max-width:760px}
+.c-hist-user{justify-self:end;background:var(--c-raised);border:1px solid var(--c-line);border-radius:8px;padding:8px 10px}
+.c-hist-assistant{border-left:2px solid var(--c-line);padding-left:12px}
 .c-btn{min-height:40px;padding:0 14px;border:1px solid var(--c-line-strong);border-radius:6px;background:transparent;color:var(--c-text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s cubic-bezier(.23,1,.32,1),background-color .15s}
 .c-btn:hover:not(:disabled){background:var(--c-raised)}
 .c-btn:active:not(:disabled){transform:scale(.97)}
@@ -381,7 +425,7 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .c-btn-primary{background:var(--c-accent);border-color:var(--c-accent);color:var(--c-ink)}
 .c-btn-primary:hover:not(:disabled){background:#cadcb9}
 .c-btn-stop{border-color:rgba(215,162,155,.5);color:var(--c-error)}
-.c-log{list-style:none;margin:0;padding:16px;flex:1;overflow:auto;display:grid;align-content:start;gap:14px;min-height:240px}
+.c-log{list-style:none;margin:0;padding:16px;flex:1;overflow:auto;display:grid;align-content:start;gap:14px;min-height:0}
 .c-state{color:var(--c-muted);font-size:13px;padding:8px 0}
 .c-turn{display:grid;gap:6px;max-width:760px}
 .c-turn-user{justify-self:end;background:var(--c-raised);border:1px solid var(--c-line);border-radius:8px;padding:10px 12px}
@@ -409,12 +453,14 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .c-composer-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .c-notice{margin:0;font-size:12px}.c-ok{color:var(--c-accent)}
 @media (max-width:860px){
-  .c-body{grid-template-columns:1fr}
-  .c-roster,.c-conv{max-height:none}
+  .c-body{grid-template-columns:1fr;height:auto;min-height:0}
+  .c-roster{max-height:none}
   .c-root[data-selected="yes"] .c-roster{display:none}
   .c-root[data-selected="no"] .c-conv{display:none}
   .c-back{display:inline-flex;align-items:center;justify-content:center}
-  .c-conv{min-height:70vh}
+  .c-conv{height:calc(100dvh - 300px);min-height:420px}
+  /* The host's mobile tab bar is position:fixed (64px) and main has no matching padding. */
+  .c-root{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
   .c-title{font-size:20px}
 }
 `;

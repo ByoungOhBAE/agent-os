@@ -24,7 +24,10 @@ function fakeBff(overrides: Partial<Record<keyof Bff, any>> = {}) {
   const gate = new Promise<void>((r) => { release = r; });
   const base: Record<string, any> = {
     bots: async () => ({ bots: [{ profile: "bot-1", title: "개발자" }, { profile: "../evil", title: "x" }] }),
-    hermesStatus: async (p: string) => ({ profile: p, keyReady: p === "bot-1", gateway: { status: "available", busy: false } }),
+    // Real BFF shape (see server/control.mjs hermesStatus): no keyReady field.
+    hermesStatus: async (p: string) => (p === "bot-1"
+      ? { profile: p, status: "available", state: "running", busy: false, activeAgents: 0 }
+      : { profile: p, status: "unconfigured", reason: "이 봇 프로필의 API 키가 준비되지 않았습니다." }),
     liveRuns: async () => ({ status: "available", runs: [] }),
     sendHermes: async () => ({ run_id: "run_1", status: "started" }),
     steerHermes: async () => ({ run_id: "run_1", status: "steering" }),
@@ -79,6 +82,17 @@ describe("명단", () => {
     expect(roster.sources).toEqual({ paperclip: "available", paperclipLive: "unavailable", hermes: "unavailable" });
     expect(roster.entries).toHaveLength(1);
   });
+  it("BFF 상태 응답을 그대로 해석한다: 키 없음은 지시 불가, 조회 실패는 확인 불가", async () => {
+    const { control } = setup({
+      bots: async () => ({ bots: [{ profile: "ok", title: "A" }, { profile: "nokey", title: "B" }, { profile: "down", title: "C" }] }),
+      hermesStatus: async (p: string) => p === "ok" ? { profile: p, status: "available", busy: false, activeAgents: 0 }
+        : p === "nokey" ? { profile: p, status: "unconfigured" } : { profile: p, status: "unavailable" },
+    });
+    const byRef = Object.fromEntries((await control.roster(COMPANY)).entries.filter((e) => e.kind === "hermes").map((e) => [e.ref, e]));
+    expect([byRef.ok.state, byRef.ok.capabilities.chat]).toEqual(["idle", true]);
+    expect([byRef.nokey.state, byRef.nokey.capabilities.chat, byRef.nokey.capabilities.reason]).toEqual(["unknown", false, "이 봇 프로필의 API 키가 준비되지 않아 지시할 수 없습니다."]);
+    expect([byRef.down.state, byRef.down.capabilities.chat]).toEqual(["unknown", false]);
+  });
 });
 
 describe("Hermes 지시", () => {
@@ -115,6 +129,56 @@ describe("Hermes 지시", () => {
     await control.actions.send({ kind: "hermes", ref: "bot-1", input: "둘", companyId: COMPANY });
     const sends = calls.filter(([n]) => n === "sendHermes");
     expect(sends[1][1][2]).toBe("sess-9");
+  });
+
+  it("봇의 기존 세션(1:1·그룹 스레드)을 골라 이어서 지시하고 그 기록을 보여준다", async () => {
+    const { control, calls, emitted, feed } = setup({
+      messages: async (_p: string, id: string) => ({
+        messages: id === "20260926_143638_f2b522"
+          ? [
+              { id: 1, role: "user", content: "스킬 교체 규칙 정리해줘", timestamp: 1790400999 },
+              { id: 2, role: "tool", content: "{}", timestamp: 1790401000 },
+              { id: 3, role: "assistant", content: "정리했습니다", timestamp: 1790401001 },
+              { id: 4, role: "user", content: "[CONTEXT COMPACTION — REFERENCE ONLY] earlier turns…", timestamp: 1790401002 },
+              { id: 5, role: "assistant", content: "", timestamp: 1790401003 },
+            ]
+          : [],
+      }),
+    });
+    const conv = await control.select({ kind: "hermes", ref: "bot-1", sessionId: "20260926_143638_f2b522", companyId: COMPANY });
+    expect(conv.sessionId).toBe("20260926_143638_f2b522");
+    expect(conv.history.map((m) => [m.role, m.text])).toEqual([["user", "스킬 교체 규칙 정리해줘"], ["assistant", "정리했습니다"]]);
+    await control.actions.send({ kind: "hermes", ref: "bot-1", input: "이어서", companyId: COMPANY });
+    expect(calls.filter(([n]) => n === "sendHermes").at(-1)![1][2]).toBe("20260926_143638_f2b522");
+    expect(emitted.every(([c]) => c === "conv:hermes:bot-1")).toBe(true);
+    feed([{ event: "run.completed", output: "이어서 했습니다" }]);
+    await settle();
+    // "새 대화" drops the selection so the next instruction starts a fresh session.
+    await control.select({ kind: "hermes", ref: "bot-1", sessionId: null, companyId: COMPANY });
+    expect((await control.transcript("hermes:bot-1")).sessionId).toBeNull();
+  });
+
+  it("진행 중에는 세션을 바꿀 수 없고, 형식이 틀린 세션 ID는 거부한다", async () => {
+    const { control } = setup();
+    await expect(control.select({ kind: "hermes", ref: "bot-1", sessionId: "../../etc", companyId: COMPANY })).rejects.toThrow("세션");
+    await control.actions.send({ kind: "hermes", ref: "bot-1", input: "긴 작업", companyId: COMPANY });
+    await expect(control.select({ kind: "hermes", ref: "bot-1", sessionId: "20260926_143638_f2b522", companyId: COMPANY })).rejects.toThrow("진행 중");
+  });
+
+  it("봇 세션 목록은 보관된 것과 형식이 틀린 것을 빼고 최근 순으로 준다", async () => {
+    const { control } = setup({
+      bots: async () => ({ bots: [{ profile: "bot-1", title: "개발자", sessions: [
+        { id: "20260926_025814_d36673", kind: "direct", message_count: 2, last_active: 100, archived: false },
+        { id: "20260926_143638_f2b522", kind: "group", room_name: "개발방", thread_label: "스킬 교체", message_count: 211, last_active: 300, archived: false },
+        { id: "old", kind: "direct", message_count: 5, last_active: 400, archived: true },
+        { id: "../bad", kind: "direct", message_count: 1, last_active: 500, archived: false },
+      ] }] }),
+    });
+    const { sessions } = await control.sessions({ kind: "hermes", ref: "bot-1", companyId: COMPANY });
+    expect(sessions.map((s: any) => [s.id, s.kind, s.room, s.messages])).toEqual([
+      ["20260926_143638_f2b522", "group", "개발방", 211],
+      ["20260926_025814_d36673", "direct", null, 2],
+    ]);
   });
 
   it("진행 중에는 새 지시를 막고 끼어들기·승인·중지를 해당 실행에 보낸다", async () => {
