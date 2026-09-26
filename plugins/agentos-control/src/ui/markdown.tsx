@@ -1,5 +1,6 @@
 // Tiny, safe markdown for chief plans/reports: headings, paragraphs, bullet/numbered lists, tables, fenced code,
-// **bold** and `code`. Produces React nodes only (no HTML injection); anything unknown stays plain text.
+// **bold**, `code` and [links](/path). Produces React nodes only (no HTML injection); anything unknown stays plain
+// text. Links are limited to same-site paths and https URLs (no javascript:/data: or protocol-relative //host).
 import { Fragment, type ReactNode } from "react";
 
 export type Block =
@@ -58,15 +59,22 @@ export function parseBlocks(src: string): Block[] {
   return out;
 }
 
+export function safeHref(href: string) {
+  return (/^\/(?!\/)/.test(href) || /^https:\/\//.test(href)) && !/[\s"'<>]/.test(href);
+}
+
 export function inline(text: string): ReactNode[] {
   const parts: ReactNode[] = [];
-  const re = /\*\*([^*]+)\*\*|`([^`]+)`/g;
+  const re = /\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)/g;
   let last = 0;
   let m: RegExpExecArray | null;
   let k = 0;
   while ((m = re.exec(text))) {
     if (m.index > last) parts.push(text.slice(last, m.index));
-    parts.push(m[1] !== undefined ? <strong key={k++}>{m[1]}</strong> : <code key={k++} className="k-code">{m[2]}</code>);
+    if (m[1] !== undefined) parts.push(<strong key={k++}>{m[1]}</strong>);
+    else if (m[2] !== undefined) parts.push(<code key={k++} className="k-code">{m[2]}</code>);
+    else if (safeHref(m[4])) parts.push(<a key={k++} className="k-link" href={m[4]} {...(m[4].startsWith("https://") ? { target: "_blank", rel: "noreferrer" } : {})}>{m[3]}</a>);
+    else parts.push(m[0]);
     last = m.index + m[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));
@@ -110,6 +118,8 @@ export const MARKDOWN_CSS = `
 h3.k-md-h{font-size:16px}h4.k-md-h{font-size:15px}h5.k-md-h{font-size:14px;color:var(--c-secondary)}
 .k-md-h:first-child{margin-top:0}
 .k-md strong{font-weight:650;color:var(--c-text)}
+.k-link{color:var(--c-accent);text-decoration:underline;text-underline-offset:2px}
+.k-link:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px;border-radius:2px}
 .k-code{font-family:var(--c-mono,ui-monospace,monospace);font-size:12.5px;padding:1px 5px;border-radius:4px;background:var(--c-input);border:1px solid var(--c-line)}
 .k-md-pre{margin:0;padding:10px 12px;border-radius:6px;background:var(--c-input);border:1px solid var(--c-line);font-family:var(--c-mono,ui-monospace,monospace);font-size:12.5px;white-space:pre-wrap;overflow-wrap:anywhere}
 .k-md-table{overflow-x:auto;max-width:100%;border:1px solid var(--c-line);border-radius:6px}

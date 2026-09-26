@@ -60,6 +60,7 @@ describe("chief-of-staff rules", () => {
   it("stage follows plan → approval → working → reviewing → reported", () => {
     const base = { status: "in_progress", pendingConfirmation: false, hasPlan: false, hasReport: false, tasks: { total: 0, open: 0 } };
     expect(stageOf(base)).toBe("planning");
+    expect(stageOf({ ...base, hasPlan: true, approved: true })).toBe("working"); // approved, subtasks not created yet
     expect(stageOf({ ...base, hasPlan: true, pendingConfirmation: true, status: "in_review" })).toBe("approval");
     expect(stageOf({ ...base, hasPlan: true, tasks: { total: 3, open: 2 } })).toBe("working");
     expect(stageOf({ ...base, hasPlan: true, tasks: { total: 3, open: 0 } })).toBe("reviewing");
@@ -167,6 +168,12 @@ describe("single window", () => {
     const roster = await control.roster(COMPANY);
     expect(roster.chiefId).toBe(`paperclip:${CHIEF}`);
     expect(roster.singleWindow).toBe(true);
+  });
+
+  it("sessions for a non-Hermes selection (no bot target) is an empty list, not an error", async () => {
+    const { harness } = setup();
+    await expect(harness.getData("sessions", { companyId: COMPANY })).resolves.toEqual({ sessions: [] });
+    await expect(harness.getData("sessions", { companyId: COMPANY, kind: "paperclip", ref: WORKER })).resolves.toEqual({ sessions: [] });
   });
 
   it("can be switched off in plugin config", async () => {

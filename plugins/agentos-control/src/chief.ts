@@ -29,13 +29,15 @@ export function findChief<T extends AgentLike>(agents: T[]): T | null {
 
 export function stageOf(input: {
   status: string; pendingConfirmation: boolean; hasPlan: boolean; hasReport: boolean; tasks: { total: number; open: number };
+  /** A plan confirmation was accepted: the chief is now organising / delegating even before subtasks exist. */
+  approved?: boolean;
 }): Stage {
   if (input.status === "cancelled") return "cancelled";
   if (input.status === "done") return "reported";
   if (input.pendingConfirmation) return "approval";
   if (input.status === "blocked") return "blocked";
   if (input.tasks.total > 0) return input.tasks.open > 0 ? "working" : "reviewing";
-  return "planning";
+  return input.approved ? "working" : "planning";
 }
 
 function text(value: unknown, label: string, max: number) {
@@ -80,9 +82,10 @@ export function createChief(ctx: PluginContext) {
       ctx.issues.getSubtree(issueId, companyId, { includeRoot: false, includeAssignees: true }),
     ]);
     const pending = interactions.filter((i) => i.status === "pending");
+    const approved = interactions.some((i) => i.kind === "request_confirmation" && i.status === "accepted");
     const tasks = tree.issues;
     return {
-      interactions, pending, plan, report, tree,
+      interactions, pending, approved, plan, report, tree,
       counts: { total: tasks.length, open: tasks.filter((t) => OPEN.has(t.status)).length, done: tasks.filter((t) => t.status === "done").length },
     };
   }
@@ -96,7 +99,7 @@ export function createChief(ctx: PluginContext) {
       return {
         id: issue.id, identifier: issue.identifier, title: issue.title, status: issue.status,
         createdAt: iso(issue.createdAt), updatedAt: iso(issue.updatedAt),
-        stage: stageOf({ status: issue.status, pendingConfirmation: f.pending.some((i) => i.kind === "request_confirmation"), hasPlan: !!f.plan, hasReport: !!f.report, tasks: f.counts }),
+        stage: stageOf({ status: issue.status, pendingConfirmation: f.pending.some((i) => i.kind === "request_confirmation"), hasPlan: !!f.plan, hasReport: !!f.report, tasks: f.counts, approved: f.approved }),
         tasks: f.counts,
         waitingOnUser: f.pending.length > 0,
       };
@@ -143,7 +146,7 @@ export function createChief(ctx: PluginContext) {
       request: {
         id: issue.id, identifier: issue.identifier, title: issue.title, description: issue.description ?? "", status: issue.status,
         createdAt: iso(issue.createdAt),
-        stage: stageOf({ status: issue.status, pendingConfirmation: f.pending.some((i) => i.kind === "request_confirmation"), hasPlan: !!f.plan, hasReport: !!f.report, tasks: f.counts }),
+        stage: stageOf({ status: issue.status, pendingConfirmation: f.pending.some((i) => i.kind === "request_confirmation"), hasPlan: !!f.plan, hasReport: !!f.report, tasks: f.counts, approved: f.approved }),
       },
       plan: f.plan ? { body: f.plan.body.slice(0, 40000), updatedAt: iso((f.plan as { updatedAt?: unknown }).updatedAt) } : null,
       report: f.report ? { body: f.report.body.slice(0, 40000), updatedAt: iso((f.report as { updatedAt?: unknown }).updatedAt) } : null,

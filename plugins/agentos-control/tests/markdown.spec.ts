@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseBlocks } from "../src/ui/markdown.js";
+import { parseBlocks, safeHref } from "../src/ui/markdown.js";
 
 describe("chief markdown", () => {
   it("parses the chief's plan shapes: headings, lists, tables, paragraphs, code", () => {
@@ -33,5 +33,10 @@ describe("chief markdown", () => {
   it("keeps a lone pipe line or hashtag text as plain paragraph text", () => {
     expect(parseBlocks("#가을 #발효 #원데이")).toEqual([{ kind: "paragraph", text: "#가을 #발효 #원데이" }]);
     expect(parseBlocks("| 표 아님")).toEqual([{ kind: "paragraph", text: "| 표 아님" }]);
+  });
+
+  it("only same-site paths and https links become links", () => {
+    for (const ok of ["/HER/issues/HER-5", "https://example.com/a"]) expect(safeHref(ok), ok).toBe(true);
+    for (const bad of ["javascript:alert(1)", "//evil.example", "data:text/html,x", "http://x", "/a b"]) expect(safeHref(bad), bad).toBe(false);
   });
 });

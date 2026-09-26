@@ -447,6 +447,9 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
 
   /** A bot's resumable sessions (1:1 Bot Chat and group-room threads), newest activity first. */
   async function sessions(params: Record<string, unknown>) {
+    // The host always fetches this key, even for a Paperclip agent where the UI passes no bot target; only Hermes
+    // bots have sessions, so anything else is an empty list rather than a 502.
+    if (params.kind !== "hermes") return { sessions: [] };
     const conv = conversation(conversationKey(params.kind, params.ref));
     if (conv.kind !== "hermes") return { sessions: [] };
     const data = await (await bffFor(companyOf(params))).bots();
