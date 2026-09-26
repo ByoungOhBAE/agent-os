@@ -79,8 +79,9 @@ PC를 꺼도 돌아가게 하려면 **화면이 아니라 "일하는 쪽"까지 
   - Paperclip 허용 주소에 `pilt.tail964787.ts.net` 추가(설정 백업 `~/.paperclip/backups/config.json.before-tailnet-*`), 모드는 `local_trusted` 그대로.
   - PC 전원 연결 시 절전·최대 절전 끔(이전 값: 60분).
   - 점검: `node scripts/check-remote-access.mjs` / `--power`.
-- **나중: 방식 B** — 실행 기록 `docs/online-migration-runbook-b.md`. 마지막 단계에서 A를 해제한다.
+- ~~나중: 방식 B~~ → **취소 (2026-09-27).** Tailscale로 어디서든 접속되므로 서버 이사는 하지 않는다. 기록 `docs/online-migration-runbook-b.md`는 참고용으로 보존.
+  - 남은 약점: PC가 꺼지거나 재시작 후 **로그인 전**까지는 대시보드·BFF·Hermes 게이트웨이가 멈춘다(모두 Windows 로그인 시 시작 폴더에서 켜짐. 자동 로그인·부팅 시 작업 없음 — 2026-09-27 확인). Tailscale은 서비스라 부팅 시 자동으로 켜진다.
 
 ## 결정 전에는 하지 않는 것
 
-서버 계약, 데이터 이전, 인터넷 공개, 보안 모드 변경은 사용자가 방식 B 실행을 정하기 전까지 하지 않습니다.
+서버 계약, 데이터 이전, 인터넷 공개, 보안 모드 변경은 하지 않습니다(방식 B 취소).
