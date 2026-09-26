@@ -115,13 +115,36 @@ function checkDoc(file) {
   if (facts.paperclipDeploymentMode && !text.includes(String(facts.paperclipDeploymentMode))) fails.push("doc does not state measured deployment mode");
 }
 
+function checkRunbook(file) {
+  const text = readFileSync(path.resolve(root, file), "utf8");
+  const need = [
+    ["사전 결정", /## 1\. 시작 전에/],
+    ["단계", /## 2\. 단계/],
+    ["데이터 개수 대조", /개수 대조/],
+    ["되돌리기", /## 3\. 되돌리기/],
+    ["방식 A 해제", /tailscale serve reset/],
+    ["local_trusted 루프백 제약", /local_trusted.*127\.0\.0\.1|loopback host binding/],
+    ["public은 외부 Postgres 필요", /DATABASE_URL/],
+    ["BFF 같은 서버", /127\.0\.0\.1:4200/],
+    ["HERMES_HOME", /HERMES_HOME/],
+    ["비밀 파일 미복사", /auth\.json/],
+  ];
+  for (const [label, re] of need) if (!re.test(text)) fails.push(`runbook lacks ${label}`);
+  // Every repo path the runbook cites must exist.
+  for (const m of text.matchAll(/`((?:scripts|server|plugins|docs)\/[^`*<\s]+)`/g)) {
+    if (!existsSync(path.resolve(root, m[1]))) fails.push(`runbook cites missing ${m[1]}`);
+  }
+}
+
 await measure();
 const docIdx = process.argv.indexOf("--doc");
+const runbookIdx = process.argv.indexOf("--runbook");
 for (const [k, v] of Object.entries(facts)) console.log(`${k}: ${JSON.stringify(v)}`);
 if (docIdx > 0) checkDoc(process.argv[docIdx + 1]);
+if (runbookIdx > 0) checkRunbook(process.argv[runbookIdx + 1]);
 if (fails.length) {
   console.log("FAILS " + JSON.stringify(fails, null, 1));
   process.exitCode = 1;
 } else {
-  console.log(docIdx > 0 ? "PLAN_DOC_OK" : "ONLINE_FACTS_OK");
+  console.log(runbookIdx > 0 ? "RUNBOOK_OK" : docIdx > 0 ? "PLAN_DOC_OK" : "ONLINE_FACTS_OK");
 }
