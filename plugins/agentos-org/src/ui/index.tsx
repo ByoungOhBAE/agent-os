@@ -3,6 +3,19 @@ import { useHostContext, useHostNavigation, usePluginAction, type PluginPageProp
 import { ICONS, type Icon, type OrgOp } from "../org.js";
 
 type Member = { id: string; kind: "paperclip" | "hermes"; ref: string; name: string; runtime: string; model: string | null; status: string };
+
+/** Host signature seal (styled by the host .agentos-seal); lamp mirrors the Paperclip status. */
+function lampOf(status: string): "on" | "hold" | "fault" | "off" {
+  if (status === "running") return "on";
+  if (status === "paused" || status === "pending_approval") return "hold";
+  if (status === "error") return "fault";
+  return "off";
+}
+function Seal({ name, status }: { name: string; status: string }) {
+  const t = name.trim();
+  const glyph = (t.match(/[A-Za-z0-9]+|[^sp{P}]/u)?.[0] ?? "?").slice(0, /[A-Za-z0-9]/.test(t[0] ?? "") ? 2 : 1).toUpperCase();
+  return <span className="agentos-seal" data-agentos-seal="" data-lamp={lampOf(status)} aria-hidden="true">{glyph}</span>;
+}
 type ViewMember = Member & { title: string | null; duty: string | null; lead: boolean; missing: boolean };
 type Department = { id: string; name: string; icon: Icon; reportsTo: "ceo" | "chief"; members: ViewMember[] };
 type View = {
@@ -129,7 +142,7 @@ export function OrgChartPage(_props: PluginPageProps) {
     <div className="o-root"><style>{CSS}</style>
       <header className="o-top">
         <div>
-          <p className="o-eyebrow">Organization</p>
+          <p className="o-eyebrow">AgentOS · 조직</p>
           <h1 className="o-title">조직 배치도</h1>
           <p className="o-sub">
             {can ? `${view.viewer} · 편집 가능` : `${view.viewer} · 읽기 전용 (CEO와 비서실장만 편집)`}
@@ -160,7 +173,7 @@ export function OrgChartPage(_props: PluginPageProps) {
         <span className="o-stem" aria-hidden="true" />
         <div className="o-chief-row">
           <div className={`o-card o-card-chief${view.chief ? "" : " o-card-vacant"}`}>
-            <span className="o-avatar o-avatar-accent" aria-hidden="true"><Glyph icon="compass" /></span>
+            {view.chief ? <Seal name={view.chief.name} status={view.chief.status} /> : <span className="o-avatar o-avatar-accent" aria-hidden="true"><Glyph icon="compass" /></span>}
             <div className="o-card-body">
               <p className="o-role">비서실장</p>
               <p className="o-name">{view.chief ? view.chief.name : view.chiefMissing ? "연결 끊김" : "미지정"}</p>
@@ -202,6 +215,7 @@ export function OrgChartPage(_props: PluginPageProps) {
           <ul className="o-bench-list">
             {view.unassigned.map((m) => (
               <li key={m.id} className="o-bench-item">
+                <Seal name={m.name} status={m.status} />
                 <div className="o-member-main">
                   <span className="o-member-name">{m.name}</span>
                   <Chip member={m} />
@@ -251,6 +265,7 @@ function DepartmentGroup({ title, departments, can, busy, onEdit }: { title: str
                       onClick={() => onEdit({ type: "member", id: m.id })}
                       aria-label={can ? `${m.name} 편집` : undefined}
                     >
+                      <Seal name={m.name} status={m.status} />
                       <span className="o-member-main">
                         <span className="o-member-name">
                           {m.lead && <span className="o-lead">부서장</span>}
@@ -397,7 +412,12 @@ export function OrgChartSidebarLink() {
 }
 
 const CSS = `
-.o-root{--o-ink:#101716;--o-panel:#161e1c;--o-raised:#1b2522;--o-input:#0e1413;--o-line:rgba(216,232,213,.11);--o-line-strong:rgba(216,232,213,.2);
+.o-root .agentos-seal{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:10px;background:var(--agentos-paper-hi,#1f2a27);border:1px solid var(--agentos-edge-strong,rgba(216,232,213,.2));color:var(--agentos-ink-3,#829185);font-size:14px;font-weight:700;line-height:1}
+.o-root .agentos-seal[data-size="sm"]{width:26px;height:26px;border-radius:8px;font-size:12px}
+.o-root .agentos-seal[data-lamp="on"]{color:var(--agentos-lamp,#bdd1aa);border-color:rgba(189,209,170,.4);box-shadow:0 0 10px -2px var(--agentos-lamp-glow,rgba(189,209,170,.35))}
+.o-root .agentos-seal[data-lamp="hold"]{color:var(--agentos-brass,#d6bd91)}
+.o-root .agentos-seal[data-lamp="fault"]{color:var(--agentos-fault,#d7a29b)}
+.o-root{--o-ink:#101716;--o-panel:var(--agentos-desk,#161e1c);--o-raised:var(--agentos-paper,#1b2522);--o-input:#0e1413;--o-line:rgba(216,232,213,.11);--o-line-strong:rgba(216,232,213,.2);
 --o-text:#e8eee7;--o-secondary:#b3beb2;--o-muted:#829185;--o-accent:#bdd1aa;--o-warn:#d6bd91;--o-error:#d7a29b;--o-codex:#9fc7c0;--o-hermes:#c9b8e0;
 color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antialiased;padding-bottom:40px;word-break:keep-all;overflow-wrap:anywhere}
 .o-root *{box-sizing:border-box}
@@ -405,7 +425,7 @@ color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .o-bad{color:var(--o-error)}.o-ok{color:var(--o-accent)}
 .o-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .o-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--o-line)}
-.o-eyebrow{margin:0;color:var(--o-accent);font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
+.o-eyebrow{margin:0;color:var(--agentos-ink-3,var(--o-muted));font-size:11px;font-weight:650;letter-spacing:.08em}
 .o-title{margin:6px 0 4px;font-size:24px;font-weight:650;letter-spacing:-.01em}
 .o-sub{margin:0;font-size:12px;color:var(--o-secondary)}
 .o-counts{display:flex;gap:8px;flex-wrap:wrap}
@@ -416,7 +436,7 @@ color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .o-apex{display:flex;flex-direction:column;align-items:center;gap:6px}
 .o-link-label{font-size:11px;color:var(--o-muted)}
 .o-stem{width:1px;height:24px;background:var(--o-line-strong)}
-.o-card{display:flex;align-items:center;gap:14px;min-width:260px;max-width:100%;padding:14px 16px;border:1px solid var(--o-line);background:var(--o-panel);border-radius:10px}
+.o-card{display:flex;align-items:center;gap:14px;min-width:260px;max-width:100%;padding:14px 16px;border:1px solid var(--o-line);background:var(--o-panel);border-radius:12px;box-shadow:var(--agentos-sheen,none)}
 .o-card-ceo{min-width:200px}
 .o-card-chief{border-color:rgba(189,209,170,.35);box-shadow:inset 0 2px 0 var(--o-accent)}
 .o-card-vacant{border-style:dashed;box-shadow:none}
@@ -433,7 +453,7 @@ color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .o-group::before{content:"";position:absolute;left:50%;top:-28px;width:1px;height:18px;background:var(--o-line-strong)}
 .o-group-label{margin:0 0 10px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--o-muted);font-weight:680}
 .o-deps{list-style:none;margin:0;padding:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;border-top:1px solid var(--o-line-strong)}
-.o-dep{border:1px solid var(--o-line);background:var(--o-panel);border-radius:10px;display:flex;flex-direction:column;min-width:0}
+.o-dep{border:1px solid var(--o-line);background:var(--o-panel);border-radius:12px;box-shadow:var(--agentos-sheen,none);display:flex;flex-direction:column;min-width:0}
 .o-dep-head{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--o-line)}
 .o-dep-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:8px;background:rgba(189,209,170,.1);color:var(--o-accent);flex:none}
 .o-dep-title{flex:1;min-width:0}
@@ -444,7 +464,7 @@ color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .o-member{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:52px;padding:8px 10px;border:0;border-radius:6px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .o-member:hover:not(:disabled){background:var(--o-raised)}
 .o-member:disabled{cursor:default;opacity:1}
-.o-member-main{display:grid;gap:2px;min-width:0;margin:0}
+.o-member-main{display:grid;gap:2px;min-width:0;margin:0;flex:1}
 .o-member-name{font-size:14px;font-weight:600;overflow-wrap:anywhere;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .o-member-title{font-size:12px;color:var(--o-secondary);overflow-wrap:anywhere}
 .o-member-duty{font-size:11px;color:var(--o-muted);overflow-wrap:anywhere}

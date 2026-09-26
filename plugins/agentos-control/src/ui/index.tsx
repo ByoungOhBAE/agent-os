@@ -26,6 +26,15 @@ const STATE_LABEL: Record<AgentState, string> = {
 const STATE_ORDER: AgentState[] = ["working", "waiting", "error", "idle", "paused", "unknown"];
 const CHOICE_LABEL: Record<ApprovalChoice, string> = { once: "이번만 허용", session: "이 세션 허용", always: "항상 허용", deny: "거절" };
 
+/** Host signature seal (styled by the host's .agentos-seal); lamp mirrors the agent state. */
+const LAMP: Record<AgentState, "on" | "hold" | "fault" | "off"> = {
+  working: "on", waiting: "hold", error: "fault", idle: "off", paused: "hold", unknown: "off",
+};
+function Seal({ name, state, size }: { name: string; state: AgentState; size?: "sm" }) {
+  const glyph = (name.trim().match(/[A-Za-z0-9]+|[^\s\p{P}]/u)?.[0] ?? "?").slice(0, /[A-Za-z0-9]/.test(name.trim()[0] ?? "") ? 2 : 1).toUpperCase();
+  return <span className="agentos-seal" data-agentos-seal="" data-lamp={LAMP[state]} data-size={size} aria-hidden="true">{glyph}</span>;
+}
+
 function useInterval(fn: () => void, ms: number) {
   const ref = useRef(fn);
   ref.current = fn;
@@ -116,7 +125,7 @@ function RosterPanel({ entries, loading, error, selected, onSelect }: {
             {list.map((e) => (
               <li key={e.id}>
                 <button type="button" className="c-agent" aria-current={selected === e.id ? "true" : undefined} onClick={() => onSelect(e.id)}>
-                  <span className={`c-dot c-dot-${e.state}`} aria-hidden="true" />
+                  <Seal name={e.name} state={e.state} size="sm" />
                   <span className="c-agent-main">
                     <span className="c-agent-name">{e.name}</span>
                     <span className="c-agent-meta">{e.runtime}{e.capabilities.chat ? "" : " · 지시 불가"}</span>
@@ -226,7 +235,7 @@ function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEn
       <header className="c-conv-head">
         <button type="button" className="c-back" onClick={onBack} aria-label="명단으로">←</button>
         <div className="c-conv-id">
-          <h2 className="c-conv-name"><span className={`c-dot c-dot-${running ? "working" : entry.state}`} aria-hidden="true" />{entry.name}</h2>
+          <h2 className="c-conv-name"><Seal name={entry.name} state={running ? "working" : entry.state} />{entry.name}</h2>
           <p className="c-agent-meta">{entry.runtime} · {running ? "작업중" : STATE_LABEL[entry.state]}</p>
         </div>
         <div className="c-conv-tools">
@@ -364,7 +373,12 @@ export function ControlSidebarLink() {
 }
 
 const CSS = `
-.c-root{--c-ink:#101716;--c-panel:#161e1c;--c-raised:#1b2522;--c-input:#0e1413;--c-line:rgba(216,232,213,.11);--c-line-strong:rgba(216,232,213,.2);
+.c-root .agentos-seal{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:10px;background:var(--agentos-paper-hi,#1f2a27);border:1px solid var(--agentos-edge-strong,rgba(216,232,213,.2));color:var(--agentos-ink-3,#829185);font-size:14px;font-weight:700;line-height:1}
+.c-root .agentos-seal[data-size="sm"]{width:26px;height:26px;border-radius:8px;font-size:12px}
+.c-root .agentos-seal[data-lamp="on"]{color:var(--agentos-lamp,#bdd1aa);border-color:rgba(189,209,170,.4);box-shadow:0 0 10px -2px var(--agentos-lamp-glow,rgba(189,209,170,.35))}
+.c-root .agentos-seal[data-lamp="hold"]{color:var(--agentos-brass,#d6bd91)}
+.c-root .agentos-seal[data-lamp="fault"]{color:var(--agentos-fault,#d7a29b)}
+.c-root{--c-ink:#101716;--c-panel:var(--agentos-desk,#161e1c);--c-raised:var(--agentos-paper,#1b2522);--c-input:#0e1413;--c-line:rgba(216,232,213,.11);--c-line-strong:rgba(216,232,213,.2);
 --c-text:#e8eee7;--c-secondary:#b3beb2;--c-muted:#829185;--c-accent:#bdd1aa;--c-warn:#d6bd91;--c-error:#d7a29b;
 color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antialiased}
 .c-root *{box-sizing:border-box}
@@ -373,17 +387,17 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .c-bad{color:var(--c-error)}
 .c-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .c-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--c-line)}
-.c-eyebrow{color:var(--c-accent);font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
+.c-eyebrow{color:var(--agentos-ink-3,var(--c-muted));font-size:11px;font-weight:650;letter-spacing:.08em}
 .c-title{margin:6px 0 0;font-size:24px;font-weight:650;letter-spacing:-.01em}
 .c-source{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:0;font-size:12px}
 .c-src-ok::before,.c-src-bad::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .c-src-ok{color:var(--c-secondary)}.c-src-ok::before{background:var(--c-accent)}
 .c-src-bad{color:var(--c-error)}.c-src-bad::before{background:var(--c-error)}
 .c-body{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;margin-top:16px;height:calc(100dvh - 240px);min-height:520px}
-.c-roster{border:1px solid var(--c-line);background:var(--c-panel);border-radius:8px;overflow:auto;min-height:0}
+.c-roster{border:1px solid var(--c-line);background:var(--c-panel);border-radius:12px;box-shadow:var(--agentos-sheen,none);overflow:auto;min-height:0}
 .c-roster-head{display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px;border-bottom:1px solid var(--c-line)}
 .c-count{font-size:13px;color:var(--c-secondary)}.c-count b{font-size:20px;color:var(--c-accent);margin-right:6px;font-weight:650}
-.c-group-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--c-muted);font-weight:680;padding:12px 16px 6px}
+.c-group-label{font-size:11px;letter-spacing:.06em;color:var(--c-muted);font-weight:680;padding:12px 16px 6px}
 .c-list{list-style:none;margin:0;padding:0 8px 8px}
 .c-agent{display:flex;gap:10px;align-items:center;width:100%;min-height:48px;padding:8px 10px;border:0;border-radius:6px;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
 .c-agent:hover{background:var(--c-raised)}
@@ -398,7 +412,7 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .c-dot-unknown{background:transparent;box-shadow:inset 0 0 0 1.5px var(--c-line-strong)}
 @keyframes c-pulse{0%{box-shadow:0 0 0 0 rgba(189,209,170,.45)}70%{box-shadow:0 0 0 7px rgba(189,209,170,0)}100%{box-shadow:0 0 0 0 rgba(189,209,170,0)}}
 @media (prefers-reduced-motion:reduce){.c-dot-working{animation:none}}
-.c-conv{display:flex;flex-direction:column;border:1px solid var(--c-line);background:var(--c-panel);border-radius:8px;min-width:0;min-height:0;overflow:hidden}
+.c-conv{display:flex;flex-direction:column;border:1px solid var(--c-line);background:var(--c-panel);border-radius:12px;box-shadow:var(--agentos-sheen,none);min-width:0;min-height:0;overflow:hidden}
 .c-conv-empty{justify-content:center;align-items:flex-start;padding:32px}
 .c-empty-title{margin:0 0 6px;font-size:16px;font-weight:600}
 .c-conv-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--c-line)}
