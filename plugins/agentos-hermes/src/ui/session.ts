@@ -1,9 +1,17 @@
 import { sessionPattern } from "../bff.js";
 
 /** 플러그인 페이지 내부 경로. 세션 ID는 BFF와 같은 형식만 허용한다. */
-export function sessionHref(id: string | null): string {
+export function sessionHref(id: string | null, profile?: string): string {
   if (id === null || !sessionPattern.test(id)) return "/hermes";
-  return `/hermes?${new URLSearchParams({ session: id })}`;
+  const params = new URLSearchParams({ session: id });
+  if (profile && profile !== "default" && /^[\w.-]{1,64}$/.test(profile)) params.set("profile", profile);
+  return `/hermes?${params}`;
+}
+
+/** 봇 채팅 링크가 가리키는 프로필(`?profile=`). 형식이 맞지 않으면 무시한다. */
+export function selectedProfile(search: string): string | null {
+  const profile = new URLSearchParams(search).get("profile");
+  return profile && /^[\w.-]{1,64}$/.test(profile) ? profile : null;
 }
 
 /** 호스트 URL의 `?session=`을 읽고, 형식이 맞지 않으면 무시한다. */

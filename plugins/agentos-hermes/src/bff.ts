@@ -1,4 +1,4 @@
-type View = "sessions" | "search" | "detail" | "messages" | "mcp" | "graph" | "runtime";
+type View = "sessions" | "search" | "detail" | "messages" | "mcp" | "graph" | "runtime" | "bots";
 const ORIGIN = "http://127.0.0.1:4200";
 const profilePattern = /^[\w.-]{1,64}$/;
 /** `server/index.mjs` param()과 같은 세션 ID 규칙. */
@@ -32,10 +32,11 @@ export function routeFor(view: string, profile: string, query = ""): string {
     sessions: "/api/hermes/sessions", search: "/api/hermes/sessions/search",
     detail: "/api/hermes/sessions/", messages: "/api/hermes/sessions/",
     mcp: "/api/hermes/mcp/servers", graph: "/api/hermes/learning/graph", runtime: "/api/agents",
+    bots: "/api/hermes/bots",
   };
   if (!Object.hasOwn(paths, view)) throw new Error("허용되지 않은 읽기 요청입니다.");
   let path = paths[view as View];
-  if (view === "runtime") return path;
+  if (view === "runtime" || view === "bots") return path;
   const params = new URLSearchParams({ profile });
   if (view === "sessions") params.set("limit", "40");
   if (view === "search") {
@@ -65,6 +66,17 @@ function projectMessage(m: Record<string, unknown>) {
 
 function project(view: View, value: unknown): unknown {
   const payload = record(value);
+  if (view === "bots") return {
+    rooms: list(payload.rooms, 50).map(r => ({ id: text(r.id, 64), name: redact(r.name, 120), members: (Array.isArray(r.members) ? r.members : []).filter(m => typeof m === "string" && profilePattern.test(m)).slice(0, 30) })),
+    bots: list(payload.bots, 60).filter(b => typeof b.profile === "string" && profilePattern.test(b.profile)).map(b => ({
+      profile: b.profile as string, title: text(b.title, 80) || null,
+      groups: (Array.isArray(b.groups) ? b.groups : []).filter(g => typeof g === "string").slice(0, 20).map(g => text(g, 120)),
+      sessions: list(b.sessions, 60).filter(s => typeof s.id === "string" && sessionPattern.test(s.id)).map(s => ({
+        id: s.id as string, kind: s.kind === "group" ? "group" : "direct", room_name: redact(s.room_name, 120) || null,
+        thread_label: redact(s.thread_label, 120) || null, message_count: count(s.message_count), last_active: time(s.last_active), archived: s.archived === true,
+      })),
+    })),
+  };
   if (view === "mcp") return { profile: text(payload.profile, 64), servers: list(payload.servers, 300).map(s => ({ name: text(s.name, 80), transport: text(s.transport, 16), enabled: s.enabled === true, source: text(s.source, 16) })) };
   if (view === "sessions") return { total: Number.isSafeInteger(payload.total) ? payload.total : null, sessions: list(payload.sessions, 40).map(s => ({ id: text(s.id, 180), title: redact(s.title, 180), profile: text(s.profile, 64), source: text(s.source, 80), model: text(s.model, 80), last_active: time(s.last_active) })) };
   if (view === "search") return { coverage: "selected-profile-id-and-content", results: list(payload.results, 8).map(s => ({ session_id: text(s.session_id, 180), title: redact(s.title, 180), profile: text(s.profile, 64), source: text(s.source, 80), last_active: time(s.last_active) })) };

@@ -10,6 +10,7 @@ const plugin = definePlugin({
     ctx.data.register("hermes-mcp", async p => readBff("mcp", String(p.profile ?? "default")));
     ctx.data.register("hermes-graph", async p => readBff("graph", String(p.profile ?? "default")));
     ctx.data.register("hermes-runtime", async () => readBff("runtime", "default"));
+    ctx.data.register("hermes-bots", async () => readBff("bots", "default"));
   },
 });
 export default plugin;

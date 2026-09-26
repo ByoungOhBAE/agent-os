@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { codexRequest } from "./codex.mjs";
 import { readJsonCli } from "./cli-read.mjs";
+import { readHermesBots } from "./hermes-bots.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
@@ -463,6 +464,15 @@ async function route(req, res, url) {
       truncated: messages.length > 150,
       messages: messages.slice(-150),
     });
+  }
+  if (pathname === "/api/hermes/bots" && method === "GET") {
+    let result;
+    try {
+      result = await readHermesBots();
+    } catch {
+      throw new HttpError(503, "Hermes 봇 채팅 목록을 읽을 수 없습니다.");
+    }
+    return json(res, 200, result);
   }
   if (pathname === "/api/hermes/profiles" && method === "GET") {
     const result = await dashboardRequest("/api/profiles");

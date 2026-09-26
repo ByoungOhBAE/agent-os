@@ -3,7 +3,7 @@ import { createTestHarness } from "@paperclipai/plugin-sdk/testing";
 import manifest from "../src/manifest.js";
 import plugin from "../src/worker.js";
 import { readBff, redact, routeFor } from "../src/bff.js";
-import { billingLabel, costLabel, selectedSession, sessionHref } from "../src/ui/session.js";
+import { billingLabel, costLabel, selectedProfile, selectedSession, sessionHref } from "../src/ui/session.js";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -35,6 +35,31 @@ describe("Hermes 읽기 전용", () => {
     expect(routeFor("detail", "default", "session:123")).toBe("/api/hermes/sessions/session%3A123?profile=default");
     expect(routeFor("messages", "default", "session:123")).toBe("/api/hermes/sessions/session%3A123/messages?profile=default");
     for (const id of ["", "../health", "http://evil.test", "a?profile=other"]) expect(() => routeFor("detail", "default", id)).toThrow();
+  });
+  it("봇 채팅 목록은 고정 경로로 읽고 허용 필드만 투영한다", async () => {
+    expect(routeFor("bots", "default")).toBe("/api/hermes/bots");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      rooms: [{ id: "room-1", name: "개발방", members: ["dev", "../evil"], secret: "HIDDEN" }],
+      bots: [
+        { profile: "dev", title: "개발자", groups: ["개발방"], cwd: "C:/HIDDEN", sessions: [
+          { id: "20260926_1", kind: "group", room_name: "개발방", thread_label: "배포 token=abc123", message_count: 5, last_active: 1790000000, archived: false, system_prompt: "HIDDEN" },
+          { id: "../bad", kind: "direct", message_count: 1 },
+        ] },
+        { profile: "bad/profile", title: "x", sessions: [] },
+      ],
+    }))));
+    const result = await readBff("bots", "default");
+    expect(result).toMatchObject({ status: "available", data: {
+      rooms: [{ id: "room-1", name: "개발방", members: ["dev"] }],
+      bots: [{ profile: "dev", title: "개발자", groups: ["개발방"], sessions: [{ id: "20260926_1", kind: "group", thread_label: "배포 token=[가림]", message_count: 5 }] }],
+    } });
+    expect(JSON.stringify(result)).not.toMatch(/HIDDEN|abc123|\.\.\/|bad\/profile/);
+  });
+  it("봇 채팅 링크는 봇 프로필을 URL에 싣고 잘못된 프로필은 무시한다", () => {
+    expect(sessionHref("20260926_1", "dev")).toBe("/hermes?session=20260926_1&profile=dev");
+    expect(sessionHref("20260926_1", "default")).toBe("/hermes?session=20260926_1");
+    expect(selectedProfile("?session=x&profile=dev")).toBe("dev");
+    expect(selectedProfile("?profile=../etc")).toBeNull();
   });
   it("상세·메시지는 허용 필드만 투영하고 추론·시스템 프롬프트·도구 출력을 넘기지 않는다", async () => {
     const responses: Record<string, object> = {
