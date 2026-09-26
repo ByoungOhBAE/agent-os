@@ -455,6 +455,7 @@ export const ROOMS_CSS = `
 .c-tab:hover{color:var(--c-text)}
 .c-tab:focus-visible,.r-member:focus-visible,.r-input:focus-visible,.r-pick:focus-within{outline:2px solid var(--c-accent);outline-offset:2px}
 .r-new{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--c-line)}
+.c-conv-name,.c-agent-name{word-break:keep-all;overflow-wrap:anywhere}
 .r-new .c-btn{flex:1}
 .r-pad{padding:12px 16px}
 .r-form{display:grid;gap:16px;padding:16px;overflow:auto;align-content:start;flex:1;min-height:0}
