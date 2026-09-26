@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { codexRequest } from "./codex.mjs";
 import { readJsonCli } from "./cli-read.mjs";
 import { readHermesBots } from "./hermes-bots.mjs";
+import { createControlRoutes } from "./control.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
@@ -185,6 +186,22 @@ function param(value, label) {
   return value;
 }
 
+const paperclip = new URL(process.env.PAPERCLIP_API_URL || "http://127.0.0.1:3100");
+if (paperclip.protocol !== "http:" || !["127.0.0.1", "localhost", "[::1]"].includes(paperclip.hostname))
+  throw new Error("Paperclip endpoint must use loopback HTTP");
+const control = createControlRoutes({
+  apiRequest,
+  hasKey: (profile) => {
+    const key = profile === "default" ? apiKey : profileKeys[profile];
+    return typeof key === "string" && key.length > 0;
+  },
+  body,
+  param,
+  json,
+  HttpError,
+  paperclip,
+});
+
 function detectCommand(name) {
   const extensions =
     process.platform === "win32" ? ["", ".exe", ".cmd", ".bat", ".ps1"] : [""];
@@ -285,6 +302,7 @@ const agents = [
 async function route(req, res, url) {
   const pathname = url.pathname;
   const method = req.method || "GET";
+  if (await control(req, res, url)) return;
   if (pathname === "/api/status" && method === "GET") {
     const profile = param(
       url.searchParams.get("profile") || "default",

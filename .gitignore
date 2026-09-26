@@ -9,3 +9,6 @@ test-results/
 playwright-report/
 # Isolated Paperclip source worktree (committed in its own Git repository).
 paperclip-host-ui/
+
+# Local completion ledgers
+.unlazy/
