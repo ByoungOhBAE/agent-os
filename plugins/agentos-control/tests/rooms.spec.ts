@@ -44,6 +44,12 @@ describe("group chat pass-through", () => {
     expect(calls).toEqual([]);
   });
 
+  it("desktop rooms pass through read-only", async () => {
+    const { calls, rooms } = recorder({ "GET /api/rooms/desktop": { rooms: [{ id: "d1" }], checkedAt: 1 } });
+    expect(await rooms.data.desktopRooms({ companyId: COMPANY })).toEqual({ rooms: [{ id: "d1" }], checkedAt: 1 });
+    expect(calls).toEqual([{ url: "/api/rooms/desktop", method: "GET", body: undefined }]);
+  });
+
   it("sends exact bodies to the room routes", async () => {
     const { calls, rooms } = recorder();
     await rooms.actions.roomCreate({ companyId: COMPANY, name: " 개발방 ", members: ["default", "uac1c-ubc1c-uc790"] });

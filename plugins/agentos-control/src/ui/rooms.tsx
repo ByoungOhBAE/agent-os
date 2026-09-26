@@ -35,21 +35,41 @@ function uid() {
   return `ui-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-type Pane = { kind: "room"; id: string } | { kind: "new-room" } | { kind: "new-bot" } | null;
+type Pane = { kind: "room"; id: string } | { kind: "desktop"; id: string } | { kind: "new-room" } | { kind: "new-bot" } | null;
+
+type LiveStep = { kind: "tool" | "note" | "reply"; label?: string; hint?: string | null; text?: string; done?: boolean; failed?: boolean; at: number };
+type LiveTurn = { state: "working" | "idle" | "stalled"; thread: string | null; startedAt: number; lastAt: number; toolCount: number; steps: LiveStep[] };
+type DesktopRoom = {
+  id: string; name: string; omitted: number; working: boolean; updatedAt: number;
+  members: { profile: string; name: string; live: LiveTurn | null }[];
+  log: { id: string | null; from: "user" | "member"; name: string; text: string; at: number | null; truncated: boolean }[];
+};
+type DesktopRooms = { rooms: DesktopRoom[]; checkedAt: number };
 
 export function RoomsView({ companyId }: { companyId: string | null }) {
   const params = companyId ? { companyId } : undefined;
   const overview = usePluginData<Overview>("roomsOverview", params);
+  const desktop = usePluginData<DesktopRooms>("desktopRooms", params);
   const [pane, setPane] = useState<Pane>(null);
+  const desktopWorking = Boolean(desktop.data?.rooms.some((r) => r.working));
   useEffect(() => {
     const id = setInterval(() => overview.refresh(), 8000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    // Faster while a desktop room is open or any bot is mid-task.
+    const fast = pane?.kind === "desktop" || desktopWorking;
+    const id = setInterval(() => desktop.refresh(), fast ? 2000 : 6000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pane?.kind, desktopWorking]);
   const data = overview.data;
   const online = data?.status.engine === "online";
   const rooms = data?.rooms ?? [];
   const current = pane?.kind === "room" ? rooms.find((r) => r.id === pane.id) ?? null : null;
+  const desktopRooms = desktop.data?.rooms ?? [];
+  const currentDesktop = pane?.kind === "desktop" ? desktopRooms.find((r) => r.id === pane.id) ?? null : null;
 
   return (
     <div className="c-body" data-pane={pane ? "yes" : "no"}>
@@ -77,9 +97,34 @@ export function RoomsView({ companyId }: { companyId: string | null }) {
             </li>
           ))}
         </ul>
+        {desktopRooms.length > 0 && (
+          <>
+            <div className="r-section">데스크톱 앱 방 · 보기 전용</div>
+            <ul className="c-list">
+              {desktopRooms.map((r) => {
+                const busy = r.members.filter((m) => m.live?.state === "working").length;
+                return (
+                  <li key={`d-${r.id}`}>
+                    <button type="button" className="c-agent" aria-current={pane?.kind === "desktop" && pane.id === r.id ? "true" : undefined}
+                      onClick={() => setPane({ kind: "desktop", id: r.id })}>
+                      <span className="agentos-seal" data-agentos-seal="" data-size="sm" data-lamp={busy ? "on" : "off"} aria-hidden="true">{glyph(r.name)}</span>
+                      <span className="c-agent-main">
+                        <span className="c-agent-name">{r.name}</span>
+                        <span className="c-agent-meta">{busy ? `봇 ${busy}개 작업 중` : "대기"} · 데스크톱</span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+        {desktop.error && <p className="c-state c-bad r-pad">데스크톱 방 기록을 읽지 못했습니다.</p>}
       </nav>
 
-      {pane?.kind === "new-room" && data ? (
+      {currentDesktop ? (
+        <DesktopRoomView key={`d-${currentDesktop.id}`} room={currentDesktop} checkedAt={desktop.data?.checkedAt ?? 0} onBack={() => setPane(null)} />
+      ) : pane?.kind === "new-room" && data ? (
         <NewRoom bots={data.bots} companyId={companyId} onCancel={() => setPane(null)}
           onCreated={(id) => { overview.refresh(); setPane({ kind: "room", id }); }} />
       ) : pane?.kind === "new-bot" && data ? (
@@ -411,6 +456,92 @@ function RoomView({ room, companyId, onBack, onGone }: { room: Room; companyId: 
   );
 }
 
+function ago(at: number, now: number) {
+  const s = Math.max(0, Math.round((now - at) / 1000));
+  if (s < 60) return `${s}초 전`;
+  if (s < 3600) return `${Math.floor(s / 60)}분 전`;
+  return `${Math.floor(s / 3600)}시간 전`;
+}
+
+function DesktopRoomView({ room, checkedAt, onBack }: { room: DesktopRoom; checkedAt: number; onBack: () => void }) {
+  const logRef = useRef<HTMLOListElement>(null);
+  const lastKey = `${room.log.length}:${room.log[room.log.length - 1]?.id ?? ""}`;
+  useEffect(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [lastKey]);
+  const busy = room.members.filter((m) => m.live?.state === "working");
+  const now = checkedAt || Date.now();
+
+  return (
+    <section className="c-conv" aria-label={`${room.name} (데스크톱 앱 방)`}>
+      <header className="c-conv-head">
+        <button type="button" className="c-back" onClick={onBack} aria-label="목록으로">←</button>
+        <div className="c-conv-id">
+          <h2 className="c-conv-name">{room.name}</h2>
+          <p className="c-agent-meta">
+            {busy.length ? `${busy.map((m) => m.name).join(", ")} 작업 중` : "대기"} · 데스크톱 앱에서 진행되는 방 · 2초마다 갱신
+          </p>
+        </div>
+      </header>
+
+      <div className="r-live" aria-label="봇별 진행 상황">
+        {room.members.map((m) => <LiveCard key={m.profile} name={m.name} live={m.live} now={now} />)}
+      </div>
+
+      <ol className="c-log" ref={logRef} aria-live="polite" aria-relevant="additions">
+        {room.omitted > 0 && <li className="r-sys">이전 대화 {room.omitted}개는 데스크톱 앱에서 볼 수 있습니다</li>}
+        {room.log.length === 0 && <li className="c-state">아직 대화가 없습니다.</li>}
+        {room.log.map((e, i) => (
+          <li key={e.id ?? i} className={`c-turn ${e.from === "user" ? "c-turn-user" : "c-turn-agent"}`}>
+            <span className="c-turn-meta c-mono">{e.name} · {e.at ? clock(e.at) : ""}{e.truncated ? " · 일부만 표시" : ""}</span>
+            <p className="c-turn-text">{e.text}</p>
+          </li>
+        ))}
+      </ol>
+      <p className="r-readonly c-muted">이 방은 Hermes 데스크톱 앱이 진행합니다. 메시지 보내기·중지·승인은 데스크톱 앱에서 하세요. 데스크톱 앱을 끄면 이 방은 멈춥니다.</p>
+    </section>
+  );
+}
+
+const STATE_TEXT: Record<LiveTurn["state"], string> = { working: "작업 중", idle: "대기", stalled: "멈춘 듯함" };
+
+function LiveCard({ name, live, now }: { name: string; live: LiveTurn | null; now: number }) {
+  const state = live?.state ?? "idle";
+  const running = live?.steps.filter((s) => s.kind === "tool" && !s.done).at(-1);
+  const recent = (live?.steps ?? []).filter((s) => s.kind !== "reply").slice(-4);
+  return (
+    <article className="r-card" data-state={state}>
+      <header className="r-card-head">
+        <span className="agentos-seal" data-agentos-seal="" data-size="sm" data-lamp={state === "working" ? "on" : "off"} aria-hidden="true">{glyph(name)}</span>
+        <span className="r-card-name">{name}</span>
+        <span className={`r-badge r-badge-${state}`}>{STATE_TEXT[state]}</span>
+      </header>
+      {!live ? (
+        <p className="c-muted r-card-line">이 방에서 한 일이 아직 없습니다</p>
+      ) : (
+        <>
+          <p className="c-muted r-card-line">
+            {state === "working" ? `${ago(live.startedAt, now)} 시작` : `마지막 활동 ${ago(live.lastAt, now)}`} · 도구 {live.toolCount}회
+          </p>
+          {state === "working" && running && (
+            <p className="r-now"><b>지금:</b> {running.label}{running.hint ? ` · ${running.hint}` : ""}</p>
+          )}
+          {state === "working" && recent.length > 0 && (
+            <ul className="r-steps">
+              {recent.map((s, i) => (
+                <li key={i} data-done={s.done === false ? "no" : "yes"} data-failed={s.failed ? "yes" : "no"}>
+                  {s.kind === "tool" ? `${s.label}${s.hint ? ` · ${s.hint}` : ""}` : (s.text ?? "").split("\n")[0]}
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+    </article>
+  );
+}
+
 const SYSTEM_TEXT: Record<string, string> = {
   "room.created": "단체방을 만들었습니다",
   "room.renamed": "방 이름을 바꿨습니다",
@@ -475,9 +606,31 @@ export const ROOMS_CSS = `
 .r-member .agentos-seal{border-radius:999px}
 .r-typing{font-size:11px}
 .r-sys{list-style:none;justify-self:center;color:var(--c-muted);font-size:11px;padding:2px 10px;border:1px dashed var(--c-line);border-radius:999px;max-width:100%;overflow-wrap:anywhere;text-align:center}
+.r-section{padding:14px 16px 6px;font-size:11px;color:var(--c-muted);border-top:1px solid var(--c-line);letter-spacing:.02em}
+.r-live{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;padding:10px 16px;border-bottom:1px solid var(--c-line);max-height:42%;overflow:auto}
+.r-card{display:grid;gap:6px;align-content:start;min-width:0;padding:10px 12px;border:1px solid var(--c-line);border-radius:8px}
+.r-card[data-state="working"]{border-color:rgba(189,209,170,.5);background:var(--c-raised)}
+.r-card-head{display:flex;align-items:center;gap:8px;min-width:0}
+.r-card-name{font-size:13px;font-weight:650;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;word-break:keep-all}
+.r-badge{flex:none;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--c-line);color:var(--c-muted)}
+.r-badge-working{color:var(--c-accent);border-color:rgba(189,209,170,.5)}
+.r-badge-stalled{color:#e0b16a;border-color:rgba(224,177,106,.5)}
+.r-card-line{margin:0;font-size:11px;word-break:keep-all}
+.r-now{margin:0;font-size:12px;overflow-wrap:anywhere}
+.r-steps{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:11px;color:var(--c-secondary)}
+.r-steps li{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:14px;position:relative}
+.r-steps li::before{content:"✓";position:absolute;left:0;color:var(--c-muted)}
+.r-steps li[data-done="no"]::before{content:"…";color:var(--c-accent)}
+.r-steps li[data-failed="yes"]::before{content:"!";color:#e07a6a}
+.r-readonly{margin:0;padding:10px 16px;font-size:12px;border-top:1px solid var(--c-line)}
 @media (max-width:860px){
   .c-body[data-pane="yes"] .c-roster{display:none}
   .c-body[data-pane="no"] > .c-conv{display:none}
   .r-picks{grid-template-columns:1fr}
+  .r-live{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:8px 12px;max-height:38%}
+  .r-card{padding:8px 10px;gap:4px}
+  .r-card-head .agentos-seal{display:none}
+  .r-steps{display:none}
+  .r-readonly{padding-bottom:calc(12px + 64px + env(safe-area-inset-bottom))}
 }
 `;

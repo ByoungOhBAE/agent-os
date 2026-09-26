@@ -105,6 +105,7 @@ export function createBff(fetcher: Fetcher = fetch, originOverride?: string) {
     createBot: (input: { title: string; description: string; model: string | null }) =>
       call(fetcher, origin, "/api/rooms/bots", { method: "POST", body: input }),
     rooms: () => call(fetcher, origin, "/api/rooms"),
+    desktopRooms: () => call(fetcher, origin, "/api/rooms/desktop"),
     createRoom: (name: string, members: string[]) =>
       call(fetcher, origin, "/api/rooms", { method: "POST", body: { name, members } }),
     roomLog: (id: string, since: number) =>

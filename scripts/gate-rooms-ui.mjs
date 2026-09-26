@@ -90,7 +90,23 @@ try {
     await page.screenshot({ path: `${SHOT}new-${w}.png` });
 
     if (errors.length) fails.push(`${w}: ${errors.slice(0, 4).join(" | ")}`);
-    console.log(`${w}: members=${members} options=${options} picks=${picks} errors=${errors.length}`);
+
+    // Desktop-app room (read-only live view)
+    if (w < 860) await page.getByRole("button", { name: "목록으로" }).click();
+    const desk = page.locator(".r-section + .c-list .c-agent", { hasText: ROOM });
+    let cards = 0;
+    if (await desk.count()) {
+      await desk.first().click();
+      await page.getByLabel("봇별 진행 상황").waitFor({ timeout: 10000 });
+      await settle(page, 600);
+      cards = await page.locator(".r-card").count();
+      if (cards !== 4) fails.push(`${w}: desktop room shows ${cards} bot cards`);
+      if (await page.locator("textarea.c-input").count()) fails.push(`${w}: desktop room offers a composer`);
+      await measure(page, `${w} desktop room`);
+      await page.screenshot({ path: `${SHOT}desktop-${w}.png` });
+    } else fails.push(`${w}: desktop room not listed`);
+    if (errors.length) fails.push(`${w}: ${errors.slice(0, 4).join(" | ")}`);
+    console.log(`${w}: members=${members} options=${options} picks=${picks} desktopCards=${cards} errors=${errors.length}`);
     await ctx.close();
   }
 } finally {

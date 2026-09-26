@@ -38,6 +38,8 @@ export function createRooms(bffOf: BffOf) {
         const since = Number(p.since ?? 0);
         return (await bffOf(p)).roomLog(room(p), Number.isSafeInteger(since) && since >= 0 ? since : 0);
       },
+      /** Desktop-app rooms (read-only live view): transcript + each bot's current steps. */
+      desktopRooms: async (p: Record<string, unknown>) => (await bffOf(p)).desktopRooms(),
     },
     actions: {
       roomCreate: async (p: Record<string, unknown>) => {

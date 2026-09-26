@@ -3,6 +3,7 @@
 // dashboard RPC endpoint is kept alive by the supervisor. Responses carry allow-listed fields only.
 import { createHermesRpc } from "./hermes-rpc.mjs";
 import { createDashboardSupervisor } from "./hermes-supervisor.mjs";
+import { createDesktopRoomsSource } from "./desktop-rooms.mjs";
 
 const ROOM_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const TASK_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/;
@@ -195,6 +196,7 @@ function soulFor(title, description, profile) {
 export function createRoomRoutes(deps) {
   const { dashboard, getToken, body, json, HttpError } = deps;
   const rpc = deps.rpc ?? createHermesRpc({ dashboard, getToken });
+  const desktopRooms = deps.desktopRooms ?? createDesktopRoomsSource();
   const supervisor = deps.supervisor ?? createDashboardSupervisor({ dashboard });
   const supervise = deps.supervise ?? process.env.AGENTOS_HERMES_SUPERVISE !== "0";
   let titleCache = { at: 0, map: new Map() };
@@ -317,6 +319,16 @@ export function createRoomRoutes(deps) {
     // Writes can take several seconds (profile creation, room admission); a kept-alive socket that sat
     // through one was observed to be reset on reuse. Close after writes so the next call dials fresh.
     if (method !== "GET") res.setHeader("Connection", "close");
+
+    if (pathname === "/api/rooms/desktop" && method === "GET") {
+      // Read-only: desktop-orchestrated rooms (live bot steps + transcript). Works without the dashboard RPC.
+      try {
+        json(res, 200, await desktopRooms());
+      } catch {
+        throw new HttpError(503, "데스크톱 단체방 기록을 읽지 못했습니다.");
+      }
+      return true;
+    }
 
     if (pathname === "/api/rooms/status" && method === "GET") {
       const engine = await supervisor.ensure({ waitMs: 0 }).catch(() => ({ status: "offline" }));
