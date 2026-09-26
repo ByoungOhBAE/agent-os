@@ -399,7 +399,7 @@ export function OrgChartSidebarLink() {
 const CSS = `
 .o-root{--o-ink:#101716;--o-panel:#161e1c;--o-raised:#1b2522;--o-input:#0e1413;--o-line:rgba(216,232,213,.11);--o-line-strong:rgba(216,232,213,.2);
 --o-text:#e8eee7;--o-secondary:#b3beb2;--o-muted:#829185;--o-accent:#bdd1aa;--o-warn:#d6bd91;--o-error:#d7a29b;--o-codex:#9fc7c0;--o-hermes:#c9b8e0;
-color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antialiased;padding-bottom:40px}
+color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antialiased;padding-bottom:40px;word-break:keep-all;overflow-wrap:anywhere}
 .o-root *{box-sizing:border-box}
 .o-muted{color:var(--o-muted)}.o-small{font-size:12px}
 .o-bad{color:var(--o-error)}.o-ok{color:var(--o-accent)}
