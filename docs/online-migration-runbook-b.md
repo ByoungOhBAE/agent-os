@@ -16,7 +16,7 @@
 | 확장 기능 3개는 BFF를 `127.0.0.1:4200`에서만 찾음 | `plugins/*/src/bff.ts`, `manifest.ts` | BFF를 대시보드와 **같은 서버**에 둔다(잠금 유지) |
 | BFF는 Paperclip을 `127.0.0.1:3100`에서만 찾음 | `server/index.mjs` `PAPERCLIP_API_URL` 검사 | 같은 서버에 둔다 |
 | BFF의 Hermes 경로는 `LOCALAPPDATA`(Windows) 기준 | `server/hermes-bots.mjs`, `desktop-rooms.mjs`, `hermes-supervisor.mjs` | 서버에서는 `HERMES_HOME=/home/<user>/.hermes` 지정(코드가 이미 지원) |
-| 로컬 GPU 모델 봇 2개(content-writer, content-reviewer) | `llamacpp` provider, RTX 5080 | 서버로 못 옮김 → 결정 필요(아래 1) |
+| 로컬 GPU 모델 봇 0개 (content-writer, content-reviewer는 2026-09-27 Claude 구독 Opus 5.5로 전환) | 설정 백업 `config.yaml.before-opus-*` | 구독 봇으로 함께 이전(서버에서 재로그인) |
 
 ## 1. 시작 전에 사장님이 정할 것
 
@@ -24,8 +24,8 @@
 2. **공개 방식**:
    - 2-A(권장): 계속 **Tailscale 사설망**으로만 접속 → `authenticated` + `private`. 내장 DB 그대로 사용 가능.
    - 2-B: 인터넷 주소(도메인)로 접속 → `authenticated` + `public` + 외부 Postgres 필요.
-3. **GPU 봇 2개**: 유료 API 모델로 교체 / 무료 모델로 교체 / PC 켜져 있을 때만 쓰는 봇으로 남김(방식 C).
-4. **구독 봇 4개**: 서버에서 봇마다 Claude/Codex 로그인을 다시 해야 함. 구독 약관상 서버 사용 가능 여부 확인.
+3. ~~GPU 봇 2개~~ → 결정됨(2026-09-27): Claude 구독 Opus 5.5로 전환 완료. 방식 C는 필요 없음.
+4. **구독 봇 6개**(기존 4 + 콘텐츠 봇 2): 서버에서 봇마다 Claude/Codex 로그인을 다시 해야 함. 구독 약관상 서버 사용 가능 여부 확인.
 5. **이전 시간**: 1~2시간 정지 가능한 시간대.
 
 ## 2. 단계
