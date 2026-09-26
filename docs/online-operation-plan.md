@@ -71,6 +71,16 @@ PC를 꺼도 돌아가게 하려면 **화면이 아니라 "일하는 쪽"까지 
 - **PC를 끄고도 돌아가야 한다(말씀하신 목표)** → 방식 B. 결정할 것은 두 가지: ① 서버 업체/예산 ② GPU 봇 2개를 어떻게 할지.
 - 방식 C는 GPU 봇을 꼭 계속 써야 할 때만.
 
+## 결정 (2026-09-27)
+
+사용자: "b를 할수 있게 기록해두고 우선 완료될때까지는 에이로 하자"
+
+- **지금: 방식 A 적용.** Tailscale 사설망 주소 `https://pilt.tail964787.ts.net` (사장님 Tailscale 기기끼리만, 인터넷 비공개·Funnel 꺼짐).
+  - Paperclip 허용 주소에 `pilt.tail964787.ts.net` 추가(설정 백업 `~/.paperclip/backups/config.json.before-tailnet-*`), 모드는 `local_trusted` 그대로.
+  - PC 전원 연결 시 절전·최대 절전 끔(이전 값: 60분).
+  - 점검: `node scripts/check-remote-access.mjs` / `--power`.
+- **나중: 방식 B** — 실행 기록 `docs/online-migration-runbook-b.md`. 마지막 단계에서 A를 해제한다.
+
 ## 결정 전에는 하지 않는 것
 
-서버 계약, 데이터 이전, 외부 공개, 보안 모드 변경은 사용자가 방식을 고르기 전까지 하지 않습니다.
+서버 계약, 데이터 이전, 인터넷 공개, 보안 모드 변경은 사용자가 방식 B 실행을 정하기 전까지 하지 않습니다.
