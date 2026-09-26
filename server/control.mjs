@@ -110,11 +110,74 @@ export function createControlRoutes(deps) {
     res.end();
   }
 
+  async function paperclipAgent(id, init = {}) {
+    let response;
+    try {
+      response = await fetch(new URL(`/api/agents/${id}`, paperclip), {
+        ...init,
+        headers: { "Content-Type": "application/json" },
+        redirect: "error",
+        signal: AbortSignal.timeout(10000),
+      });
+    } catch {
+      throw new HttpError(503, "Paperclip에 연결할 수 없습니다.");
+    }
+    const data = await response.json().catch(() => ({}));
+    return { ok: response.ok, status: response.status, data };
+  }
+
+  function orgText(value, label, max) {
+    if (typeof value !== "string") throw new HttpError(400, `${label} 형식이 올바르지 않습니다.`);
+    const text = value.replace(/\s+/g, " ").trim();
+    if (!text || text.length > max) throw new HttpError(400, `${label}은(는) 1~${max}자여야 합니다.`);
+    return text;
+  }
+
+  /**
+   * Org-chart sync: writes ONLY reportsTo/title/capabilities of one agent, after proving both the
+   * agent and its new manager belong to the given company. Never forwards adapter/permission fields.
+   */
+  async function paperclipAgentOrg(req, res, id) {
+    if (!UUID.test(id)) throw new HttpError(400, "에이전트 ID 값이 올바르지 않습니다.");
+    const input = await body(req);
+    const company = String(input.companyId || "");
+    if (!UUID.test(company)) throw new HttpError(400, "회사 ID 값이 올바르지 않습니다.");
+    const patch = {};
+    if (input.reportsTo !== undefined) {
+      if (input.reportsTo !== null && (typeof input.reportsTo !== "string" || !UUID.test(input.reportsTo)))
+        throw new HttpError(400, "보고 대상 ID 값이 올바르지 않습니다.");
+      if (input.reportsTo === id) throw new HttpError(400, "자기 자신에게 보고할 수 없습니다.");
+      patch.reportsTo = input.reportsTo;
+    }
+    if (input.title !== undefined) patch.title = orgText(input.title, "직함", 80);
+    if (input.capabilities !== undefined) patch.capabilities = orgText(input.capabilities, "담당 업무", 500);
+    if (Object.keys(patch).length === 0) throw new HttpError(400, "바꿀 항목이 없습니다.");
+
+    const target = await paperclipAgent(id);
+    if (!target.ok || target.data.companyId !== company) throw new HttpError(404, "에이전트를 찾을 수 없습니다.");
+    if (patch.reportsTo) {
+      const manager = await paperclipAgent(patch.reportsTo);
+      if (!manager.ok || manager.data.companyId !== company) throw new HttpError(400, "같은 회사의 에이전트에게만 보고할 수 있습니다.");
+    }
+    const updated = await paperclipAgent(id, { method: "PATCH", body: JSON.stringify(patch) });
+    if (!updated.ok) {
+      const status = updated.status === 409 || updated.status === 422 ? 409 : 502;
+      throw new HttpError(status, "Paperclip이 조직 변경을 거절했습니다.");
+    }
+    return json(res, 200, pick(updated.data, ["id", "reportsTo", "title", "capabilities"]));
+  }
+
   /** Returns true when the request was handled. */
   return async function control(req, res, url) {
     const { pathname } = url;
     const method = req.method;
     if (!pathname.startsWith("/api/control/")) return false;
+
+    const agentOrg = pathname.match(/^\/api\/control\/paperclip\/agents\/([^/]+)\/org$/);
+    if (agentOrg && method === "PATCH") {
+      await paperclipAgentOrg(req, res, decodeURIComponent(agentOrg[1]));
+      return true;
+    }
 
     const cancel = pathname.match(/^\/api\/control\/paperclip\/runs\/([^/]+)\/cancel$/);
     if (cancel && method === "POST") {

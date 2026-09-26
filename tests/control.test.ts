@@ -6,6 +6,15 @@ import { spawn, type ChildProcess } from "node:child_process";
 const DEFAULT_KEY = "default-key-0123456789abcdef";
 const BOT_KEY = "bot-key-0123456789abcdef0000";
 const servers: Server[] = [];
+const COMPANY = "db6f5310-0afc-4b67-8ca2-8059bd26f0cb";
+const CHIEF = "11111111-1111-4111-8111-111111111111";
+const MEMBER = "22222222-2222-4222-8222-222222222222";
+const FOREIGN = "33333333-3333-4333-8333-333333333333";
+const ORG_AGENTS: Record<string, Record<string, unknown>> = {
+  [CHIEF]: { id: CHIEF, companyId: COMPANY, name: "비서실장", reportsTo: null, title: null, capabilities: null },
+  [MEMBER]: { id: MEMBER, companyId: COMPANY, name: "콘텐츠봇", reportsTo: null, title: null, capabilities: null },
+  [FOREIGN]: { id: FOREIGN, companyId: "99999999-9999-4999-8999-999999999999", name: "남의 회사", reportsTo: null, title: null, capabilities: null },
+};
 const children: ChildProcess[] = [];
 afterEach(async () => {
   for (const child of children.splice(0)) child.kill();
@@ -72,6 +81,13 @@ async function fixture(options: { healthFails?: boolean; paperclipFails?: boolea
       return res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify([
         { id: "r1", agentId: "a1", agentName: "비서실장", status: "running", adapterType: "claude_local", startedAt: "2026-09-26T00:00:00Z", error: "DO_NOT_SEND" },
       ]));
+    const agent = (req.url || "").match(/^\/api\/agents\/([0-9a-f-]{36})$/);
+    if (agent) {
+      const found = ORG_AGENTS[agent[1]];
+      if (!found) return res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Agent not found" }));
+      const merged = req.method === "PATCH" ? { ...found, ...JSON.parse(body || "{}") } : found;
+      return res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ ...merged, adapterConfig: { secret: "DO_NOT_SEND" } }));
+    }
     res.writeHead(404).end();
   });
   const paperclipPort = await listen(paperclip);
@@ -207,6 +223,43 @@ it("reports Paperclip live-run failure as unavailable, not as zero running runs"
   const { base } = await fixture({ paperclipFails: true });
   const data = await (await fetch(`${base}/api/control/paperclip/live-runs?company=db6f5310-0afc-4b67-8ca2-8059bd26f0cb`)).json();
   expect(data).toEqual({ status: "unavailable" });
+});
+
+const patchOrg = (base: string, id: string, body: unknown, headers: Record<string, string> = {}) =>
+  fetch(`${base}/api/control/paperclip/agents/${id}/org`, { method: "PATCH", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });
+
+it("writes only an agent's reporting line, title and duty for the org chart, after checking its company", async () => {
+  const { base, paperclipCalls } = await fixture();
+  const response = await patchOrg(base, MEMBER, {
+    companyId: COMPANY, reportsTo: CHIEF, title: "  콘텐츠 리드 ", capabilities: "블로그 원고",
+    name: "해킹", adapterConfig: { command: "rm -rf /" }, permissions: { canCreateAgents: true }, status: "idle",
+  });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ id: MEMBER, reportsTo: CHIEF, title: "콘텐츠 리드", capabilities: "블로그 원고" });
+  const patch = paperclipCalls.find((c) => c.method === "PATCH")!;
+  expect(patch.url).toBe(`/api/agents/${MEMBER}`);
+  expect(JSON.parse(patch.body)).toEqual({ reportsTo: CHIEF, title: "콘텐츠 리드", capabilities: "블로그 원고" });
+});
+
+it("allows clearing the reporting line to top level and sends only the fields given", async () => {
+  const { base, paperclipCalls } = await fixture();
+  expect((await patchOrg(base, MEMBER, { companyId: COMPANY, reportsTo: null })).status).toBe(200);
+  expect(JSON.parse(paperclipCalls.find((c) => c.method === "PATCH")!.body)).toEqual({ reportsTo: null });
+});
+
+it("rejects org writes to another company's agent, bad ids, self-reporting, empty or oversized fields and foreign origins", async () => {
+  const { base, paperclipCalls } = await fixture();
+  expect((await patchOrg(base, FOREIGN, { companyId: COMPANY, title: "x" })).status).toBe(404);
+  expect((await patchOrg(base, MEMBER, { companyId: COMPANY, reportsTo: FOREIGN })).status).toBe(400);
+  expect((await patchOrg(base, "not-a-uuid", { companyId: COMPANY, title: "x" })).status).toBe(400);
+  expect((await patchOrg(base, MEMBER, { companyId: "../x", title: "x" })).status).toBe(400);
+  expect((await patchOrg(base, MEMBER, { companyId: COMPANY, reportsTo: MEMBER })).status).toBe(400);
+  expect((await patchOrg(base, MEMBER, { companyId: COMPANY, reportsTo: "nope" })).status).toBe(400);
+  expect((await patchOrg(base, MEMBER, { companyId: COMPANY })).status).toBe(400);
+  expect((await patchOrg(base, MEMBER, { companyId: COMPANY, title: "가".repeat(81) })).status).toBe(400);
+  expect((await patchOrg(base, MEMBER, { companyId: COMPANY, capabilities: "가".repeat(501) })).status).toBe(400);
+  expect((await patchOrg(base, MEMBER, { companyId: COMPANY, title: "x" }, { Origin: "http://evil.test" })).status).toBe(403);
+  expect(paperclipCalls.filter((c) => c.method === "PATCH")).toHaveLength(0);
 });
 
 it("never writes API keys to responses or logs", async () => {
