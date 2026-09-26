@@ -60,6 +60,12 @@ function runId(value: unknown) {
   if (!RUN_ID.test(id) || id === "." || id === "..") throw new BffError("실행 ID 형식이 올바르지 않습니다.", 400);
   return id;
 }
+const ROOM_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+function roomId(value: unknown) {
+  const id = String(value ?? "");
+  if (!ROOM_ID.test(id)) throw new BffError("방 ID 형식이 올바르지 않습니다.", 400);
+  return id;
+}
 
 export function createBff(fetcher: Fetcher = fetch, originOverride?: string) {
   const origin = bffOrigin(originOverride);
@@ -93,6 +99,24 @@ export function createBff(fetcher: Fetcher = fetch, originOverride?: string) {
       call(fetcher, origin, `/api/hermes/sessions/${encodeURIComponent(sessionId)}/messages?profile=${encodeURIComponent(profile(p))}`),
     runStatus: (p: string, id: string) =>
       call(fetcher, origin, `/api/control/hermes/runs/${encodeURIComponent(runId(id))}?profile=${encodeURIComponent(profile(p))}`),
+    // Group Chat (headless Hermes hosted rooms) and bot creation.
+    roomsStatus: () => call(fetcher, origin, "/api/rooms/status"),
+    roomBots: () => call(fetcher, origin, "/api/rooms/bots"),
+    createBot: (input: { title: string; description: string; model: string | null }) =>
+      call(fetcher, origin, "/api/rooms/bots", { method: "POST", body: input }),
+    rooms: () => call(fetcher, origin, "/api/rooms"),
+    createRoom: (name: string, members: string[]) =>
+      call(fetcher, origin, "/api/rooms", { method: "POST", body: { name, members } }),
+    roomLog: (id: string, since: number) =>
+      call(fetcher, origin, `/api/rooms/${encodeURIComponent(roomId(id))}/log?since=${Math.max(0, Math.floor(since))}`),
+    roomSend: (id: string, text: string, clientId: string) =>
+      call(fetcher, origin, `/api/rooms/${encodeURIComponent(roomId(id))}/messages`, { method: "POST", body: { text, clientId } }),
+    roomStop: (id: string) => call(fetcher, origin, `/api/rooms/${encodeURIComponent(roomId(id))}/stop`, { method: "POST", body: {} }),
+    roomApprove: (id: string, body: { taskId: string; memberId: string; executionGeneration: number; choice: "once" | "deny"; requestId: string | null }) =>
+      call(fetcher, origin, `/api/rooms/${encodeURIComponent(roomId(id))}/approve`, { method: "POST", body }),
+    roomRetry: (id: string, taskId: string) =>
+      call(fetcher, origin, `/api/rooms/${encodeURIComponent(roomId(id))}/retry`, { method: "POST", body: { taskId } }),
+    roomDisband: (id: string) => call(fetcher, origin, `/api/rooms/${encodeURIComponent(roomId(id))}`, { method: "DELETE" }),
     /** Follow a Hermes run's SSE stream until it ends; resolves when the stream closes. */
     async followHermes(p: string, id: string, onFrame: (frame: Record<string, unknown>) => void, signal?: AbortSignal) {
       let response: Response;

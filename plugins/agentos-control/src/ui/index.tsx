@@ -3,6 +3,7 @@ import {
   useHostContext, useHostNavigation, usePluginAction, usePluginData, type PluginPageProps,
 } from "@paperclipai/plugin-sdk/ui";
 import type { AgentState, RosterEntry, UiEvent, ApprovalChoice } from "../model.js";
+import { RoomsView, ROOMS_CSS } from "./rooms.js";
 
 type Roster = { entries: RosterEntry[]; sources: { paperclip: string; paperclipLive: string; hermes: string }; checkedAt: string };
 type Turn = {
@@ -53,22 +54,29 @@ function errorText(error: unknown) {
 export function ControlPage(_props: PluginPageProps) {
   const host = useHostContext();
   const companyId = host.companyId;
+  const [tab, setTab] = useState<"agents" | "rooms">("agents");
   const roster = usePluginData<Roster>("roster", companyId ? { companyId } : undefined);
-  useInterval(() => roster.refresh(), 3000);
+  useInterval(() => { if (tab === "agents") roster.refresh(); }, 3000);
   const [selected, setSelected] = useState<string | null>(null);
   const entries = roster.data?.entries ?? [];
   const current = entries.find((e) => e.id === selected) ?? null;
 
   return (
-    <div className="c-root" data-selected={current ? "yes" : "no"}>
-      <style>{CSS}</style>
+    <div className="c-root" data-selected={tab === "rooms" ? "rooms" : current ? "yes" : "no"}>
+      <style>{CSS + ROOMS_CSS}</style>
       <header className="c-top">
         <div>
           <div className="c-eyebrow">AgentOS · 통합 관제</div>
-          <h1 className="c-title">연결된 에이전트 지휘</h1>
+          <h1 className="c-title">{tab === "rooms" ? "단체방 관제" : "연결된 에이전트 지휘"}</h1>
         </div>
-        <Sources roster={roster.data} loading={roster.loading} error={roster.error} />
+        {tab === "agents" && <Sources roster={roster.data} loading={roster.loading} error={roster.error} />}
       </header>
+      <div className="c-tabs" role="tablist" aria-label="관제 화면">
+        <button type="button" role="tab" id="c-tab-agents" aria-controls="c-panel" aria-selected={tab === "agents"} className="c-tab" onClick={() => setTab("agents")}>에이전트</button>
+        <button type="button" role="tab" id="c-tab-rooms" aria-controls="c-panel" aria-selected={tab === "rooms"} className="c-tab" onClick={() => setTab("rooms")}>단체방</button>
+      </div>
+      <div id="c-panel" role="tabpanel" aria-labelledby={tab === "rooms" ? "c-tab-rooms" : "c-tab-agents"}>
+      {tab === "rooms" ? <RoomsView companyId={companyId} /> : (
       <div className="c-body">
         <RosterPanel entries={entries} loading={roster.loading && !roster.data} error={roster.error} selected={selected} onSelect={setSelected} />
         {current ? (
@@ -79,6 +87,8 @@ export function ControlPage(_props: PluginPageProps) {
             <p className="c-muted">작업 상태를 보고, 지시하고, 진행 중인 작업에 끼어들거나 멈출 수 있습니다.</p>
           </section>
         )}
+      </div>
+      )}
       </div>
     </div>
   );

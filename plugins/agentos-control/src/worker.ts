@@ -3,6 +3,7 @@
 // Actions: instruct / steer / stop / approve / pause / resume. Streams: live run events per conversation.
 import { definePlugin, runWorker, type PluginContext } from "@paperclipai/plugin-sdk";
 import { createBff, BffError, type Bff } from "./bff.js";
+import { createRooms } from "./rooms.js";
 import { BOT_PROFILE, UUID, hermesEvent, paperclipChunk, rosterFromSources, type UiEvent } from "./model.js";
 
 type Emit = (channel: string, event: unknown, companyId: string) => void;
@@ -450,6 +451,8 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
 
   return {
     roster, transcript, select, sessions, actions,
+    /** Per-company BFF client (used by the Group Chat routes). */
+    bffOf: (params: Record<string, unknown>) => bffFor(companyOf(params)),
     /** For tests. */
     conversations,
     stopAll() {
@@ -481,6 +484,9 @@ export const plugin = definePlugin({
     ctx.data.register("sessions", wrap((p) => control.sessions(p)));
     for (const [name, handler] of Object.entries(control.actions)) ctx.actions.register(name, wrap(handler));
     ctx.actions.register("select", wrap((p) => control.select(p)));
+    const rooms = createRooms(control.bffOf);
+    for (const [name, handler] of Object.entries(rooms.data)) ctx.data.register(name, wrap(handler));
+    for (const [name, handler] of Object.entries(rooms.actions)) ctx.actions.register(name, wrap(handler));
   },
   async onHealth() {
     return { status: "ok", message: "통합 관제 준비됨" };
