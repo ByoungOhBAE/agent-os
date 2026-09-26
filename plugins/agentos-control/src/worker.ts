@@ -4,6 +4,7 @@
 import { definePlugin, runWorker, type PluginContext } from "@paperclipai/plugin-sdk";
 import { createBff, BffError, type Bff } from "./bff.js";
 import { createRooms } from "./rooms.js";
+import { createChief, type ActionContext } from "./chief.js";
 import { BOT_PROFILE, UUID, hermesEvent, paperclipChunk, rosterFromSources, type UiEvent } from "./model.js";
 
 type Emit = (channel: string, event: unknown, companyId: string) => void;
@@ -129,6 +130,17 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
     ctx.streams.emit(channel, event);
   });
   const conversations = new Map<string, Conversation>();
+  const chief = createChief(ctx);
+  /**
+   * Single window: while on (default), only the chief of staff takes instructions; every other agent/bot and
+   * room is view + emergency stop only. Returns silently when allowed.
+   */
+  async function guardInstruction(companyId: string, key: string) {
+    if (!(await chief.singleWindow(companyId))) return;
+    const head = await chief.chiefOf(companyId);
+    if (head && key === `paperclip:${head.id}`) return;
+    throw new BffError("단일 창구 모드입니다. 지시는 '비서실장' 탭에서 비서실장에게 보내세요. (이 화면에서는 진행 보기와 긴급 중지만 됩니다)", 403);
+  }
   const followers = new Map<string, AbortController>();
   // Paperclip SDK session id -> conversation key (session events arrive by session id).
   const sessionOwners = new Map<string, string>();
@@ -319,6 +331,8 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
       ? { status: "available", agents: agents.value.filter((a) => a.status !== "terminated").map((a) => ({ id: a.id, name: a.name, status: a.status, adapterType: a.adapterType })), liveRunAgentIds: liveIds }
       : { status: "unavailable" };
     const entries = rosterFromSources({ paperclip, hermes });
+    const head = agents.status === "fulfilled" ? agents.value.find((a) => a.title === "비서실장" && a.status !== "terminated") ?? null : null;
+    const single = await chief.singleWindow(companyId);
     for (const e of entries) {
       const conv = conversations.get(e.id);
       const active = conv ? activeTurn(conv) : null;
@@ -332,6 +346,8 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
         hermes: hermes.status,
       },
       checkedAt: new Date(now()).toISOString(),
+      chiefId: head ? `paperclip:${head.id}` : null,
+      singleWindow: single,
     };
   }
 
@@ -372,6 +388,7 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
       const text = input(params.input);
       const companyId = companyOf(params);
       const conv = conversation(key);
+      await guardInstruction(companyId, key);
       const active = activeTurn(conv);
       if (active) throw new BffError("이미 진행 중인 작업이 있습니다. 끼어들기나 중지를 사용하세요.", 409);
       conv.companyId = companyId;
@@ -383,6 +400,7 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
       if (conv.kind !== "hermes") throw new BffError("이 런타임은 진행 중 끼어들기를 지원하지 않습니다. 중지 후 다시 지시하세요.", 400);
       const active = activeTurn(conv);
       if (!active?.runId) throw new BffError("진행 중인 작업이 없습니다.", 409);
+      await guardInstruction(conv.companyId ?? companyOf(params), conv.key);
       const text = input(params.input);
       const result = await (await convBff(conv)).steerHermes(conv.ref, active.runId, text);
       apply(conv, active, { type: "status", status: "steer", detail: `끼어들기: ${text.slice(0, 200)}` });
@@ -450,7 +468,7 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
   }
 
   return {
-    roster, transcript, select, sessions, actions,
+    roster, transcript, select, sessions, actions, chief, guardInstruction,
     /** Per-company BFF client (used by the Group Chat routes). */
     bffOf: (params: Record<string, unknown>) => bffFor(companyOf(params)),
     /** For tests. */
@@ -464,10 +482,10 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
 
 export type Control = ReturnType<typeof createControl>;
 
-function wrap<T>(fn: (params: Record<string, unknown>) => Promise<T>) {
-  return async (params: Record<string, unknown>) => {
+function wrap<T>(fn: (params: Record<string, unknown>, context?: ActionContext) => Promise<T>) {
+  return async (params: Record<string, unknown>, context?: unknown) => {
     try {
-      return await fn(params ?? {});
+      return await fn(params ?? {}, context as ActionContext);
     } catch (error) {
       if (error instanceof BffError) throw new Error(error.message);
       throw error;
@@ -475,18 +493,28 @@ function wrap<T>(fn: (params: Record<string, unknown>) => Promise<T>) {
   };
 }
 
-export const plugin = definePlugin({
-  async setup(ctx) {
-    const control = createControl(ctx);
-    active = control;
+/** Registers every data/action handler; tests call this with fake deps. */
+export function registerControl(ctx: PluginContext, deps: Deps = {}) {
+    const control = createControl(ctx, deps);
     ctx.data.register("roster", wrap((p) => control.roster(companyOf(p))));
     ctx.data.register("transcript", wrap((p) => control.transcript(conversationKey(p.kind, p.ref))));
     ctx.data.register("sessions", wrap((p) => control.sessions(p)));
     for (const [name, handler] of Object.entries(control.actions)) ctx.actions.register(name, wrap(handler));
     ctx.actions.register("select", wrap((p) => control.select(p)));
-    const rooms = createRooms(control.bffOf);
+    ctx.data.register("chiefDesk", wrap((p) => control.chief.desk(companyOf(p))));
+    ctx.data.register("chiefRequest", wrap((p) => control.chief.detail(companyOf(p), String(p.issueId ?? ""))));
+    ctx.actions.register("chiefRequestCreate", wrap((p, c) => control.chief.request(companyOf(p), p, c)));
+    ctx.actions.register("chiefDecide", wrap((p, c) => control.chief.decide(companyOf(p), p, c)));
+    ctx.actions.register("chiefReply", wrap((p, c) => control.chief.reply(companyOf(p), p, c)));
+    const rooms = createRooms(control.bffOf, (p) => control.guardInstruction(companyOf(p), "room"));
     for (const [name, handler] of Object.entries(rooms.data)) ctx.data.register(name, wrap(handler));
     for (const [name, handler] of Object.entries(rooms.actions)) ctx.actions.register(name, wrap(handler));
+    return control;
+}
+
+export const plugin = definePlugin({
+  async setup(ctx) {
+    active = registerControl(ctx);
   },
   async onHealth() {
     return { status: "ok", message: "통합 관제 준비됨" };

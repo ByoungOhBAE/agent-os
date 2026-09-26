@@ -4,8 +4,16 @@ import {
 } from "@paperclipai/plugin-sdk/ui";
 import type { AgentState, RosterEntry, UiEvent, ApprovalChoice } from "../model.js";
 import { RoomsView, ROOMS_CSS } from "./rooms.js";
+import { ChiefDesk, CHIEF_CSS } from "./chief.js";
 
-type Roster = { entries: RosterEntry[]; sources: { paperclip: string; paperclipLive: string; hermes: string }; checkedAt: string };
+type Roster = {
+  entries: RosterEntry[]; sources: { paperclip: string; paperclipLive: string; hermes: string }; checkedAt: string;
+  /** Roster id (`paperclip:<id>`) of the chief of staff, and whether the single-window rule is on. */
+  chiefId?: string | null; singleWindow?: boolean;
+};
+type Tab = "chief" | "agents" | "rooms";
+const TABS: Array<[Tab, string]> = [["chief", "비서실장"], ["agents", "에이전트"], ["rooms", "단체방"]];
+const TITLES: Record<Tab, string> = { chief: "비서실장 창구", agents: "연결된 에이전트 지휘", rooms: "단체방 관제" };
 type Turn = {
   id: string; role: "user" | "agent"; text: string; at: number; events: UiEvent[]; runId: string | null;
   status: "sending" | "running" | "completed" | "failed" | "cancelled"; error?: string;
@@ -54,7 +62,7 @@ function errorText(error: unknown) {
 export function ControlPage(_props: PluginPageProps) {
   const host = useHostContext();
   const companyId = host.companyId;
-  const [tab, setTab] = useState<"agents" | "rooms">("agents");
+  const [tab, setTab] = useState<Tab>("chief");
   const roster = usePluginData<Roster>("roster", companyId ? { companyId } : undefined);
   useInterval(() => { if (tab === "agents") roster.refresh(); }, 3000);
   const [selected, setSelected] = useState<string | null>(null);
@@ -62,25 +70,30 @@ export function ControlPage(_props: PluginPageProps) {
   const current = entries.find((e) => e.id === selected) ?? null;
 
   return (
-    <div className="c-root" data-selected={tab === "rooms" ? "rooms" : current ? "yes" : "no"}>
-      <style>{CSS + ROOMS_CSS}</style>
+    <div className="c-root" data-selected={tab !== "agents" ? tab : current ? "yes" : "no"}>
+      <style>{CSS + ROOMS_CSS + CHIEF_CSS}</style>
       <header className="c-top">
         <div>
           <div className="c-eyebrow">AgentOS · 통합 관제</div>
-          <h1 className="c-title">{tab === "rooms" ? "단체방 관제" : "연결된 에이전트 지휘"}</h1>
+          <h1 className="c-title">{TITLES[tab]}</h1>
         </div>
         {tab === "agents" && <Sources roster={roster.data} loading={roster.loading} error={roster.error} />}
       </header>
       <div className="c-tabs" role="tablist" aria-label="관제 화면">
-        <button type="button" role="tab" id="c-tab-agents" aria-controls="c-panel" aria-selected={tab === "agents"} className="c-tab" onClick={() => setTab("agents")}>에이전트</button>
-        <button type="button" role="tab" id="c-tab-rooms" aria-controls="c-panel" aria-selected={tab === "rooms"} className="c-tab" onClick={() => setTab("rooms")}>단체방</button>
+        {TABS.map(([id, label]) => (
+          <button key={id} type="button" role="tab" id={`c-tab-${id}`} aria-controls="c-panel" aria-selected={tab === id} className="c-tab" onClick={() => setTab(id)}>{label}</button>
+        ))}
       </div>
-      <div id="c-panel" role="tabpanel" aria-labelledby={tab === "rooms" ? "c-tab-rooms" : "c-tab-agents"}>
-      {tab === "rooms" ? <RoomsView companyId={companyId} /> : (
+      {tab !== "chief" && roster.data?.singleWindow && (
+        <p className="c-lock" role="note">단일 창구 모드 · 지시는 <button type="button" className="c-link" onClick={() => setTab("chief")}>비서실장</button>에게만 보냅니다. 이 화면에서는 진행 보기와 긴급 중지만 됩니다.</p>
+      )}
+      <div id="c-panel" role="tabpanel" aria-labelledby={`c-tab-${tab}`}>
+      {tab === "chief" ? <ChiefDesk companyId={companyId} /> : tab === "rooms" ? <RoomsView companyId={companyId} locked={roster.data?.singleWindow === true} /> : (
       <div className="c-body">
         <RosterPanel entries={entries} loading={roster.loading && !roster.data} error={roster.error} selected={selected} onSelect={setSelected} />
         {current ? (
-          <Conversation key={current.id} entry={current} companyId={companyId} onBack={() => setSelected(null)} onChanged={() => roster.refresh()} />
+          <Conversation key={current.id} entry={current} companyId={companyId} onBack={() => setSelected(null)} onChanged={() => roster.refresh()}
+            locked={roster.data?.singleWindow === true && roster.data?.chiefId !== current.id} />
         ) : (
           <section className="c-conv c-conv-empty" aria-label="대화">
             <p className="c-empty-title">왼쪽에서 에이전트를 고르세요</p>
@@ -150,7 +163,7 @@ function RosterPanel({ entries, loading, error, selected, onSelect }: {
   );
 }
 
-function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEntry; companyId: string | null; onBack: () => void; onChanged: () => void }) {
+function Conversation({ entry, companyId, onBack, onChanged, locked }: { entry: RosterEntry; companyId: string | null; onBack: () => void; onChanged: () => void; locked: boolean }) {
   const params = { kind: entry.kind, ref: entry.ref };
   const transcript = usePluginData<Transcript>("transcript", params);
   // This Paperclip build ships without a plugin stream bus (bridge/stream answers 501), so the view is kept
@@ -233,8 +246,10 @@ function Conversation({ entry, companyId, onBack, onChanged }: { entry: RosterEn
   const sessionOptions = sessionList.data?.sessions ?? [];
   const knownSession = sessionOptions.some((s) => s.id === currentSession);
 
-  const canType = running ? caps.steer : caps.chat;
-  const placeholder = !caps.chat && !running
+  const canType = !locked && (running ? caps.steer : caps.chat);
+  const placeholder = locked
+    ? "단일 창구 모드: 지시는 비서실장 탭에서 보내세요. 여기서는 진행 보기와 중지만 됩니다."
+    : !caps.chat && !running
     ? caps.reason ?? "지시할 수 없습니다"
     : running
       ? caps.steer ? "진행 중인 작업에 끼어들기 (Ctrl+Enter)" : "이 런타임은 끼어들기를 지원하지 않습니다. 중지 후 다시 지시하세요."
@@ -388,6 +403,9 @@ const CSS = `
 .c-root .agentos-seal[data-lamp="on"]{color:var(--agentos-lamp,#bdd1aa);border-color:rgba(189,209,170,.4);box-shadow:0 0 10px -2px var(--agentos-lamp-glow,rgba(189,209,170,.35))}
 .c-root .agentos-seal[data-lamp="hold"]{color:var(--agentos-brass,#d6bd91)}
 .c-root .agentos-seal[data-lamp="fault"]{color:var(--agentos-fault,#d7a29b)}
+.c-lock{margin:12px 0 0;padding:8px 12px;border:1px solid rgba(214,189,145,.4);background:rgba(214,189,145,.06);border-radius:8px;font-size:12px;color:var(--c-warn);word-break:keep-all;overflow-wrap:anywhere}
+.c-link{border:0;background:none;padding:0;color:var(--c-accent);font:inherit;font-weight:650;text-decoration:underline;cursor:pointer}
+.c-link:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 .c-root{--c-ink:#101716;--c-panel:var(--agentos-desk,#161e1c);--c-raised:var(--agentos-paper,#1b2522);--c-input:#0e1413;--c-line:rgba(216,232,213,.11);--c-line-strong:rgba(216,232,213,.2);
 --c-text:#e8eee7;--c-secondary:#b3beb2;--c-muted:#829185;--c-accent:#bdd1aa;--c-warn:#d6bd91;--c-error:#d7a29b;
 color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antialiased}

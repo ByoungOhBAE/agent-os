@@ -46,7 +46,7 @@ type DesktopRoom = {
 };
 type DesktopRooms = { rooms: DesktopRoom[]; checkedAt: number };
 
-export function RoomsView({ companyId }: { companyId: string | null }) {
+export function RoomsView({ companyId, locked = false }: { companyId: string | null; locked?: boolean }) {
   const params = companyId ? { companyId } : undefined;
   const overview = usePluginData<Overview>("roomsOverview", params);
   const desktop = usePluginData<DesktopRooms>("desktopRooms", params);
@@ -79,8 +79,8 @@ export function RoomsView({ companyId }: { companyId: string | null }) {
           <EngineLamp overview={data} loading={overview.loading && !data} error={overview.error} />
         </div>
         <div className="r-new">
-          <button type="button" className="c-btn c-btn-primary" disabled={!online} onClick={() => setPane({ kind: "new-room" })}>새 단체방</button>
-          <button type="button" className="c-btn" disabled={!online} onClick={() => setPane({ kind: "new-bot" })}>봇 만들기</button>
+          <button type="button" className="c-btn c-btn-primary" disabled={!online || locked} onClick={() => setPane({ kind: "new-room" })}>새 단체방</button>
+          <button type="button" className="c-btn" disabled={!online || locked} onClick={() => setPane({ kind: "new-bot" })}>봇 만들기</button>
         </div>
         {online && rooms.length === 0 && <p className="c-state r-pad">아직 단체방이 없습니다. 「새 단체방」으로 봇들을 한 방에 모으세요.</p>}
         <ul className="c-list">
@@ -131,7 +131,7 @@ export function RoomsView({ companyId }: { companyId: string | null }) {
         <NewBot models={data.models} companyId={companyId} onCancel={() => setPane(null)}
           onCreated={() => { overview.refresh(); setPane({ kind: "new-room" }); }} />
       ) : current ? (
-        <RoomView key={current.id} room={current} companyId={companyId} onBack={() => setPane(null)}
+        <RoomView locked={locked} key={current.id} room={current} companyId={companyId} onBack={() => setPane(null)}
           onGone={() => { overview.refresh(); setPane(null); }} />
       ) : (
         <section className="c-conv c-conv-empty" aria-label="단체방">
@@ -282,7 +282,7 @@ function NewBot({ models, companyId, onCancel, onCreated }: { models: Model[]; c
 
 const QUIET_KINDS = new Set(["turn.settled", "room.activity", "turn.reassigned"]);
 
-function RoomView({ room, companyId, onBack, onGone }: { room: Room; companyId: string | null; onBack: () => void; onGone: () => void }) {
+function RoomView({ room, companyId, onBack, onGone, locked = false }: { room: Room; companyId: string | null; onBack: () => void; onGone: () => void; locked?: boolean }) {
   const fetchLog = usePluginAction("roomLogFetch");
   const send = usePluginAction("roomSend");
   const stop = usePluginAction("roomStop");
@@ -446,10 +446,10 @@ function RoomView({ room, companyId, onBack, onGone }: { room: Room; companyId: 
         {notice && <p className={`c-notice c-${notice.tone}`} role={notice.tone === "bad" ? "alert" : "status"}>{notice.text}</p>}
         <label className="c-sr" htmlFor={`r-input-${room.id}`}>메시지</label>
         <textarea id={`r-input-${room.id}`} ref={inputRef} className="c-input" rows={3} value={draft} maxLength={12000}
-          placeholder="메시지 입력 · @이름으로 특정 봇 부르기 (Ctrl+Enter로 보내기)" disabled={busy} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKey} />
+          placeholder={locked ? "단일 창구 모드: 지시는 비서실장 탭에서 보내세요. 여기서는 진행 보기와 중지만 됩니다." : "메시지 입력 · @이름으로 특정 봇 부르기 (Ctrl+Enter로 보내기)"} disabled={busy || locked} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKey} />
         <div className="c-composer-row">
           <span className="c-muted c-mono">{working ? "1.5초마다 갱신 중" : "4초마다 갱신"}</span>
-          <button type="submit" className="c-btn c-btn-primary" disabled={busy || !draft.trim()}>보내기</button>
+          <button type="submit" className="c-btn c-btn-primary" disabled={busy || locked || !draft.trim()}>보내기</button>
         </div>
       </form>
     </section>

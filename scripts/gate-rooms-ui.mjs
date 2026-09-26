@@ -49,7 +49,7 @@ try {
 
     await page.goto(`${BASE}/HER/control`);
     await settle(page);
-    await page.getByRole("tab", { name: "단체방" }).click();
+    await page.getByRole("tab", { name: "단체방", exact: true }).click();
     await page.getByText("항상 켜짐").first().waitFor({ timeout: 20000 }).catch(() => fails.push(`${w}: engine lamp not '항상 켜짐'`));
     await settle(page, 600);
     await measure(page, `${w} list`);
@@ -61,38 +61,54 @@ try {
     await settle(page, 1200);
     const members = await page.locator(".r-member").count();
     if (members !== 4) fails.push(`${w}: room shows ${members} members`);
-    // Mention helper: clicking a member appends "@name" to the composer (no send).
-    await page.locator(".r-member").first().click();
-    const draft = await page.locator("textarea.c-input").inputValue();
-    if (!/^@\S/.test(draft)) fails.push(`${w}: mention chip did not fill composer (${draft})`);
-    await page.locator("textarea.c-input").fill("");
+    // Single-window mode (default): the room composer, bot form and new-room form are locked; only the chief takes
+    // instructions. With it off, the forms open as before.
+    const locked = await page.getByText("단일 창구 모드").first().isVisible().catch(() => false);
+    if (!locked) {
+      // Mention helper: clicking a member appends "@name" to the composer (no send).
+      await page.locator(".r-member").first().click();
+      const draft = await page.locator("textarea.c-input").inputValue();
+      if (!/^@\S/.test(draft)) fails.push(`${w}: mention chip did not fill composer (${draft})`);
+      await page.locator("textarea.c-input").fill("");
+    }
     await measure(page, `${w} room`);
     await page.screenshot({ path: `${SHOT}room-${w}.png` });
 
-    // Back to list on narrow widths, then open the bot form (no submit).
-    if (w < 860) await page.getByRole("button", { name: "목록으로" }).click();
-    await page.getByRole("button", { name: "봇 만들기" }).first().click();
-    await page.getByLabel("봇 이름(직함)").waitFor({ timeout: 10000 });
-    const options = await page.locator("select.c-select option").count();
-    if (options < 2) fails.push(`${w}: model select has ${options} options`);
-    await measure(page, `${w} bot form`);
-    await page.screenshot({ path: `${SHOT}bot-${w}.png` });
+    let options = -1;
+    let picks = -1;
+    if (locked) {
+      if (!(await page.locator("textarea.c-input").isDisabled())) fails.push(`${w}: room composer not locked`);
+      if (w < 860) await page.getByRole("button", { name: "목록으로" }).click();
+      for (const name of ["봇 만들기", "새 단체방"])
+        if (!(await page.getByRole("button", { name }).first().isDisabled())) fails.push(`${w}: '${name}' not locked`);
+      await measure(page, `${w} locked list`);
+      await page.screenshot({ path: `${SHOT}locked-${w}.png` });
+    } else {
+      // Back to list on narrow widths, then open the bot form (no submit).
+      if (w < 860) await page.getByRole("button", { name: "목록으로" }).click();
+      await page.getByRole("button", { name: "봇 만들기" }).first().click();
+      await page.getByLabel("봇 이름(직함)").waitFor({ timeout: 10000 });
+      options = await page.locator("select.c-select option").count();
+      if (options < 2) fails.push(`${w}: model select has ${options} options`);
+      await measure(page, `${w} bot form`);
+      await page.screenshot({ path: `${SHOT}bot-${w}.png` });
 
-    // New-room form (no submit)
-    if (w < 860) await page.getByRole("button", { name: "목록으로" }).click();
-    await page.getByRole("button", { name: "새 단체방" }).click();
-    await page.getByLabel("방 이름").waitFor({ timeout: 10000 });
-    const picks = await page.locator(".r-pick").count();
-    if (picks < 4) fails.push(`${w}: only ${picks} bots offered`);
-    const submit = page.getByRole("button", { name: "방 만들기" });
-    if (!(await submit.isDisabled())) fails.push(`${w}: empty form is submittable`);
-    await measure(page, `${w} new room`);
-    await page.screenshot({ path: `${SHOT}new-${w}.png` });
+      // New-room form (no submit)
+      if (w < 860) await page.getByRole("button", { name: "목록으로" }).click();
+      await page.getByRole("button", { name: "새 단체방" }).click();
+      await page.getByLabel("방 이름").waitFor({ timeout: 10000 });
+      picks = await page.locator(".r-pick").count();
+      if (picks < 4) fails.push(`${w}: only ${picks} bots offered`);
+      const submit = page.getByRole("button", { name: "방 만들기" });
+      if (!(await submit.isDisabled())) fails.push(`${w}: empty form is submittable`);
+      await measure(page, `${w} new room`);
+      await page.screenshot({ path: `${SHOT}new-${w}.png` });
+    }
 
     if (errors.length) fails.push(`${w}: ${errors.slice(0, 4).join(" | ")}`);
 
     // Desktop-app room (read-only live view)
-    if (w < 860) await page.getByRole("button", { name: "목록으로" }).click();
+    if (w < 860 && !locked) await page.getByRole("button", { name: "목록으로" }).click();
     const desk = page.locator(".r-section + .c-list .c-agent", { hasText: ROOM });
     let cards = 0;
     if (await desk.count()) {
@@ -106,7 +122,7 @@ try {
       await page.screenshot({ path: `${SHOT}desktop-${w}.png` });
     } else fails.push(`${w}: desktop room not listed`);
     if (errors.length) fails.push(`${w}: ${errors.slice(0, 4).join(" | ")}`);
-    console.log(`${w}: members=${members} options=${options} picks=${picks} desktopCards=${cards} errors=${errors.length}`);
+    console.log(`${w}: members=${members} locked=${locked} options=${options} picks=${picks} desktopCards=${cards} errors=${errors.length}`);
     await ctx.close();
   }
 } finally {

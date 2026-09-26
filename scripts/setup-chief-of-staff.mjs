@@ -3,6 +3,7 @@
 //    (Paperclip title "비서실장" + native agents:configure grant)  3) append the org-management section to AGENTS.md.
 // Usage: node scripts/setup-chief-of-staff.mjs <apiBase> <companyId> <agentId>
 import { mkdirSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const [api, company, agentId] = process.argv.slice(2);
 if (!api || !company || !agentId) throw new Error("usage: <apiBase> <companyId> <agentId>");
@@ -54,7 +55,8 @@ op 목록
 
 const bundle = `/api/agents/${agentId}/instructions-bundle/file?path=AGENTS.md`;
 const current = (await http(bundle)).content ?? "";
-const dir = "C:/Users/tahar/orca/workspaces/agent os/.unlazy/org-chart/backups";
+// Relative to this script so Windows node and WSL node both land in the repo ledger dir (never a literal "C:" folder).
+const dir = fileURLToPath(new URL("../.unlazy/org-chart/backups", import.meta.url));
 mkdirSync(dir, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 writeFileSync(`${dir}/chief-AGENTS-${stamp}.md`, current);

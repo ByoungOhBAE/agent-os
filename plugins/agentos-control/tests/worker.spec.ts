@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { createTestHarness } from "@paperclipai/plugin-sdk/testing";
 import manifest from "../src/manifest.js";
 import { createControl } from "../src/worker.js";
+
+// Direct 1:1 control is what these tests cover; the single-window lock (default on) is tested in chief.spec.ts.
+const DIRECT = { singleWindow: false };
 import type { Bff } from "../src/bff.js";
 
 const COMPANY = "db6f5310-0afc-4b67-8ca2-8059bd26f0cb";
@@ -52,7 +55,7 @@ function fakeBff(overrides: Partial<Record<keyof Bff, any>> = {}) {
 }
 
 function setup(bffOverrides: Partial<Record<keyof Bff, any>> = {}, agentOverrides: Record<string, unknown> = {}) {
-  const harness = createTestHarness({ manifest });
+  const harness = createTestHarness({ manifest, config: DIRECT });
   harness.seed({ agents: [agent(agentOverrides)] });
   const emitted: Array<[string, any]> = [];
   const fake = fakeBff(bffOverrides);
@@ -221,7 +224,7 @@ describe("Hermes 지시", () => {
   });
 
   it("스트림 채널을 회사 범위로 열고 나서 이벤트를 보낸다", async () => {
-    const harness = createTestHarness({ manifest });
+    const harness = createTestHarness({ manifest, config: DIRECT });
     harness.seed({ agents: [agent()] });
     const calls: Array<[string, ...unknown[]]> = [];
     (harness.ctx.streams as any).open = (c: string, id: string) => calls.push(["open", c, id]);
@@ -289,7 +292,7 @@ describe("Paperclip 지시", () => {
 
 describe("회사별 BFF 설정", () => {
   it("회사 설정의 bffOrigin으로 요청하고, 설정이 없으면 기본 주소를 쓴다", async () => {
-    const harness = createTestHarness({ manifest, config: {} });
+    const harness = createTestHarness({ manifest, config: { ...DIRECT } });
     harness.seed({ agents: [agent()] });
     const urls: string[] = [];
     const realFetch = globalThis.fetch;
