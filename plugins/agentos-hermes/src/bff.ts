@@ -1,4 +1,4 @@
-type View = "sessions" | "search" | "detail" | "messages" | "mcp" | "graph" | "runtime" | "bots";
+export type View = "sessions" | "search" | "detail" | "messages" | "mcp" | "graph" | "runtime" | "bots" | "skills";
 const ORIGIN = "http://127.0.0.1:4200";
 const profilePattern = /^[\w.-]{1,64}$/;
 /** `server/index.mjs` param()과 같은 세션 ID 규칙. */
@@ -32,7 +32,7 @@ export function routeFor(view: string, profile: string, query = ""): string {
     sessions: "/api/hermes/sessions", search: "/api/hermes/sessions/search",
     detail: "/api/hermes/sessions/", messages: "/api/hermes/sessions/",
     mcp: "/api/hermes/mcp/servers", graph: "/api/hermes/learning/graph", runtime: "/api/agents",
-    bots: "/api/hermes/bots",
+    bots: "/api/hermes/bots", skills: "/api/hermes/skills",
   };
   if (!Object.hasOwn(paths, view)) throw new Error("허용되지 않은 읽기 요청입니다.");
   let path = paths[view as View];
@@ -80,7 +80,9 @@ function project(view: View, value: unknown): unknown {
   if (view === "mcp") return { profile: text(payload.profile, 64), servers: list(payload.servers, 300).map(s => ({ name: text(s.name, 80), transport: text(s.transport, 16), enabled: s.enabled === true, source: text(s.source, 16) })) };
   if (view === "sessions") return { total: Number.isSafeInteger(payload.total) ? payload.total : null, sessions: list(payload.sessions, 40).map(s => ({ id: text(s.id, 180), title: redact(s.title, 180), profile: text(s.profile, 64), source: text(s.source, 80), model: text(s.model, 80), last_active: time(s.last_active) })) };
   if (view === "search") return { coverage: "selected-profile-id-and-content", results: list(payload.results, 8).map(s => ({ session_id: text(s.session_id, 180), title: redact(s.title, 180), profile: text(s.profile, 64), source: text(s.source, 80), last_active: time(s.last_active) })) };
-  if (view === "graph") return { profile: text(payload.profile, 64), nodes: list(payload.nodes, 1500).map(n => ({ id: text(n.id, 200), label: redact(n.label, 120), kind: text(n.kind, 16), category: text(n.category, 80) })), edges: list(payload.edges, 4000).map(e => ({ source: text(e.source, 200), target: text(e.target, 200) })), memory: list(payload.memory, 1000).map(m => ({ id: text(m.id, 200), source: text(m.source, 20), title: redact(m.title, 120), body: redact(m.body) })) };
+  if (view === "graph") return { profile: text(payload.profile, 64), nodes: list(payload.nodes, 1500).map(n => ({ id: text(n.id, 200), label: redact(n.label, 120), kind: text(n.kind, 16), category: text(n.category, 80) })), edges: list(payload.edges, 4000).map(e => ({ source: text(e.source, 200), target: text(e.target, 200) })), memory: list(payload.memory, 1000).map(m => ({ id: text(m.id, 200), source: text(m.source, 20), title: redact(m.title, 120), body: redact(m.body), timestamp: time(m.timestamp) ?? (text(m.timestamp, 40) || null) })) };
+  // 스킬은 이름·분류·켜짐·사용 횟수만. 설명·출처(provenance)는 넘기지 않는다.
+  if (view === "skills") return { skills: list(Array.isArray(value) ? value : payload.skills, 500).map(s => ({ name: text(s.name, 80), category: text(s.category, 80) || null, enabled: s.enabled === true, usage: count(s.usage) ?? count(record(s.usage).count) })) };
   if (view === "detail") return {
     // 허용 목록만: system_prompt, model_config, cwd, git_*, billing_base_url, origin_json, user/chat ID 등은 제외.
     id: text(payload.id, 180), title: redact(payload.title, 180), profile: text(payload.profile, 64),

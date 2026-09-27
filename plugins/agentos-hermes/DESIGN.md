@@ -17,6 +17,7 @@ Paperclip 2026.916.1 SDK의 `definePlugin` / `runWorker`, `ctx.data.register`, `
 | 출처 | `/api/agents` | 런타임 전체(6건)의 감지 여부·mechanism·기능 상태. 런타임·모델 제공사·비용을 분리 표시하고 미집계를 $0으로 표시하지 않음 |
 | 세션 상세 | `/api/hermes/sessions/:id?profile=…` | 허용 목록 필드만(런타임·모델·호출 수·과금 방식·실제/추정 비용·토큰). BFF와 워커 양쪽에서 system_prompt·model_config·cwd·git·billing_base_url·사용자/채팅 ID 제거 |
 | 세션 대화 | `/api/hermes/sessions/:id/messages?profile=…` | 최근 150건 중 사용자·어시스턴트 텍스트만(마스킹). 추론 필드는 항상 제거, 도구 출력은 "생략" 표시 |
+| 기억 한눈에 보기 | `/api/hermes/bots`, `/api/hermes/learning/graph?profile=…`, `/api/hermes/skills?profile=…` + 플러그인 `agents.read`·`local.folders`(읽기 전용: `<봇ID>/MEMORY.md`, `USER.md`) | 봇별 기억 카드(출처 배지·글자 수/한도 게이지·`§` 항목·장착 스킬 칩). 항목 원문은 `redact` 후 표시, 스킬은 이름·분류·켜짐·사용 횟수만. 쓰기 함수 호출 없음. 시안: `DESIGN-memory-visual.md` |
 
 BFF는 조회 시 Hermes 대시보드에 자체적으로 접근한다. 플러그인은 인증 토큰이나 자격 증명 파일을 읽지 않는다. 노트의 비밀값은 범용적으로 판별할 수 없으므로 `token=`, `password=`, `api_key=` 등 명시 패턴만 가린다. **임의 자유 텍스트 비밀의 비노출 보장은 없다.** 노트를 표시할 운영자에게만 플러그인을 노출해야 한다. HTML 삽입 없이 React 문자열 노드로 렌더한다.
 

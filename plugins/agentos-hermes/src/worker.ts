@@ -1,5 +1,6 @@
 import { definePlugin, runWorker } from "@paperclipai/plugin-sdk";
 import { readBff } from "./bff.js";
+import { readMemoryOverview } from "./memory.js";
 
 const plugin = definePlugin({
   async setup(ctx) {
@@ -11,6 +12,7 @@ const plugin = definePlugin({
     ctx.data.register("hermes-graph", async p => readBff("graph", String(p.profile ?? "default")));
     ctx.data.register("hermes-runtime", async () => readBff("runtime", "default"));
     ctx.data.register("hermes-bots", async () => readBff("bots", "default"));
+    ctx.data.register("memory-overview", async p => readMemoryOverview(ctx, String(p.companyId ?? "")));
   },
 });
 export default plugin;
