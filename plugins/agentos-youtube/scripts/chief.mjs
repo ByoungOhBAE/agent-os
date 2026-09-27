@@ -40,5 +40,14 @@ if(mode==='submit') {
     const interactions=await api('GET',`/issues/${saved.id}/interactions`);
     const card=interactions.find(i=>i.id===interactionId);assert.equal(card?.status,'accepted');
     console.log(JSON.stringify({result:j.data,readback:{id:card.id,status:card.status,resolvedByUserId:card.resolvedByUserId,resolvedByAgentId:card.resolvedByAgentId}},null,2));
-  } else throw new Error('mode must be submit, status, or accept');
+  } else if(mode==='reply') {
+    // State-changing: posts a board-attributed comment on the recorded request, which wakes the chief once.
+    const file=process.argv[3];assert(file&&fs.existsSync(file),'reply body file required');
+    const input=fs.readFileSync(file,'utf8').trim();assert(input.length>0&&input.length<=6000);
+    const j=await api('POST','/plugins/agentos.control/bridge/action',{key:'chiefReply',companyId,params:{companyId,issueId:saved.id,input}});
+    assert(j.data?.id,'missing comment id');
+    const comments=await api('GET',`/issues/${saved.id}/comments`);
+    const c=comments.find(x=>x.id===j.data.id);assert.equal(c?.body?.trim(),input);
+    console.log(JSON.stringify({comment:{id:c.id,createdAt:c.createdAt,byUser:!!c.authorUserId}},null,2));
+  } else throw new Error('mode must be submit, status, accept, or reply');
 }
