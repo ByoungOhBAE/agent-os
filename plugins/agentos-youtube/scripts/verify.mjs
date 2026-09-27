@@ -11,6 +11,8 @@ const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const docs=['README.md','docs/chief-of-staff-process-plan.md','docs/dashboard-redesign-plan.md','docs/group-chat-control-plan.md','docs/hermes-bot-redesign-plan.md','docs/online-migration-runbook-b.md','docs/online-operation-plan.md','docs/unified-control-contract.md','docs/unified-control-plan.md'];
 const allowed=new Set(docs);
+// User-approved code exception (2026-09-28): default per-run limit for new bots raised to 4h.
+const approvedCode=new Set(['scripts/hermes-bots.mjs']);
 export function compare(baseline, current, permitted=new Set()) {
   return Object.entries(baseline).filter(([f,h])=>!permitted.has(f)&&current[f]!==h).map(([f])=>f);
 }
@@ -20,9 +22,10 @@ if(mode==='preservation') {
   for(const f of Object.keys(baseline.files)){const p=path.join(root,f);if(fs.existsSync(p))current[f]=sha(fs.readFileSync(p));}
   assert.deepEqual(compare({a:'original'}, {a:'modified'}), ['a'], 'positive control must detect a changed file');
   assert.deepEqual(compare({a:'original'}, {}), ['a'], 'missing file must not pass');
-  const changed=compare(baseline.files,current,allowed);
+  const changed=compare(baseline.files,current,new Set([...allowed,...approvedCode]));
   assert.deepEqual(changed,[],`protected files changed: ${changed.join(', ')}`);
-  console.log(`PRESERVATION_VERIFIED baseline=${Object.keys(baseline.files).length} allowedDocs=${allowed.size}`);
+  const hb=read('scripts/hermes-bots.mjs');assert(hb.includes('timeoutSec: 14400,')&&!hb.includes('timeoutSec: 1800,'),'hermes-bots default limit must be 14400');
+  console.log(`PRESERVATION_VERIFIED baseline=${Object.keys(baseline.files).length} allowedDocs=${allowed.size} approvedCode=${approvedCode.size}`);
 } else if(mode==='docs') {
   for(const f of docs) {
     const s=read(f); assert(s.includes('OPERATIONS-AUDIT.md'), `no current audit reference: ${f}`);

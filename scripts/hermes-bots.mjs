@@ -207,7 +207,7 @@ function createProfile(profile, description) {
 }
 function gatewayConfig(profile) {
   return { apiBaseUrl: `http://127.0.0.1:8645/p/${profile}`, apiKey: gatewayKey(profile), sessionKeyStrategy: "issue",
-    timeoutSec: 1800, paperclipApiUrl: "http://127.0.0.1:3100" };
+    timeoutSec: 14400, paperclipApiUrl: "http://127.0.0.1:3100" }; // 4h per run (user decision 2026-09-28; was 1800)
 }
 async function bindPaperclipKey(profile, agentId) {
   const r = await pc("POST", `/agents/${agentId}/keys`, { name: `hermes-${profile}` });
