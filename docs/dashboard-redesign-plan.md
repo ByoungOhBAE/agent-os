@@ -1,6 +1,6 @@
-# AgentOS 대시보드 리디자인 계획 (초안 · 승인 전)
+# AgentOS 대시보드 리디자인 — 당시 제안 보존본
 
-상태: **draft** — 사용자 승인 전. 코드 변경 없음.
+상태: **과거 제안**. 아래 초안의 승인·관측 상태는 작성 당시 기준입니다. 현재 관제 소스에는 명패(Seal)가 있지만 이 사실만으로 아래 전체 화면·폰트·배포 기준의 완료를 확정하지 않습니다. 새 기능 작업은 [현재 운영 검수](../plugins/agentos-youtube/OPERATIONS-AUDIT.md)와 실제 소스를 우선합니다.
 스킬: interface-design (dammyjay93/interface-design) · omh-plan
 
 ## 1. 지금 밋밋한 이유 (운영 3100 캡처로 관찰, 2026-09-26)

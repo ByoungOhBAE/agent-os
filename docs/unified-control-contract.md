@@ -1,6 +1,6 @@
 # 통합 관제 연결 계약 (P0 실측)
 
-2026-09-26 실측. 모든 값은 코드 원문 또는 실제 요청 결과로 확인했다. 키·토큰 값은 기록하지 않는다.
+2026-09-26의 실측 기록을 보존합니다. **2026-09-28 재검수:** 현재 UI는 폴링이며 비서실장은 Hermes gateway 연결입니다. 아래 시각·응답·버전은 해당 시험 시점의 증거이지 이번 재실행 결과가 아닙니다. [재검수 근거](../plugins/agentos-youtube/OPERATIONS-AUDIT.md). 키·토큰 값은 기록하지 않습니다.
 
 ## Hermes (API 서버 `127.0.0.1:8645`, v0.21.4)
 
@@ -14,7 +14,7 @@
 | 승인 | `POST /v1/runs/:id/approval` `{choice, request_id?}` | 원문 1082 |
 | 봇 프로필 | `/p/<profile>/…` | 기본 키로는 401 — **봇 프로필마다 `API_SERVER_KEY` 필요**(원문 `_expected_api_key`, 다른 프로필 키 상속 금지). 존재하지 않는 프로필은 404 |
 | 1:1 봇 채팅 | `session_id`에 봇의 Bot Chat 세션 | 데스크톱에서 그 채팅이 열려 있으면 데스크톱 소유자에게 넘김(`_admit_to_live_bot_chat`), 아니면 서버에서 그 세션으로 실행 |
-| 그룹방 | 서버 API 없음 | 데스크톱이 방을 운영. 멤버 스레드 세션에 외부로 쓴 글은 데스크톱에서 방을 열 때 방 기록에 반영(`group-external-writes.ts` `sweepExternalGroupWrites`) |
+| 그룹방 | Runs REST와 별도인 `groups.*` JSON-RPC 경로 | 초기의 “서버 API 없음”은 정정. 현재 `server/rooms.mjs`가 hosted-room API를 연결하며 `server/desktop-rooms.mjs`의 옛 데스크톱 기록과 구분한다. 데스크톱 종료 시험은 `group-chat-control-plan.md`의 당시 기록 참조 |
 | 게이트웨이 | `GET /health/detailed` | `active_agents`, `gateway_busy`, `gateway_state` |
 
 봇 프로필에는 `api_server`가 켜져 있지 않다. 따라서 프로필 `.env`에 키를 넣어도 새 리스너가 생기지 않는다. 기본 게이트웨이의 `/p/<profile>` 인증에만 쓰인다. 비밀 범위는 `.env` 수정 시각을 보고 다시 읽는다.
@@ -28,7 +28,7 @@
 | 채팅·지시 | `ctx.agents.sessions.create/sendMessage(onEvent)` | 실험 기능 `enableAgentChat` 없이 동작(`plugin-host-services.ts` 3276). 에이전트에 `paperclipAgentMessage`로 전달 |
 | 중지 | `POST /api/heartbeat-runs/:runId/cancel` | board 전용, local_trusted에서 루프백 허용 |
 | 일시정지/재개 | `ctx.agents.pause/resume` | `agents.pause/resume` |
-| 실시간 전달 | `ctx.streams.emit` → `usePluginStream` | `/api/plugins/:id/bridge/stream/:channel` SSE |
+| 실시간 전달 | 현재 UI: 실행 중 1초 / 대기 중 5초 폴링 | `ctx.streams.emit` → `usePluginStream`은 SDK 계약 후보였으나 당시 운영은 501. Hermes SSE를 플러그인 UI 스트림 동작 증거로 간주하지 않음 |
 
 결론: Paperclip 실험 기능 `enableAgentChat`을 켜지 않고도 플러그인 세션으로 채팅·지시가 가능하다. 운영 설정 변경을 피하려고 이 경로를 쓴다.
 

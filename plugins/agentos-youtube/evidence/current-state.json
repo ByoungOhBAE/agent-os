@@ -1,0 +1,119 @@
+{
+  "at": "2026-09-27T19:40:56.361Z",
+  "company": {
+    "id": "db6f5310-0afc-4b67-8ca2-8059bd26f0cb",
+    "name": "Hermes Spike Co"
+  },
+  "health": {
+    "status": "ok",
+    "deploymentMode": "local_trusted"
+  },
+  "agents": [
+    {
+      "id": "94d90126-0d90-4009-aa38-1200f7279d1c",
+      "name": "Hermes Spike Engineer",
+      "title": "Hermes local test agent",
+      "status": "paused",
+      "adapterType": "hermes_local",
+      "profile": null,
+      "model": "upstage/solar-pro4:free"
+    },
+    {
+      "id": "11650ed8-bb2c-4c3a-a391-b34bd76c8389",
+      "name": "대시보드개선_화면디자인",
+      "title": "화면디자인",
+      "status": "idle",
+      "adapterType": "hermes_gateway",
+      "profile": "pc-26df4505",
+      "model": null
+    },
+    {
+      "id": "a78e01ad-5011-4811-9660-87c1f8002781",
+      "name": "콘텐츠_블로그제목",
+      "title": "블로그제목",
+      "status": "idle",
+      "adapterType": "hermes_gateway",
+      "profile": "pc-8ca245c2",
+      "model": null
+    },
+    {
+      "id": "694e5a9f-e932-4141-9d20-08cdd653d324",
+      "name": "대시보드개선_코드구현",
+      "title": "코드구현",
+      "status": "idle",
+      "adapterType": "hermes_gateway",
+      "profile": "pc-59bd3c1d",
+      "model": null
+    },
+    {
+      "id": "f3dc1fd7-1cc6-47f2-9edb-e7100e8e1ab3",
+      "name": "콘텐츠_SNS문구",
+      "title": "SNS문구",
+      "status": "idle",
+      "adapterType": "hermes_gateway",
+      "profile": "pc-7686fab2",
+      "model": null
+    },
+    {
+      "id": "dce6dcc3-db97-4e20-bfb5-dc8684660407",
+      "name": "시험_연결확인",
+      "title": "연결 시험",
+      "status": "idle",
+      "adapterType": "hermes_gateway",
+      "profile": "pc-2e6cbe27",
+      "model": null
+    },
+    {
+      "id": "d922202d-44cd-4b28-b7bf-c68ff12354f4",
+      "name": "대시보드개선_스킬탐색",
+      "title": "스킬탐색",
+      "status": "idle",
+      "adapterType": "hermes_gateway",
+      "profile": "pc-adfb6817",
+      "model": null
+    },
+    {
+      "id": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+      "name": "비서실장",
+      "title": "비서실장",
+      "status": "idle",
+      "adapterType": "hermes_gateway",
+      "profile": "pc-ebb0943f",
+      "model": null
+    },
+    {
+      "id": "0313c70a-dd03-4cf3-b0a4-ffc1c2822e2e",
+      "name": "Claude Subscription Smoke",
+      "title": "Bounded subscription smoke test",
+      "status": "paused",
+      "adapterType": "claude_local",
+      "profile": null,
+      "model": "claude-haiku-4-5"
+    }
+  ],
+  "chief": {
+    "id": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+    "hermesDefault": true,
+    "hireCommand": true,
+    "findSkillsMention": true,
+    "instructionsDigest": "d6758d14bca148463bbe3d8b2f7df30fced81109995a651e1cc882fd681c422f",
+    "skills": []
+  },
+  "plugins": [
+    {
+      "id": "389f656a-443e-4e1c-9fd5-a5cc7d836bb8",
+      "status": "ready",
+      "version": "0.1.0"
+    },
+    {
+      "id": "52148586-0d12-438a-bf87-5ad691d8c4d7",
+      "status": "ready",
+      "version": "0.1.0"
+    },
+    {
+      "id": "98c4241d-43b1-4cdf-af77-d615f8f35b9b",
+      "status": "ready",
+      "version": "0.1.0"
+    }
+  ]
+}

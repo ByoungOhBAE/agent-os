@@ -1,0 +1,7 @@
+agent-work/
+evidence/*.local.json
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+dist/
