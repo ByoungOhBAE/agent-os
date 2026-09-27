@@ -1,0 +1,11 @@
+{
+  "id": "dfc90533-0a85-4f5d-8c9f-0a3f87e61e07",
+  "identifier": "HER-17",
+  "wake": {
+    "queued": true,
+    "runId": "ffb5e161-dcfc-45da-8129-277ccaa2b138"
+  },
+  "companyId": "db6f5310-0afc-4b67-8ca2-8059bd26f0cb",
+  "chiefId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+  "createdAt": "2026-09-27T22:36:42.936Z"
+}
