@@ -83,14 +83,19 @@ const SECTION = `${START}
    - 승인 전에는 봇 만들기·부서 만들기·하위 작업 만들기 **금지**.
    - 사장님이 댓글로 수정을 요청하면(카드가 자동 만료됨) 계획을 고치고 새 카드를 만듭니다.
 3. **조직** (승인 뒤, 필요할 때만) — 부서가 없으면 조직 배치도 \`createDepartment\`.
-   - 새 봇은 \`paperclip-create-agent\` 스킬로 \`POST /api/companies/{companyId}/agent-hires\`:
+   - 새 봇은 **기억을 가진 Hermes 봇**으로 만듭니다(기본값). Paperclip의 agent-hires API를 직접 부르지 말고 아래 명령만 씁니다:
+     1. 역할 지시문(AGENTS.md)을 파일로 저장: \`C:/Users/tahar/AppData/Local/hermes/cache/paperclip-roles/<봇이름>.md\`
+        (역할·결과물 형식·"결과는 이슈 댓글과 문서로 남기고 done 처리" 포함, 비밀값 금지)
+     2. 터미널에서 실행:
+\`\`\`bash
+node "C:/Users/tahar/orca/workspaces/agent os/scripts/hermes-bots.mjs" hire --name "<부서명_담당업무>" --title "<담당업무>" \\
+  --reports-to "$PAPERCLIP_AGENT_ID" --source-issue "<요청 이슈 ID>" \\
+  --role-file "C:/Users/tahar/AppData/Local/hermes/cache/paperclip-roles/<봇이름>.md" --skills "<역할에 맞는 Hermes 스킬, 쉼표 구분(없으면 생략)>"
+\`\`\`
+        출력 \`HIRED <에이전트ID> <이름> profile=<프로필>\` 이 나와야 성공입니다. \`FAIL\` 이면 그 문구를 그대로 보고하고 추측으로 재시도하지 않습니다.
      - \`name\`: **\`부서명_담당업무\`** 형식 (밑줄 1개, 띄어쓰기 없음, 예: \`콘텐츠_블로그작성\`, \`디자인_배너제작\`)
-     - \`adapterType\`: \`claude_local\`, \`adapterConfig\`: \`{"model":"claude-opus-5-5","engine":"cli"}\` (구독은 당신 것을 물려받음, 키 넣지 말 것)
-     - \`reportsTo\`: 당신의 에이전트 ID, \`runtimeConfig\`: \`{"heartbeat":{"enabled":false,"wakeOnDemand":true}}\`
-     - \`instructionsBundle.files["AGENTS.md"]\`: 역할·결과물 형식·"결과는 이슈 댓글과 문서로 남기고 done 처리" 포함
-     - \`sourceIssueId\`: 요청 이슈 ID
-     - **기억 장착**: \`desiredSkills\`에 \`hermes-memory\` 회사 스킬 키를 넣고, AGENTS.md 끝에 그 스킬의 "새 봇 장착" 블록을 그대로 붙입니다.
-     - 역할에 맞는 회사 스킬도 \`desiredSkills\`에 넣습니다(예: 스킬 찾는 봇 → \`find-skills\`). 목록은 GET /api/companies/{companyId}/skills.
+     - 이 명령이 Hermes 프로필 생성(Opus 5.5 구독·기억 켜짐·사장님 정보 USER.md), Paperclip 연결, 기본 스킬(paperclip 등) 설치, 연결 키 보관을 한 번에 합니다.
+     - 스킬 예: 스킬 찾는 봇 → \`find-skills\`, 디자인 → \`interface-design\`.
    - 같은 역할의 봇이 이미 있으면 **재사용**. 요청 하나당 새 봇은 **최대 3개**.
    - 만든 봇을 조직 배치도 \`assign\`으로 그 부서에 배치(title=담당업무, duty=한 줄 설명).
 4. **지시** — \`paperclip-converting-plans-to-tasks\` 스킬로 하위 작업 생성: \`parentId\` = 요청 이슈, 담당 = 봇,
