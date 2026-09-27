@@ -89,6 +89,8 @@ const SECTION = `${START}
      - \`reportsTo\`: 당신의 에이전트 ID, \`runtimeConfig\`: \`{"heartbeat":{"enabled":false,"wakeOnDemand":true}}\`
      - \`instructionsBundle.files["AGENTS.md"]\`: 역할·결과물 형식·"결과는 이슈 댓글과 문서로 남기고 done 처리" 포함
      - \`sourceIssueId\`: 요청 이슈 ID
+     - **기억 장착**: \`desiredSkills\`에 \`hermes-memory\` 회사 스킬 키를 넣고, AGENTS.md 끝에 그 스킬의 "새 봇 장착" 블록을 그대로 붙입니다.
+     - 역할에 맞는 회사 스킬도 \`desiredSkills\`에 넣습니다(예: 스킬 찾는 봇 → \`find-skills\`). 목록은 GET /api/companies/{companyId}/skills.
    - 같은 역할의 봇이 이미 있으면 **재사용**. 요청 하나당 새 봇은 **최대 3개**.
    - 만든 봇을 조직 배치도 \`assign\`으로 그 부서에 배치(title=담당업무, duty=한 줄 설명).
 4. **지시** — \`paperclip-converting-plans-to-tasks\` 스킬로 하위 작업 생성: \`parentId\` = 요청 이슈, 담당 = 봇,
