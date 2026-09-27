@@ -46,7 +46,10 @@ export function gatewayKey(profile) {
   if (!k) throw new Error(`API_SERVER_KEY missing for profile ${profile || "default"}`);
   return k;
 }
-function hermes(args) { return execFileSync(HERMES, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 180000 }); }
+// A bot running this script inherits HERMES_HOME = its own profile folder (the gateway sets it). Child tools must
+// always see the Hermes root, or they look for other profiles in the wrong place.
+const ROOT_ENV = { ...process.env, HERMES_HOME: HOME };
+function hermes(args) { return execFileSync(HERMES, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 180000, env: ROOT_ENV }); }
 function wsl(args) { return execFileSync("wsl", ["-d", "Ubuntu", "--", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60000 }); }
 const wslRead = (p) => { try { return wsl(["cat", p]); } catch { return ""; } };
 const toWslPath = (win) => "/mnt/" + win[0].toLowerCase() + win.slice(2).replace(/\\/g, "/");
@@ -198,7 +201,7 @@ function createProfile(profile, description) {
   });
   step("gateway key", () => {
     execFileSync(process.execPath, [path.join(REPO, "scripts", "provision-hermes-profile-keys.mjs"), "--profiles", profile, "--apply"],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60000 });
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60000, env: ROOT_ENV });
     gatewayKey(profile);
   });
 }
