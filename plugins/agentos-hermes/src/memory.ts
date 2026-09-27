@@ -1,4 +1,4 @@
-import { readBff, redact } from "./bff.js";
+import { profilePattern, readBff, redact } from "./bff.js";
 
 export type MemorySource = "hermes" | "paperclip";
 export type MemoryState = "ok" | "empty" | "missing" | "unavailable" | "server-pending" | "not-configured";
@@ -38,8 +38,6 @@ const MAX_ENTRIES = 60;
 const MAX_FILE_CHARS = 20_000;
 const SEPARATOR_CHARS = 3; // "\n§\n"
 export const uuidPattern = /^[0-9a-f-]{36}$/i;
-export const WORKSPACES_FOLDER = "paperclip-workspaces";
-export const COMPANY_MEMORY_FOLDER = "paperclip-company-memory";
 
 const MESSAGES = {
   empty: "아직 기억 없음 — 봇이 일을 마치면 배운 점을 여기에 적습니다.",
@@ -47,6 +45,7 @@ const MESSAGES = {
   unavailable: "기억을 읽지 못했습니다.",
   tooLarge: "기억을 읽지 못했습니다 (파일이 너무 큼).",
   notConfigured: "Paperclip 기억 폴더가 아직 연결되지 않았습니다. 플러그인 설정에서 폴더 2개를 지정하면 보입니다.",
+  notHermes: "Hermes 봇이 아니라 기억이 없습니다. Hermes 봇으로 바꾸면 기억이 생깁니다.",
   serverPending: "Paperclip 봇 기억은 서버 준비 중입니다. 준비되면 여기에 봇마다 카드가 나타납니다.",
   badCompany: "회사 정보를 확인하지 못해 Paperclip 기억을 읽지 않았습니다.",
   hermesDown: "Hermes 기억을 읽지 못했습니다 (로컬 AgentOS BFF 연결 실패).",
@@ -162,77 +161,52 @@ export async function readHermesMemory(read: BffReader = readBff): Promise<Memor
   return { state: "ok", user, bots: cards };
 }
 
-/** 플러그인 SDK 중 이 화면이 쓰는 읽기 함수만. 쓰기 함수는 부르지 않는다. */
+/** 플러그인 SDK 중 이 화면이 쓰는 읽기 함수만(봇 목록). 쓰기 함수는 부르지 않는다. */
+export type PaperclipAgentRow = { id: string; name: string; status?: string; adapterType?: string; adapterConfig?: unknown; metadata?: unknown };
 export type PaperclipReadCtx = {
-  localFolders: {
-    status(companyId: string, folderKey: string): Promise<{ configured: boolean; problems?: { code: string }[] }>;
-    list(companyId: string, folderKey: string, options?: { relativePath?: string | null }): Promise<{ entries: { name: string; kind: string; size: number | null; modifiedAt: string | null }[] }>;
-    readText(companyId: string, folderKey: string, relativePath: string): Promise<string>;
-  };
-  agents: { list(input: { companyId: string; limit?: number }): Promise<{ id: string; name: string; status?: string; adapterConfig?: unknown }[]> };
+  agents: { list(input: { companyId: string; limit?: number }): Promise<PaperclipAgentRow[]> };
 };
 
-async function readAgentMemory(ctx: PaperclipReadCtx, companyId: string, agentId: string): Promise<MemoryFile> {
-  let entry;
-  try {
-    entry = (await ctx.localFolders.list(companyId, WORKSPACES_FOLDER, { relativePath: agentId })).entries.find(e => e.name === "MEMORY.md" && e.kind === "file");
-  } catch {
-    return stateFile("missing", BOT_LIMIT, MESSAGES.missing);
-  }
-  if (!entry) return stateFile("missing", BOT_LIMIT, MESSAGES.missing);
-  if (typeof entry.size === "number" && entry.size > MAX_FILE_CHARS * 4) return stateFile("unavailable", BOT_LIMIT, MESSAGES.tooLarge);
-  try {
-    const raw = await ctx.localFolders.readText(companyId, WORKSPACES_FOLDER, `${agentId}/MEMORY.md`);
-    if (raw.length > MAX_FILE_CHARS) return stateFile("unavailable", BOT_LIMIT, MESSAGES.tooLarge);
-    return fileFromRaw(raw, BOT_LIMIT, isoFrom(entry.modifiedAt));
-  } catch {
-    return stateFile("unavailable", BOT_LIMIT, MESSAGES.unavailable);
-  }
+/** Paperclip 봇과 짝인 Hermes 프로필. hermes_gateway 봇의 연결 주소 `…/p/<프로필>` 에서만 읽는다. */
+export function hermesProfileOf(a: PaperclipAgentRow): string | null {
+  if (a.adapterType !== "hermes_gateway") return null;
+  const url = (a.adapterConfig as any)?.apiBaseUrl;
+  const m = typeof url === "string" ? url.match(/\/p\/([A-Za-z0-9_.-]{1,64})\/?$/) : null;
+  return m && profilePattern.test(m[1]) ? m[1] : null;
 }
+const isArchived = (a: PaperclipAgentRow) => (a.metadata as any)?.agentosArchived === true || a.status === "terminated";
 
-async function readUserMemory(ctx: PaperclipReadCtx, companyId: string): Promise<MemoryFile> {
-  try {
-    const status = await ctx.localFolders.status(companyId, COMPANY_MEMORY_FOLDER);
-    if (!status.configured) return stateFile("not-configured", USER_LIMIT, MESSAGES.notConfigured);
-    const raw = await ctx.localFolders.readText(companyId, COMPANY_MEMORY_FOLDER, "USER.md");
-    if (raw.length > MAX_FILE_CHARS) return stateFile("unavailable", USER_LIMIT, MESSAGES.tooLarge);
-    return fileFromRaw(raw, USER_LIMIT);
-  } catch {
-    return stateFile("unavailable", USER_LIMIT, MESSAGES.unavailable);
-  }
-}
-
-export async function readPaperclipMemory(ctx: PaperclipReadCtx, companyId: string): Promise<MemoryOverviewData["paperclip"]> {
+/** Paperclip 봇 기억 = 짝인 Hermes 프로필의 진짜 Hermes 기억(MEMORY.md·USER.md). 폴더 지정이 필요 없다. */
+export async function readPaperclipMemory(ctx: PaperclipReadCtx, companyId: string, read: BffReader = readBff): Promise<MemoryOverviewData["paperclip"]> {
   if (!uuidPattern.test(companyId)) return { state: "unavailable", message: MESSAGES.badCompany, user: null, bots: [] };
-  try {
-    const status = await ctx.localFolders.status(companyId, WORKSPACES_FOLDER);
-    if (!status.configured) return { state: "not-configured", message: MESSAGES.notConfigured, user: null, bots: [] };
-  } catch {
-    return { state: "server-pending", message: MESSAGES.serverPending, user: null, bots: [] };
-  }
   let agents;
   try {
     agents = await ctx.agents.list({ companyId, limit: 100 });
   } catch {
     return { state: "server-pending", message: MESSAGES.serverPending, user: null, bots: [] };
   }
-  const safe = agents.filter(a => typeof a.id === "string" && uuidPattern.test(a.id));
-  const [user, bots] = await Promise.all([
-    readUserMemory(ctx, companyId),
-    mapLimit(safe, 3, async (a): Promise<BotMemoryCard> => ({
-      key: `paperclip:${a.id}`, source: "paperclip", name: redact(a.name, 80) || a.id.slice(0, 8),
-      subtitle: `${a.id.slice(0, 8)}${a.status ? ` · ${redact(a.status, 20)}` : ""}`,
-      memory: await readAgentMemory(ctx, companyId, a.id), skills: paperclipSkills(a.adapterConfig),
-    })),
-  ]);
-  return { state: "ok", user, bots };
+  const safe = agents.filter(a => typeof a.id === "string" && uuidPattern.test(a.id) && !isArchived(a));
+  let user: MemoryFile | null = null;
+  const bots = await mapLimit(safe, 3, async (a): Promise<BotMemoryCard> => {
+    const profile = hermesProfileOf(a);
+    const base = { key: `paperclip:${a.id}`, source: "paperclip" as const, name: redact(a.name, 80) || a.id.slice(0, 8),
+      subtitle: `${profile ? `Hermes ${profile}` : a.id.slice(0, 8)}${a.status ? ` · ${redact(a.status, 20)}` : ""}` };
+    if (!profile) return { ...base, skills: paperclipSkills(a.adapterConfig), memory: stateFile("missing", BOT_LIMIT, MESSAGES.notHermes) };
+    const [graph, skills] = await Promise.all([read("graph", profile), read("skills", profile)]);
+    const chips = skills.status === "available" ? hermesSkills((skills as any).data) : null;
+    if (graph.status !== "available") return { ...base, skills: chips, memory: stateFile("unavailable", BOT_LIMIT, MESSAGES.unavailable) };
+    const projected = projectHermesMemory((graph as any).data);
+    if (!user && projected.user.state === "ok") user = projected.user;
+    return { ...base, skills: chips, memory: projected.bot };
+  });
+  return { state: "ok", user: user ?? stateFile("empty", USER_LIMIT, MESSAGES.empty), bots };
 }
 
 /** 두 출처는 서로 독립: 한쪽이 실패해도 다른 쪽 결과는 남는다. */
 export async function readMemoryOverview(ctx: PaperclipReadCtx, companyId: string, read: BffReader = readBff): Promise<MemoryOverviewData> {
   const [hermes, paperclip] = await Promise.all([
     readHermesMemory(read).catch(() => ({ state: "unavailable" as const, message: MESSAGES.hermesDown, user: null, bots: [] })),
-    readPaperclipMemory(ctx, companyId).catch(() => ({ state: "server-pending" as const, message: MESSAGES.serverPending, user: null, bots: [] })),
+    readPaperclipMemory(ctx, companyId, read).catch(() => ({ state: "server-pending" as const, message: MESSAGES.serverPending, user: null, bots: [] })),
   ]);
   return { hermes, paperclip };
 }

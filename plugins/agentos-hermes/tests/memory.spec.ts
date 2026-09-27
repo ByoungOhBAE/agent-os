@@ -4,8 +4,8 @@ import manifest from "../src/manifest.js";
 import plugin from "../src/worker.js";
 import { readBff, routeFor } from "../src/bff.js";
 import {
-  countChars, fileFromRaw, gaugeTone, hermesSkills, paperclipSkills, projectHermesMemory, readMemoryOverview, readPaperclipMemory,
-  splitEntries, summarize, toEntry, visibleCards, type BotMemoryCard, type PaperclipReadCtx,
+  countChars, fileFromRaw, gaugeTone, hermesProfileOf, hermesSkills, paperclipSkills, projectHermesMemory, readMemoryOverview, readPaperclipMemory,
+  splitEntries, summarize, toEntry, visibleCards, type BotMemoryCard, type PaperclipAgentRow,
 } from "../src/memory.js";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -15,31 +15,19 @@ const AGENT = "694e5a9f-e932-4141-9d20-08cdd653d324";
 const AGENT2 = "11111111-2222-3333-4444-555555555555";
 const CHIEF = "# 기억 노트 (이 봇 전용)\n저장소는 읽기만 한다.\n§\n작업 범위는 플러그인 폴더다.\n§\n사장님은 표를 좋아한다.\n§\n항목4\n§\n항목5\n§\n항목6\n§\n항목7";
 
-/** 가짜 ctx: 읽기 함수 + 호출되면 안 되는 쓰기 함수(호출 횟수 검사용). */
-function fakeCtx(opts: { files?: Record<string, string>; configured?: boolean; statusThrows?: boolean; agents?: { id: string; name: string; status?: string; adapterConfig?: unknown }[] } = {}) {
-  const files = opts.files ?? {};
-  const ctx = {
-    localFolders: {
-      status: vi.fn(async (_c: string, folderKey: string) => {
-        if (opts.statusThrows) throw new Error("capability local.folders missing");
-        return { folderKey, configured: opts.configured ?? true, problems: [] };
-      }),
-      list: vi.fn(async (_c: string, folderKey: string, o?: { relativePath?: string | null }) => {
-        const prefix = `${folderKey}:${o?.relativePath}/`;
-        const entries = Object.keys(files).filter(k => k.startsWith(prefix)).map(k => ({ name: k.slice(prefix.length), kind: "file", size: files[k].length, modifiedAt: "2026-09-27T01:00:00.000Z" }));
-        if (!entries.length) throw new Error("ENOENT");
-        return { entries };
-      }),
-      readText: vi.fn(async (_c: string, folderKey: string, path: string) => {
-        const v = files[`${folderKey}:${path}`];
-        if (v === undefined) throw new Error("ENOENT");
-        return v;
-      }),
-      writeTextAtomic: vi.fn(), deleteFile: vi.fn(), configure: vi.fn(),
-    },
-    agents: { list: vi.fn(async () => opts.agents ?? []) },
-  };
-  return ctx as typeof ctx & PaperclipReadCtx;
+/** 가짜 ctx: 봇 목록 읽기만 있다(플러그인은 쓰기 함수를 부를 수 없다). */
+function fakeCtx(opts: { agents?: PaperclipAgentRow[] } = {}) {
+  return { agents: { list: vi.fn(async () => opts.agents ?? []) } };
+}
+const gw = (profile: string) => ({ adapterType: "hermes_gateway", adapterConfig: { apiBaseUrl: `http://127.0.0.1:8645/p/${profile}`, apiKey: { type: "secret_ref", secretId: "s" } } });
+/** 가짜 BFF: 프로필별 Hermes 기억 그래프. 없는 프로필은 unavailable. */
+function fakeBff(graphs: Record<string, { source: string; title?: string; body: string }[]>, calls: string[] = []) {
+  return (async (view: string, profile: string) => {
+    calls.push(`${view}:${profile}`);
+    if (view === "bots") return { status: "available", data: { bots: [] } };
+    if (view === "skills") return { status: "available", data: { skills: [{ name: "paperclip", enabled: true, usage: 2 }] } };
+    return graphs[profile] ? { status: "available", data: { memory: graphs[profile] } } : { status: "unavailable" };
+  }) as unknown as typeof readBff;
 }
 const offline = vi.fn(async () => ({ status: "unavailable", message: "x" })) as unknown as typeof readBff;
 
@@ -108,59 +96,63 @@ describe("기억 한눈에 보기 — 순수 함수", () => {
   });
 });
 
-describe("기억 한눈에 보기 — Paperclip 읽기", () => {
-  it("T5 Paperclip 읽기는 <UUID>/MEMORY.md 경로만 쓰고 이상한 ID는 읽지 않는다", async () => {
-    const ctx = fakeCtx({ files: { [`paperclip-workspaces:${AGENT}/MEMORY.md`]: CHIEF, "paperclip-company-memory:USER.md": "# 사장님\n개발 초보\n§\n표 선호" },
-      agents: [{ id: AGENT, name: "코드구현", status: "running", adapterConfig: { paperclipSkillSync: { desiredSkills: ["company/x/hermes-memory"] } } }, { id: "../x", name: "evil" }, { id: "../../etc/passwd000000000000000000000", name: "evil2" }] });
-    const result = await readPaperclipMemory(ctx, COMPANY);
+describe("기억 한눈에 보기 — Paperclip 봇 = 짝인 Hermes 프로필의 기억", () => {
+  it("T5 hermes_gateway 봇은 연결 주소의 /p/<프로필> 기억을 읽고, 이상한 ID·보관 봇은 건너뛴다", async () => {
+    const calls: string[] = [];
+    const ctx = fakeCtx({ agents: [
+      { id: AGENT, name: "코드구현", status: "idle", ...gw("pc-59bd3c1d") },
+      { id: "../x", name: "evil", ...gw("pc-evil") },
+      { id: AGENT2, name: "시험봇", status: "paused", metadata: { agentosArchived: true }, ...gw("pc-old") },
+    ] });
+    const read = fakeBff({ "pc-59bd3c1d": [{ source: "memory", body: "저장소는 읽기만 한다." }, { source: "memory", body: "작업 범위는 플러그인 폴더다." }, { source: "profile", body: "사장님은 표를 좋아한다." }] }, calls);
+    const result = await readPaperclipMemory(ctx, COMPANY, read);
     expect(result.state).toBe("ok");
     expect(result.bots).toHaveLength(1);
-    expect(result.bots[0]).toMatchObject({ key: `paperclip:${AGENT}`, name: "코드구현", subtitle: "694e5a9f · running", skills: [{ name: "hermes-memory" }], memory: { state: "ok", limit: 2200, updatedAt: "2026-09-27T01:00:00.000Z" } });
-    expect(result.bots[0].memory.entries).toHaveLength(7);
+    expect(result.bots[0]).toMatchObject({ key: `paperclip:${AGENT}`, name: "코드구현", subtitle: "Hermes pc-59bd3c1d · idle", skills: [{ name: "paperclip", uses: 2 }], memory: { state: "ok", limit: 2200, approx: true } });
+    expect(result.bots[0].memory.entries).toHaveLength(2);
     expect(result.user).toMatchObject({ state: "ok", limit: 1375 });
-    const paths = ctx.localFolders.readText.mock.calls.map(c => `${c[1]}:${c[2]}`);
-    expect(paths.sort()).toEqual([`paperclip-company-memory:USER.md`, `paperclip-workspaces:${AGENT}/MEMORY.md`]);
-    expect(ctx.localFolders.list.mock.calls.map(c => c[2]?.relativePath)).toEqual([AGENT]);
+    expect(calls.filter(c => c.startsWith("graph:"))).toEqual(["graph:pc-59bd3c1d"]);
   });
-  it("T6 쓰기 함수를 부르지 않는다", async () => {
-    const ctx = fakeCtx({ files: { [`paperclip-workspaces:${AGENT}/MEMORY.md`]: CHIEF }, agents: [{ id: AGENT, name: "a" }, { id: AGENT2, name: "b" }] });
-    await readMemoryOverview(ctx, COMPANY, offline);
-    await readMemoryOverview(fakeCtx({ configured: false }), COMPANY, offline);
-    expect(ctx.localFolders.writeTextAtomic).not.toHaveBeenCalled();
-    expect(ctx.localFolders.deleteFile).not.toHaveBeenCalled();
-    expect(ctx.localFolders.configure).not.toHaveBeenCalled();
+  it("T6 프로필 추출: hermes_gateway + /p/<안전한 이름> 만 인정한다", () => {
+    expect(hermesProfileOf({ id: AGENT, name: "a", ...gw("pc-26df4505") })).toBe("pc-26df4505");
+    expect(hermesProfileOf({ id: AGENT, name: "a", adapterType: "claude_local", adapterConfig: { apiBaseUrl: "http://x/p/pc-1" } })).toBeNull();
+    expect(hermesProfileOf({ id: AGENT, name: "a", adapterType: "hermes_gateway", adapterConfig: { apiBaseUrl: "http://x/p/../etc" } })).toBeNull();
+    expect(hermesProfileOf({ id: AGENT, name: "a", adapterType: "hermes_gateway", adapterConfig: { apiBaseUrl: "http://127.0.0.1:8645" } })).toBeNull();
+    expect(hermesProfileOf({ id: AGENT, name: "a", adapterType: "hermes_gateway" })).toBeNull();
   });
-  it("T7 폴더 미설정 → not-configured, 권한 오류 → server-pending, 회사 ID 이상 → unavailable", async () => {
-    expect((await readPaperclipMemory(fakeCtx({ configured: false }), COMPANY)).state).toBe("not-configured");
-    expect((await readPaperclipMemory(fakeCtx({ statusThrows: true }), COMPANY)).state).toBe("server-pending");
+  it("T7 봇 목록 실패 → server-pending, 회사 ID 이상 → unavailable(목록도 안 읽음)", async () => {
     const ctx = fakeCtx();
     ctx.agents.list.mockRejectedValueOnce(new Error("forbidden"));
-    expect((await readPaperclipMemory(ctx, COMPANY)).state).toBe("server-pending");
+    expect((await readPaperclipMemory(ctx, COMPANY, fakeBff({}))).state).toBe("server-pending");
     const bad = fakeCtx();
-    expect((await readPaperclipMemory(bad, "../company")).state).toBe("unavailable");
-    expect(bad.localFolders.status).not.toHaveBeenCalled();
+    expect((await readPaperclipMemory(bad, "../company", fakeBff({}))).state).toBe("unavailable");
+    expect(bad.agents.list).not.toHaveBeenCalled();
   });
-  it("T8 파일 없음 → missing, 제목만 → empty, 너무 큰 파일 → unavailable", async () => {
+  it("T8 Hermes 봇이 아님 → missing(안내 문구), 기억 비었음 → empty, 그래프 실패 → unavailable", async () => {
     const big = "11111111-2222-3333-4444-000000000000";
-    const ctx = fakeCtx({ files: { [`paperclip-workspaces:${AGENT}/MEMORY.md`]: "# 기억 노트 (이 봇 전용)\n", [`paperclip-workspaces:${big}/MEMORY.md`]: "x".repeat(20_001) },
-      agents: [{ id: AGENT, name: "a" }, { id: AGENT2, name: "b" }, { id: big, name: "c" }] });
-    const states = Object.fromEntries((await readPaperclipMemory(ctx, COMPANY)).bots.map(b => [b.name, b.memory]));
-    expect(states.a).toMatchObject({ state: "empty", chars: 0 });
-    expect(states.b.state).toBe("missing");
+    const ctx = fakeCtx({ agents: [
+      { id: AGENT, name: "a", adapterType: "claude_local", adapterConfig: {} },
+      { id: AGENT2, name: "b", ...gw("pc-empty") },
+      { id: big, name: "c", ...gw("pc-down") },
+    ] });
+    const states = Object.fromEntries((await readPaperclipMemory(ctx, COMPANY, fakeBff({ "pc-empty": [] }))).bots.map(b => [b.name, b.memory]));
+    expect(states.a).toMatchObject({ state: "missing" });
+    expect(states.a.message).toContain("Hermes 봇이 아니라");
+    expect(states.b).toMatchObject({ state: "empty", chars: 0 });
     expect(states.c.state).toBe("unavailable");
   });
-  it("T10 Hermes가 실패해도 Paperclip 결과는 남고, 반대도 같다", async () => {
-    const ctx = fakeCtx({ files: { [`paperclip-workspaces:${AGENT}/MEMORY.md`]: CHIEF }, agents: [{ id: AGENT, name: "a" }] });
+  it("T10 Hermes가 실패해도 Paperclip 봇 목록은 남고, 비밀값은 가린다", async () => {
+    const ctx = fakeCtx({ agents: [{ id: AGENT, name: "a", ...gw("pc-1") }] });
     const down = await readMemoryOverview(ctx, COMPANY, offline);
     expect(down.hermes.state).toBe("unavailable");
-    expect(down.paperclip.bots[0].memory.state).toBe("ok");
+    expect(down.paperclip.bots[0].memory.state).toBe("unavailable");
 
     const hermesOk = (async (view: string, profile: string) => view === "bots" ? { status: "available", data: { bots: [{ profile: "dev", title: "개발자" }] } }
-      : view === "graph" ? (profile === "dev" ? { status: "available", data: { memory: [{ source: "memory", title: "t", body: "배운 점 password=hunter2" }] } } : { status: "unavailable" })
+      : view === "graph" ? (profile === "dev" || profile === "pc-1" ? { status: "available", data: { memory: [{ source: "memory", title: "t", body: "배운 점 password=hunter2" }] } } : { status: "unavailable" })
       : { status: "available", data: { skills: [{ name: "plan", enabled: true, usage: 3 }] } }) as unknown as typeof readBff;
-    const up = await readMemoryOverview(fakeCtx({ statusThrows: true }), COMPANY, hermesOk);
-    expect(up.paperclip.state).toBe("server-pending");
+    const up = await readMemoryOverview(ctx, COMPANY, hermesOk);
     expect(up.hermes.state).toBe("ok");
+    expect(up.paperclip.bots[0].memory).toMatchObject({ state: "ok", approx: true });
     const dev = up.hermes.bots.find(b => b.key === "hermes:dev")!;
     expect(dev).toMatchObject({ name: "개발자", skills: [{ name: "plan", uses: 3 }], memory: { state: "ok", approx: true } });
     expect(JSON.stringify(up)).not.toContain("hunter2");
@@ -183,17 +175,17 @@ describe("기억 한눈에 보기 — 경로·매니페스트", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ memory: [{ id: "m", source: "memory", title: "t", body: "b", timestamp: 1790000000 }] }))));
     expect(await readBff("graph", "default")).toMatchObject({ data: { memory: [{ timestamp: 1790000000 }] } });
   });
-  it("T12 매니페스트에 쓰기용 capability가 없고 폴더는 모두 읽기 전용이다", () => {
-    const writeLike = /^(agents\.(pause|resume|invoke|managed)|issues\.|issue\.|secrets\.|companies\.write|projects\.write|goals\.(create|update)|activity\.log|agent\.sessions)/;
+  it("T12 매니페스트에 쓰기용 capability가 없고 폴더 권한도 필요 없다", () => {
+    const writeLike = /^(agents\.(pause|resume|invoke|managed)|issues\.|issue\.|secrets\.|companies\.write|projects\.write|goals\.(create|update)|activity\.log|agent\.sessions|local\.folders)/;
     expect(manifest.capabilities.filter(c => writeLike.test(c))).toEqual([]);
-    expect(manifest.capabilities).toEqual(expect.arrayContaining(["agents.read", "local.folders"]));
-    expect(manifest.localFolders?.map(f => [f.folderKey, f.access])).toEqual([["paperclip-workspaces", "read"], ["paperclip-company-memory", "read"]]);
+    expect(manifest.capabilities).toContain("agents.read");
+    expect(manifest.localFolders ?? []).toEqual([]);
   });
-  it("워커에 memory-overview 읽기 키가 등록되고 폴더 미설정이면 not-configured", async () => {
+  it("워커에 memory-overview 읽기 키가 등록되고 폴더 설정 없이도 Paperclip 봇 목록을 읽는다", async () => {
     const harness = createTestHarness({ manifest });
     await plugin.definition.setup(harness.ctx);
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
-    expect(await harness.getData("memory-overview", { companyId: COMPANY })).toMatchObject({ hermes: { state: "unavailable" }, paperclip: { state: "not-configured" } });
+    expect(await harness.getData("memory-overview", { companyId: COMPANY })).toMatchObject({ hermes: { state: "unavailable" }, paperclip: { state: "ok" } });
     expect(await harness.getData("memory-overview", {})).toMatchObject({ paperclip: { state: "unavailable" } });
   });
 });

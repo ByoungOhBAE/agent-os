@@ -1,6 +1,6 @@
 export type View = "sessions" | "search" | "detail" | "messages" | "mcp" | "graph" | "runtime" | "bots" | "skills";
 const ORIGIN = "http://127.0.0.1:4200";
-const profilePattern = /^[\w.-]{1,64}$/;
+export const profilePattern = /^[\w.-]{1,64}$/;
 /** `server/index.mjs` param()과 같은 세션 ID 규칙. */
 export const sessionPattern = /^[\w.:-]{1,180}$/;
 const text = (v: unknown, max = 180) => typeof v === "string" ? v.slice(0, max) : "";
