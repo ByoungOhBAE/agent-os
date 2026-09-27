@@ -180,11 +180,27 @@ function setEnv(profile, pairs) {
 }
 function createProfile(profile, description) {
   if (existsSync(profileHome(profile))) fail(`profile exists: ${profile}`);
-  hermes(["profile", "create", profile, "--clone-from", TEMPLATE, "--no-alias", "--description", description]);
-  hermes(["-p", profile, "config", "set", "terminal.env_passthrough", JSON.stringify(PASSTHROUGH)]);
-  hermes(["-p", profile, "config", "set", "memory.memory_enabled", "true"]);
-  hermes(["-p", profile, "config", "set", "memory.user_profile_enabled", "true"]);
-  execFileSync(process.execPath, [path.join(REPO, "scripts", "provision-hermes-profile-keys.mjs"), "--profiles", profile, "--apply"], { stdio: "ignore" });
+  const step = (label, run) => {
+    try { run(); } catch (e) {
+      const why = String(e.stderr || e.stdout || e.message || e).replace(/(pcp_|sk-ant-)[A-Za-z0-9_-]+/g, "[R]").trim().split(/\r?\n/).slice(-4).join(" | ");
+      // roll back the half-made profile so a retry starts clean (the gateway may hold a lock: then report it)
+      let cleanup = "removed";
+      try { hermes(["profile", "delete", profile, "-y"]); } catch { cleanup = existsSync(profileHome(profile)) ? `left behind (locked): ${profile}` : "removed"; }
+      fail(`${label} failed for ${profile}: ${why.slice(0, 400)} · cleanup ${cleanup}`);
+    }
+  };
+  step("profile create", () => hermes(["profile", "create", profile, "--clone-from", TEMPLATE, "--no-alias", "--description", description]));
+  step("config", () => {
+    hermes(["-p", profile, "config", "set", "terminal.env_passthrough", JSON.stringify(PASSTHROUGH)]);
+    hermes(["-p", profile, "config", "set", "memory.memory_enabled", "true"]);
+    hermes(["-p", profile, "config", "set", "memory.user_profile_enabled", "true"]);
+    if (!existsSync(path.join(profileHome(profile), "config.yaml"))) throw new Error("config.yaml missing after create");
+  });
+  step("gateway key", () => {
+    execFileSync(process.execPath, [path.join(REPO, "scripts", "provision-hermes-profile-keys.mjs"), "--profiles", profile, "--apply"],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60000 });
+    gatewayKey(profile);
+  });
 }
 function gatewayConfig(profile) {
   return { apiBaseUrl: `http://127.0.0.1:8645/p/${profile}`, apiKey: gatewayKey(profile), sessionKeyStrategy: "issue",
