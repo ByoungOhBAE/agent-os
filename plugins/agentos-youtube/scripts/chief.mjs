@@ -15,7 +15,7 @@ async function api(method,endpoint,body) {
 const mode=process.argv[2];
 if(mode==='submit') {
   assert(!fs.existsSync(receiptFile),'request already recorded; use status');
-  const input=fs.readFileSync(path.join(own,'CHIEF-BRIEF.md'),'utf8');
+  const input=fs.readFileSync(path.join(own,'CHIEF-BRIEF.md'),'utf8').trim();
   assert(input.length<=8000);
   // A network timeout leaves this guard in place: recover by read-only issue lookup, never blindly resubmit.
   const intent=path.join(own,'evidence/submission-intent.local.json');
@@ -33,7 +33,7 @@ if(mode==='submit') {
     const j=await api('POST','/plugins/agentos.control/bridge/data',{key:'chiefRequest',companyId,params:{companyId,issueId:saved.id}});
     const d=j.data; assert(d?.request?.id===saved.id);
     fs.writeFileSync(path.join(own,'evidence/chief-status.local.json'),JSON.stringify({at:new Date().toISOString(),...d},null,2));
-    console.log(JSON.stringify(d,null,2));
+    console.log(JSON.stringify({...d,request:{id:d.request.id,identifier:d.request.identifier,status:d.request.status,stage:d.request.stage}},null,2));
   } else if(mode==='accept') {
     const interactionId=process.argv[3];assert(/^[a-f0-9-]{36}$/.test(interactionId??''),'explicit reviewed interaction id required');
     const j=await api('POST','/plugins/agentos.control/bridge/action',{key:'chiefDecide',companyId,params:{companyId,issueId:saved.id,interactionId,action:'accept'}});

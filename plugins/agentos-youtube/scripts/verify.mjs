@@ -43,7 +43,7 @@ if(mode==='preservation') {
   const record=JSON.parse(fs.readFileSync(path.join(own,'evidence/chief-request.json'),'utf8'));
   const r=await fetch(`http://127.0.0.1:3100/api/issues/${record.id}`,{signal:AbortSignal.timeout(15000)});assert.equal(r.status,200);
   const j=await r.json();assert.equal(j.id,record.id);assert.equal(j.assigneeAgentId,record.chiefId);
-  assert.equal(j.description,fs.readFileSync(path.join(own,'CHIEF-BRIEF.md'),'utf8'));
+  assert.equal(j.description,fs.readFileSync(path.join(own,'CHIEF-BRIEF.md'),'utf8').trim());
   assert.equal(j.originKind,'plugin:agentos.control:chief');
   console.log(`CHIEF_REQUEST_VERIFIED issue=${j.identifier} status=${j.status}`);
 } else if(mode==='commit') {
