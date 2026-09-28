@@ -1,0 +1,1527 @@
+{
+  "model": "claude-opus-5-5",
+  "reasoningEffortRequested": "high",
+  "actualProviderEffort": "not independently exposed",
+  "billing": "provider session reports anthropic; billing_mode is null, not a charge confirmation",
+  "adapterExperiment": {
+    "scope": "Real installed adapter vs direct gateway; scheduler and chief excluded",
+    "adapterSha256": "99c49ca4dfa4700d75044d04b488967a85f7e15d08cbf1070aea7427ca0a7788",
+    "samples": [
+      {
+        "index": 1,
+        "mode": "direct",
+        "startedAt": "2026-09-28T19:59:45.612Z",
+        "postAt": "2026-09-28T19:59:45.613Z",
+        "runId": "run_1741baf56f0f4ed18c0235a9b6f75154",
+        "sessionId": "latency-probe-ffa05c57-cc90-4291-b4f8-f6b98405050d",
+        "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+        "wallMs": 3784.138024,
+        "acceptedMs": 34.481807,
+        "firstOutputMs": 2535.623219,
+        "correct": true,
+        "filesUnchanged": true,
+        "runtime": {
+          "id": "latency-probe-ffa05c57-cc90-4291-b4f8-f6b98405050d",
+          "model": "claude-opus-5-5",
+          "billing_provider": "anthropic",
+          "billing_mode": null,
+          "api_call_count": 1,
+          "input_tokens": 4,
+          "output_tokens": 79,
+          "cache_read_tokens": 0,
+          "cache_write_tokens": 27796,
+          "tool_call_count": 0
+        }
+      },
+      {
+        "index": 2,
+        "mode": "adapter",
+        "startedAt": "2026-09-28T19:59:49.415Z",
+        "postAt": "2026-09-28T19:59:49.416Z",
+        "runId": "run_c74f9d80cf564fbb8b2474dccd00b275",
+        "sessionId": "latency-probe-371e9960-c99d-4bf9-a98f-3ad386d78e02",
+        "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+        "wallMs": 2948.7786209999995,
+        "acceptedMs": 21.30712499999936,
+        "firstOutputMs": 1702.7787739999994,
+        "correct": true,
+        "filesUnchanged": true,
+        "runtime": {
+          "id": "latency-probe-371e9960-c99d-4bf9-a98f-3ad386d78e02",
+          "model": "claude-opus-5-5",
+          "billing_provider": "anthropic",
+          "billing_mode": null,
+          "api_call_count": 1,
+          "input_tokens": 4,
+          "output_tokens": 79,
+          "cache_read_tokens": 27796,
+          "cache_write_tokens": 0,
+          "tool_call_count": 0
+        }
+      },
+      {
+        "index": 3,
+        "mode": "adapter",
+        "startedAt": "2026-09-28T19:59:52.382Z",
+        "postAt": "2026-09-28T19:59:52.382Z",
+        "runId": "run_b1d11d6bd55d433e8faceee935d89678",
+        "sessionId": "latency-probe-d36d773c-60e7-4810-8010-a0b9f5f0bb9e",
+        "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+        "wallMs": 2957.543552,
+        "acceptedMs": 18.780776000000515,
+        "firstOutputMs": 1706.9411140000002,
+        "correct": true,
+        "filesUnchanged": true,
+        "runtime": {
+          "id": "latency-probe-d36d773c-60e7-4810-8010-a0b9f5f0bb9e",
+          "model": "claude-opus-5-5",
+          "billing_provider": "anthropic",
+          "billing_mode": null,
+          "api_call_count": 1,
+          "input_tokens": 4,
+          "output_tokens": 79,
+          "cache_read_tokens": 27796,
+          "cache_write_tokens": 0,
+          "tool_call_count": 0
+        }
+      },
+      {
+        "index": 4,
+        "mode": "direct",
+        "startedAt": "2026-09-28T19:59:55.358Z",
+        "postAt": "2026-09-28T19:59:55.358Z",
+        "runId": "run_79cbdeae3ce9484e98fa3ef4fe8cfca3",
+        "sessionId": "latency-probe-8599df79-60b5-44fa-b049-ae95c6c3452e",
+        "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+        "wallMs": 3513.8457049999997,
+        "acceptedMs": 44.99880099999973,
+        "firstOutputMs": 1744.3321350000006,
+        "correct": true,
+        "filesUnchanged": true,
+        "runtime": {
+          "id": "latency-probe-8599df79-60b5-44fa-b049-ae95c6c3452e",
+          "model": "claude-opus-5-5",
+          "billing_provider": "anthropic",
+          "billing_mode": null,
+          "api_call_count": 1,
+          "input_tokens": 4,
+          "output_tokens": 79,
+          "cache_read_tokens": 27796,
+          "cache_write_tokens": 0,
+          "tool_call_count": 0
+        }
+      },
+      {
+        "index": 5,
+        "mode": "direct",
+        "startedAt": "2026-09-28T19:59:58.893Z",
+        "postAt": "2026-09-28T19:59:58.893Z",
+        "runId": "run_2c473d79b69b466dbffb141f9ef3c84a",
+        "sessionId": "latency-probe-2387b644-babd-4719-8df3-f8f280e99adb",
+        "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+        "wallMs": 3049.5618099999992,
+        "acceptedMs": 26.086027000001195,
+        "firstOutputMs": 1797.61398,
+        "correct": true,
+        "filesUnchanged": true,
+        "runtime": {
+          "id": "latency-probe-2387b644-babd-4719-8df3-f8f280e99adb",
+          "model": "claude-opus-5-5",
+          "billing_provider": "anthropic",
+          "billing_mode": null,
+          "api_call_count": 1,
+          "input_tokens": 4,
+          "output_tokens": 79,
+          "cache_read_tokens": 27796,
+          "cache_write_tokens": 0,
+          "tool_call_count": 0
+        }
+      },
+      {
+        "index": 6,
+        "mode": "adapter",
+        "startedAt": "2026-09-28T20:00:01.961Z",
+        "postAt": "2026-09-28T20:00:01.961Z",
+        "runId": "run_05e6b1554b5b4c7081b338481285bf12",
+        "sessionId": "latency-probe-be50f44f-6875-4a40-856f-1af85d6c47a6",
+        "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+        "wallMs": 2943.009817000002,
+        "acceptedMs": 19.709395000001678,
+        "firstOutputMs": 1681.8966760000003,
+        "correct": true,
+        "filesUnchanged": true,
+        "runtime": {
+          "id": "latency-probe-be50f44f-6875-4a40-856f-1af85d6c47a6",
+          "model": "claude-opus-5-5",
+          "billing_provider": "anthropic",
+          "billing_mode": null,
+          "api_call_count": 1,
+          "input_tokens": 4,
+          "output_tokens": 79,
+          "cache_read_tokens": 27796,
+          "cache_write_tokens": 0,
+          "tool_call_count": 0
+        }
+      }
+    ],
+    "stats": {
+      "direct": {
+        "count": 3,
+        "minSeconds": 3.0495618099999993,
+        "maxSeconds": 3.7841380239999998,
+        "warmCount": 2,
+        "warmMedianSeconds": 3.2817037574999994
+      },
+      "adapter": {
+        "count": 3,
+        "minSeconds": 2.943009817000002,
+        "maxSeconds": 2.957543552,
+        "warmCount": 3,
+        "warmMedianSeconds": 2.9487786209999993
+      }
+    }
+  },
+  "parallelExperiment": {
+    "scope": "Two real Hermes profiles through gateway, without Paperclip scheduler/chief",
+    "batches": [
+      {
+        "name": "seq1",
+        "parallel": false,
+        "batchWallSeconds": 6.003061764000449,
+        "requestIntervalOverlapSeconds": 0,
+        "samples": [
+          {
+            "index": 1,
+            "mode": "direct",
+            "startedAt": "2026-09-28T20:03:41.317Z",
+            "postAt": "2026-09-28T20:03:41.319Z",
+            "runId": "run_ae3e85eeeb8d460dbb503690bbdacc56",
+            "sessionId": "latency-probe-65cd7815-18da-4446-a7dc-22208ff67eb9",
+            "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+            "wallMs": 3049.292683,
+            "acceptedMs": 31.597842000000014,
+            "firstOutputMs": 1746.087796,
+            "correct": true,
+            "filesUnchanged": true,
+            "runtime": {
+              "id": "latency-probe-65cd7815-18da-4446-a7dc-22208ff67eb9",
+              "model": "claude-opus-5-5",
+              "billing_provider": "anthropic",
+              "billing_mode": null,
+              "api_call_count": 1,
+              "input_tokens": 4,
+              "output_tokens": 79,
+              "cache_read_tokens": 27796,
+              "cache_write_tokens": 0,
+              "tool_call_count": 0
+            }
+          },
+          {
+            "index": 1,
+            "mode": "direct",
+            "startedAt": "2026-09-28T20:03:44.664Z",
+            "postAt": "2026-09-28T20:03:44.666Z",
+            "runId": "run_4cdd21845b57474f94f88bfa88b90856",
+            "sessionId": "latency-probe-91df7896-06e2-4333-ae1b-1a76e7cdc005",
+            "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+            "wallMs": 2321.559836,
+            "acceptedMs": 28.864289999999983,
+            "firstOutputMs": 1273.1908749999998,
+            "correct": true,
+            "filesUnchanged": true,
+            "runtime": {
+              "id": "latency-probe-91df7896-06e2-4333-ae1b-1a76e7cdc005",
+              "model": "claude-opus-5-5",
+              "billing_provider": "anthropic",
+              "billing_mode": null,
+              "api_call_count": 1,
+              "input_tokens": 4,
+              "output_tokens": 79,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 29006,
+              "tool_call_count": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "par1",
+        "parallel": true,
+        "batchWallSeconds": 3.403479717031587,
+        "requestIntervalOverlapSeconds": 2.478459596633911,
+        "samples": [
+          {
+            "index": 1,
+            "mode": "direct",
+            "startedAt": "2026-09-28T20:03:47.337Z",
+            "postAt": "2026-09-28T20:03:47.338Z",
+            "runId": "run_30572f64e3ad42e9ab69a1011529923a",
+            "sessionId": "latency-probe-49eadb20-6a27-4056-8330-8d9ff6d7bb88",
+            "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+            "wallMs": 3064.190336,
+            "acceptedMs": 32.654742999999996,
+            "firstOutputMs": 1834.9715559999997,
+            "correct": true,
+            "filesUnchanged": true,
+            "runtime": {
+              "id": "latency-probe-49eadb20-6a27-4056-8330-8d9ff6d7bb88",
+              "model": "claude-opus-5-5",
+              "billing_provider": "anthropic",
+              "billing_mode": null,
+              "api_call_count": 1,
+              "input_tokens": 4,
+              "output_tokens": 79,
+              "cache_read_tokens": 27796,
+              "cache_write_tokens": 0,
+              "tool_call_count": 0
+            }
+          },
+          {
+            "index": 1,
+            "mode": "direct",
+            "startedAt": "2026-09-28T20:03:47.347Z",
+            "postAt": "2026-09-28T20:03:47.348Z",
+            "runId": "run_e49c15700fa94d3293b1d1159d15a993",
+            "sessionId": "latency-probe-31313150-0135-4722-a482-6002da9b0588",
+            "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+            "wallMs": 2479.4597519999998,
+            "acceptedMs": 106.51234399999998,
+            "firstOutputMs": 1528.804595,
+            "correct": true,
+            "filesUnchanged": true,
+            "runtime": {
+              "id": "latency-probe-31313150-0135-4722-a482-6002da9b0588",
+              "model": "claude-opus-5-5",
+              "billing_provider": "anthropic",
+              "billing_mode": null,
+              "api_call_count": 1,
+              "input_tokens": 4,
+              "output_tokens": 79,
+              "cache_read_tokens": 29006,
+              "cache_write_tokens": 0,
+              "tool_call_count": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "par2",
+        "parallel": true,
+        "batchWallSeconds": 3.4672798559768125,
+        "requestIntervalOverlapSeconds": 2.518502950668335,
+        "samples": [
+          {
+            "index": 1,
+            "mode": "direct",
+            "startedAt": "2026-09-28T20:03:50.693Z",
+            "postAt": "2026-09-28T20:03:50.694Z",
+            "runId": "run_aa0c8096daf64ea381c75be82e752534",
+            "sessionId": "latency-probe-d0030b34-9c6a-4d39-971f-1fa1f0f45535",
+            "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+            "wallMs": 3172.9709,
+            "acceptedMs": 212.552985,
+            "firstOutputMs": 1937.1444589999999,
+            "correct": true,
+            "filesUnchanged": true,
+            "runtime": {
+              "id": "latency-probe-d0030b34-9c6a-4d39-971f-1fa1f0f45535",
+              "model": "claude-opus-5-5",
+              "billing_provider": "anthropic",
+              "billing_mode": null,
+              "api_call_count": 1,
+              "input_tokens": 4,
+              "output_tokens": 79,
+              "cache_read_tokens": 27796,
+              "cache_write_tokens": 0,
+              "tool_call_count": 0
+            }
+          },
+          {
+            "index": 1,
+            "mode": "direct",
+            "startedAt": "2026-09-28T20:03:50.676Z",
+            "postAt": "2026-09-28T20:03:50.677Z",
+            "runId": "run_d936d3e0fce746e7bae7b45abd6102c2",
+            "sessionId": "latency-probe-b15eb626-5168-47de-b38c-98aeeaa0436e",
+            "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+            "wallMs": 2536.5029480000003,
+            "acceptedMs": 28.077785999999975,
+            "firstOutputMs": 1273.694101,
+            "correct": true,
+            "filesUnchanged": true,
+            "runtime": {
+              "id": "latency-probe-b15eb626-5168-47de-b38c-98aeeaa0436e",
+              "model": "claude-opus-5-5",
+              "billing_provider": "anthropic",
+              "billing_mode": null,
+              "api_call_count": 1,
+              "input_tokens": 4,
+              "output_tokens": 79,
+              "cache_read_tokens": 29006,
+              "cache_write_tokens": 0,
+              "tool_call_count": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "seq2",
+        "parallel": false,
+        "batchWallSeconds": 5.741347066999879,
+        "requestIntervalOverlapSeconds": 0,
+        "samples": [
+          {
+            "index": 1,
+            "mode": "direct",
+            "startedAt": "2026-09-28T20:03:54.169Z",
+            "postAt": "2026-09-28T20:03:54.170Z",
+            "runId": "run_c30335104b1f4714b6ff441ea8b79d78",
+            "sessionId": "latency-probe-dd5ca46c-7e05-4ff9-8a8e-cc1c940a284f",
+            "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+            "wallMs": 2870.775675,
+            "acceptedMs": 32.19376900000003,
+            "firstOutputMs": 1658.938428,
+            "correct": true,
+            "filesUnchanged": true,
+            "runtime": {
+              "id": "latency-probe-dd5ca46c-7e05-4ff9-8a8e-cc1c940a284f",
+              "model": "claude-opus-5-5",
+              "billing_provider": "anthropic",
+              "billing_mode": null,
+              "api_call_count": 1,
+              "input_tokens": 4,
+              "output_tokens": 79,
+              "cache_read_tokens": 27796,
+              "cache_write_tokens": 0,
+              "tool_call_count": 0
+            }
+          },
+          {
+            "index": 1,
+            "mode": "direct",
+            "startedAt": "2026-09-28T20:03:57.339Z",
+            "postAt": "2026-09-28T20:03:57.340Z",
+            "runId": "run_70c144db7de34cd7a0c61f58711c527c",
+            "sessionId": "latency-probe-732ab613-6231-41ee-a4f3-cd4c8012ebc1",
+            "payloadHash": "962728f3b33ddf8b8e6f272d69ba364c0721fcdc103851d3868016b3e8ef7df8",
+            "wallMs": 2280.608356,
+            "acceptedMs": 25.544866000000013,
+            "firstOutputMs": 1200.054516,
+            "correct": true,
+            "filesUnchanged": true,
+            "runtime": {
+              "id": "latency-probe-732ab613-6231-41ee-a4f3-cd4c8012ebc1",
+              "model": "claude-opus-5-5",
+              "billing_provider": "anthropic",
+              "billing_mode": null,
+              "api_call_count": 1,
+              "input_tokens": 4,
+              "output_tokens": 79,
+              "cache_read_tokens": 29006,
+              "cache_write_tokens": 0,
+              "tool_call_count": 0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "historical": {
+    "observedAt": "2026-09-28T20:05:01.667349+00:00",
+    "issues": [
+      {
+        "id": "c47f30a0-0abe-40ba-8831-8b20038f90d5",
+        "identifier": "HER-21",
+        "title": "조직도상 별도의 비서실장 옆에 봇을-1",
+        "status": "in_progress",
+        "parentId": null,
+        "assigneeAgentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "createdAt": "2026-09-28T19:28:54.628Z",
+        "updatedAt": "2026-09-28T19:28:54.784Z",
+        "completedAt": null,
+        "elapsedSeconds": null,
+        "interactions": [],
+        "documents": [],
+        "blockedBy": [],
+        "blocks": [],
+        "ownRunIds": [
+          "7376013b-7c17-494f-90fe-8f41fc2d83c9"
+        ]
+      },
+      {
+        "id": "3ef5b370-fe11-4e93-a54f-963e71037d08",
+        "identifier": "HER-20",
+        "title": "피그마 mcp 커넥터를 설치해줘-1",
+        "status": "in_progress",
+        "parentId": null,
+        "assigneeAgentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "createdAt": "2026-09-28T19:24:16.470Z",
+        "updatedAt": "2026-09-28T19:24:16.626Z",
+        "completedAt": null,
+        "elapsedSeconds": null,
+        "interactions": [],
+        "documents": [],
+        "blockedBy": [],
+        "blocks": [],
+        "ownRunIds": [
+          "2c761dc5-c122-44fc-8a78-999b1bd4ac69"
+        ]
+      },
+      {
+        "id": "dfc90533-0a85-4f5d-8c9f-0a3f87e61e07",
+        "identifier": "HER-17",
+        "title": "요청: 유튜브 분석 준비 — 취소한 작업과 분리하여 새로 시작",
+        "status": "done",
+        "parentId": null,
+        "assigneeAgentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "createdAt": "2026-09-27T22:36:42.763Z",
+        "updatedAt": "2026-09-28T11:28:08.372Z",
+        "completedAt": "2026-09-28T11:28:08.161Z",
+        "elapsedSeconds": 46285.398,
+        "interactions": [
+          {
+            "id": "195fa7b9-2276-4aa1-89a2-ece823f71dea",
+            "kind": "request_confirmation",
+            "status": "accepted",
+            "createdAt": "2026-09-28T00:14:00.578Z",
+            "resolvedAt": "2026-09-28T08:51:34.805Z",
+            "sourceRunId": "ffb5e161-dcfc-45da-8129-277ccaa2b138"
+          }
+        ],
+        "documents": [
+          {
+            "key": "artifact-review-d4f101db-0587-4fdd-b2fa-2cd9df1e7f6f",
+            "createdAt": "2026-09-28T11:27:13.682Z",
+            "updatedAt": "2026-09-28T11:27:13.682Z",
+            "latestRevisionNumber": 1
+          },
+          {
+            "key": "plan",
+            "createdAt": "2026-09-28T00:14:00.437Z",
+            "updatedAt": "2026-09-28T00:14:00.437Z",
+            "latestRevisionNumber": 1
+          },
+          {
+            "key": "report",
+            "createdAt": "2026-09-28T11:27:13.852Z",
+            "updatedAt": "2026-09-28T11:27:13.852Z",
+            "latestRevisionNumber": 1
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "00a3eaa2-79be-463e-9939-5bf0038535d0",
+            "identifier": "HER-18",
+            "title": "영상 샘플 보고서 — 유튜브 분석 준비 (마죽 영상)",
+            "status": "done"
+          }
+        ],
+        "blocks": [],
+        "ownRunIds": [
+          "67d972b1-f073-415c-97df-fe5f40dbbca1",
+          "e22e8603-e093-4ce8-8d84-2926525e4e6e",
+          "ffb5e161-dcfc-45da-8129-277ccaa2b138"
+        ]
+      },
+      {
+        "id": "00a3eaa2-79be-463e-9939-5bf0038535d0",
+        "identifier": "HER-18",
+        "title": "영상 샘플 보고서 — 유튜브 분석 준비 (마죽 영상)",
+        "status": "done",
+        "parentId": "dfc90533-0a85-4f5d-8c9f-0a3f87e61e07",
+        "assigneeAgentId": "fe7d37ce-77f1-4e33-a2ae-6e7cc9732149",
+        "createdAt": "2026-09-28T09:17:03.763Z",
+        "updatedAt": "2026-09-28T10:32:21.271Z",
+        "completedAt": "2026-09-28T10:32:21.272Z",
+        "elapsedSeconds": 4517.509,
+        "interactions": [],
+        "documents": [
+          {
+            "key": "sample-report",
+            "createdAt": "2026-09-28T10:28:29.061Z",
+            "updatedAt": "2026-09-28T10:28:29.061Z",
+            "latestRevisionNumber": 1
+          }
+        ],
+        "blockedBy": [],
+        "blocks": [
+          {
+            "id": "dfc90533-0a85-4f5d-8c9f-0a3f87e61e07",
+            "identifier": "HER-17",
+            "title": "요청: 유튜브 분석 준비 — 취소한 작업과 분리하여 새로 시작",
+            "status": "done"
+          }
+        ],
+        "ownRunIds": [
+          "3697984f-d55b-4266-ae84-3157c9dd3d70"
+        ]
+      },
+      {
+        "id": "00bf1478-8cc9-4893-bacc-816bcd92c322",
+        "identifier": "HER-11",
+        "title": "요청: 블로그 제목 아이디어를 받아 주세요.",
+        "status": "done",
+        "parentId": null,
+        "assigneeAgentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "createdAt": "2026-09-27T18:22:33.993Z",
+        "updatedAt": "2026-09-27T19:25:51.756Z",
+        "completedAt": "2026-09-27T19:25:51.701Z",
+        "elapsedSeconds": 3797.708,
+        "interactions": [
+          {
+            "id": "1ec2297c-504b-4108-b227-60866d2d1bf7",
+            "kind": "request_confirmation",
+            "status": "accepted",
+            "createdAt": "2026-09-27T18:32:29.917Z",
+            "resolvedAt": "2026-09-27T18:36:09.021Z",
+            "sourceRunId": "e72a7f9f-baf5-4de3-8521-3e121ef4b47e"
+          }
+        ],
+        "documents": [
+          {
+            "key": "plan",
+            "createdAt": "2026-09-27T18:32:18.549Z",
+            "updatedAt": "2026-09-27T18:32:18.549Z",
+            "latestRevisionNumber": 1
+          },
+          {
+            "key": "report",
+            "createdAt": "2026-09-27T19:25:11.934Z",
+            "updatedAt": "2026-09-27T19:25:42.938Z",
+            "latestRevisionNumber": 2
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "d0c066b1-4a5d-4588-8cd1-4ba711bce0d9",
+            "identifier": "HER-12",
+            "title": "가을 발효 요리 블로그 제목 5개 + 한 줄 설명 작성",
+            "status": "done"
+          }
+        ],
+        "blocks": [],
+        "ownRunIds": [
+          "222d8026-cccb-4eb5-aed3-fbde7da064e7",
+          "47274b9b-180c-47b5-bb8d-88ebedd1e4fa",
+          "e72a7f9f-baf5-4de3-8521-3e121ef4b47e"
+        ]
+      },
+      {
+        "id": "d0c066b1-4a5d-4588-8cd1-4ba711bce0d9",
+        "identifier": "HER-12",
+        "title": "가을 발효 요리 블로그 제목 5개 + 한 줄 설명 작성",
+        "status": "done",
+        "parentId": "00bf1478-8cc9-4893-bacc-816bcd92c322",
+        "assigneeAgentId": "a78e01ad-5011-4811-9660-87c1f8002781",
+        "createdAt": "2026-09-27T18:48:39.916Z",
+        "updatedAt": "2026-09-27T19:00:16.854Z",
+        "completedAt": "2026-09-27T19:00:16.854Z",
+        "elapsedSeconds": 696.938,
+        "interactions": [],
+        "documents": [
+          {
+            "key": "titles",
+            "createdAt": "2026-09-27T18:55:38.176Z",
+            "updatedAt": "2026-09-27T18:55:38.176Z",
+            "latestRevisionNumber": 1
+          }
+        ],
+        "blockedBy": [],
+        "blocks": [
+          {
+            "id": "00bf1478-8cc9-4893-bacc-816bcd92c322",
+            "identifier": "HER-11",
+            "title": "요청: 블로그 제목 아이디어를 받아 주세요.",
+            "status": "done"
+          }
+        ],
+        "ownRunIds": [
+          "5d190b00-5757-45ca-9c17-aa5e9d14f968"
+        ]
+      },
+      {
+        "id": "2463df70-386a-44f7-9f11-bbafc80186e4",
+        "identifier": "HER-6",
+        "title": "요청: 대시보드 개선팀을 구성해 주세요.",
+        "status": "done",
+        "parentId": null,
+        "assigneeAgentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "createdAt": "2026-09-27T03:35:14.456Z",
+        "updatedAt": "2026-09-27T05:02:33.241Z",
+        "completedAt": "2026-09-27T05:02:33.189Z",
+        "elapsedSeconds": 5238.733,
+        "interactions": [
+          {
+            "id": "3d8799e8-b8d4-4aae-a6b4-c81ed5ff072e",
+            "kind": "request_confirmation",
+            "status": "rejected",
+            "createdAt": "2026-09-27T03:38:34.599Z",
+            "resolvedAt": "2026-09-27T04:39:33.903Z",
+            "sourceRunId": "c42cbfe9-b00d-48c7-8de7-b5032fb32a49"
+          },
+          {
+            "id": "106f26ab-6080-4a38-bb57-f55b7c7da68c",
+            "kind": "request_confirmation",
+            "status": "accepted",
+            "createdAt": "2026-09-27T04:42:58.073Z",
+            "resolvedAt": "2026-09-27T04:43:20.233Z",
+            "sourceRunId": "24b2ad7b-0acd-4f95-a9db-ae882a0e2cb0"
+          }
+        ],
+        "documents": [
+          {
+            "key": "plan",
+            "createdAt": "2026-09-27T03:38:24.948Z",
+            "updatedAt": "2026-09-27T04:42:48.140Z",
+            "latestRevisionNumber": 2
+          },
+          {
+            "key": "report",
+            "createdAt": "2026-09-27T05:02:22.113Z",
+            "updatedAt": "2026-09-27T05:02:22.113Z",
+            "latestRevisionNumber": 1
+          }
+        ],
+        "blockedBy": [
+          {
+            "id": "d6e78b39-649d-4bd2-976b-6c9a01efb8c9",
+            "identifier": "HER-8",
+            "title": "Hermes 보기 메모리 화면 분석 + 디자인 시안 (PC/태블릿/휴대폰)",
+            "status": "done"
+          },
+          {
+            "id": "bf919d17-bfcf-4856-bd41-eb6309a9cc91",
+            "identifier": "HER-9",
+            "title": "시안대로 Hermes 보기 플러그인 코드 구현 + 테스트",
+            "status": "done"
+          },
+          {
+            "id": "2a977546-8b82-41f7-8caf-3d0e0265b8af",
+            "identifier": "HER-7",
+            "title": "추천 스킬 찾기 (메모리 화면 개선용)",
+            "status": "done"
+          }
+        ],
+        "blocks": [],
+        "ownRunIds": [
+          "1543a5ad-5ce4-43c1-b1b5-aef3e329cc07",
+          "d3bf1841-f2e4-476f-8550-f5f78733b29f",
+          "24b2ad7b-0acd-4f95-a9db-ae882a0e2cb0",
+          "c42cbfe9-b00d-48c7-8de7-b5032fb32a49"
+        ]
+      },
+      {
+        "id": "bf919d17-bfcf-4856-bd41-eb6309a9cc91",
+        "identifier": "HER-9",
+        "title": "시안대로 Hermes 보기 플러그인 코드 구현 + 테스트",
+        "status": "done",
+        "parentId": "2463df70-386a-44f7-9f11-bbafc80186e4",
+        "assigneeAgentId": "694e5a9f-e932-4141-9d20-08cdd653d324",
+        "createdAt": "2026-09-27T04:48:28.413Z",
+        "updatedAt": "2026-09-27T05:00:46.962Z",
+        "completedAt": "2026-09-27T05:00:46.923Z",
+        "elapsedSeconds": 738.51,
+        "interactions": [],
+        "documents": [],
+        "blockedBy": [
+          {
+            "id": "d6e78b39-649d-4bd2-976b-6c9a01efb8c9",
+            "identifier": "HER-8",
+            "title": "Hermes 보기 메모리 화면 분석 + 디자인 시안 (PC/태블릿/휴대폰)",
+            "status": "done"
+          }
+        ],
+        "blocks": [
+          {
+            "id": "2463df70-386a-44f7-9f11-bbafc80186e4",
+            "identifier": "HER-6",
+            "title": "요청: 대시보드 개선팀을 구성해 주세요.",
+            "status": "done"
+          }
+        ],
+        "ownRunIds": [
+          "d0e1700a-d3a4-4350-83c6-5586e84eca4a"
+        ]
+      },
+      {
+        "id": "d6e78b39-649d-4bd2-976b-6c9a01efb8c9",
+        "identifier": "HER-8",
+        "title": "Hermes 보기 메모리 화면 분석 + 디자인 시안 (PC/태블릿/휴대폰)",
+        "status": "done",
+        "parentId": "2463df70-386a-44f7-9f11-bbafc80186e4",
+        "assigneeAgentId": "11650ed8-bb2c-4c3a-a391-b34bd76c8389",
+        "createdAt": "2026-09-27T04:48:28.313Z",
+        "updatedAt": "2026-09-27T04:54:44.987Z",
+        "completedAt": "2026-09-27T04:54:44.941Z",
+        "elapsedSeconds": 376.628,
+        "interactions": [],
+        "documents": [
+          {
+            "key": "analysis",
+            "createdAt": "2026-09-27T04:54:17.735Z",
+            "updatedAt": "2026-09-27T04:54:17.735Z",
+            "latestRevisionNumber": 1
+          },
+          {
+            "key": "design",
+            "createdAt": "2026-09-27T04:54:17.851Z",
+            "updatedAt": "2026-09-27T04:54:17.851Z",
+            "latestRevisionNumber": 1
+          }
+        ],
+        "blockedBy": [],
+        "blocks": [
+          {
+            "id": "bf919d17-bfcf-4856-bd41-eb6309a9cc91",
+            "identifier": "HER-9",
+            "title": "시안대로 Hermes 보기 플러그인 코드 구현 + 테스트",
+            "status": "done"
+          },
+          {
+            "id": "2463df70-386a-44f7-9f11-bbafc80186e4",
+            "identifier": "HER-6",
+            "title": "요청: 대시보드 개선팀을 구성해 주세요.",
+            "status": "done"
+          }
+        ],
+        "ownRunIds": [
+          "671b9535-ed15-48aa-a0df-eb19133e2080"
+        ]
+      },
+      {
+        "id": "2a977546-8b82-41f7-8caf-3d0e0265b8af",
+        "identifier": "HER-7",
+        "title": "추천 스킬 찾기 (메모리 화면 개선용)",
+        "status": "done",
+        "parentId": "2463df70-386a-44f7-9f11-bbafc80186e4",
+        "assigneeAgentId": "d922202d-44cd-4b28-b7bf-c68ff12354f4",
+        "createdAt": "2026-09-27T04:48:28.209Z",
+        "updatedAt": "2026-09-27T04:50:23.939Z",
+        "completedAt": "2026-09-27T04:50:23.898Z",
+        "elapsedSeconds": 115.689,
+        "interactions": [],
+        "documents": [
+          {
+            "key": "skills",
+            "createdAt": "2026-09-27T04:50:09.545Z",
+            "updatedAt": "2026-09-27T04:50:09.545Z",
+            "latestRevisionNumber": 1
+          }
+        ],
+        "blockedBy": [],
+        "blocks": [
+          {
+            "id": "2463df70-386a-44f7-9f11-bbafc80186e4",
+            "identifier": "HER-6",
+            "title": "요청: 대시보드 개선팀을 구성해 주세요.",
+            "status": "done"
+          }
+        ],
+        "ownRunIds": [
+          "71d174a7-4416-4cb1-8839-2f7871f19570"
+        ]
+      }
+    ],
+    "runs": {
+      "7376013b-7c17-494f-90fe-8f41fc2d83c9": {
+        "id": "7376013b-7c17-494f-90fe-8f41fc2d83c9",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "running",
+        "createdAt": "2026-09-28T19:28:54.681Z",
+        "startedAt": "2026-09-28T19:28:54.739Z",
+        "finishedAt": null,
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "c47f30a0-0abe-40ba-8831-8b20038f90d5",
+        "wakeReason": "chief_request_created",
+        "queueSeconds": 0.058,
+        "elapsedSeconds": null,
+        "gatewayRunId": null,
+        "logBytes": null,
+        "lastOutputAt": "2026-09-28T20:02:30.182Z",
+        "currentToolName": null
+      },
+      "2c761dc5-c122-44fc-8a78-999b1bd4ac69": {
+        "id": "2c761dc5-c122-44fc-8a78-999b1bd4ac69",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "running",
+        "createdAt": "2026-09-28T19:24:16.525Z",
+        "startedAt": "2026-09-28T19:24:16.586Z",
+        "finishedAt": null,
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "3ef5b370-fe11-4e93-a54f-963e71037d08",
+        "wakeReason": "chief_request_created",
+        "queueSeconds": 0.061,
+        "elapsedSeconds": null,
+        "gatewayRunId": null,
+        "logBytes": null,
+        "lastOutputAt": "2026-09-28T20:04:45.465Z",
+        "currentToolName": null
+      },
+      "67d972b1-f073-415c-97df-fe5f40dbbca1": {
+        "id": "67d972b1-f073-415c-97df-fe5f40dbbca1",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-28T10:32:21.353Z",
+        "startedAt": "2026-09-28T10:32:21.404Z",
+        "finishedAt": "2026-09-28T11:29:04.162Z",
+        "errorCode": null,
+        "invocationSource": "automation",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "dfc90533-0a85-4f5d-8c9f-0a3f87e61e07",
+        "wakeReason": "issue_children_completed",
+        "queueSeconds": 0.051,
+        "elapsedSeconds": 3402.758,
+        "gatewayRunId": "run_60795a8624034157b7ee013f66c62185",
+        "logBytes": 322795,
+        "receivedLogBytes": 322795,
+        "logComplete": true,
+        "toolTelemetryObserved": true,
+        "eventCounts": {
+          "message.delta": 417,
+          "reasoning.available": 22,
+          "message.interim": 21,
+          "tool.started": 92,
+          "tool.completed": 92,
+          "run.completed": 1
+        },
+        "toolCounts": {
+          "terminal": 52,
+          "skill_view": 4,
+          "read_file": 7,
+          "write_file": 10,
+          "tool_describe": 1,
+          "process_manage": 1,
+          "patch": 12,
+          "vision_analyze": 4,
+          "skill_manage": 1
+        },
+        "toolDurationSumSeconds": 97.18400000000004,
+        "tagCounts": {
+          "report": 3,
+          "memory-profile": 27,
+          "credential-scan": 3,
+          "issue-api": 2,
+          "web": 1
+        },
+        "toolErrors": 1
+      },
+      "e22e8603-e093-4ce8-8d84-2926525e4e6e": {
+        "id": "e22e8603-e093-4ce8-8d84-2926525e4e6e",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-28T08:51:34.881Z",
+        "startedAt": "2026-09-28T08:51:34.955Z",
+        "finishedAt": "2026-09-28T09:20:01.756Z",
+        "errorCode": null,
+        "invocationSource": "automation",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "dfc90533-0a85-4f5d-8c9f-0a3f87e61e07",
+        "wakeReason": "issue_commented",
+        "queueSeconds": 0.074,
+        "elapsedSeconds": 1706.801,
+        "gatewayRunId": "run_89f1a3aeb89447a4b2f31da7e4b9f1e8",
+        "logBytes": 129010,
+        "receivedLogBytes": 129010,
+        "logComplete": true,
+        "toolTelemetryObserved": true,
+        "eventCounts": {
+          "tool.started": 42,
+          "tool.completed": 42,
+          "message.delta": 166,
+          "reasoning.available": 3,
+          "message.interim": 2,
+          "run.completed": 1
+        },
+        "toolCounts": {
+          "skill_view": 4,
+          "terminal": 30,
+          "patch": 2,
+          "write_file": 5,
+          "skill_manage": 1
+        },
+        "toolDurationSumSeconds": 63.428,
+        "tagCounts": {
+          "memory-profile": 11,
+          "credential-scan": 1,
+          "issue-api": 1
+        },
+        "toolErrors": 0
+      },
+      "ffb5e161-dcfc-45da-8129-277ccaa2b138": {
+        "id": "ffb5e161-dcfc-45da-8129-277ccaa2b138",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T22:36:42.834Z",
+        "startedAt": "2026-09-27T22:36:42.905Z",
+        "finishedAt": "2026-09-28T00:15:04.419Z",
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "dfc90533-0a85-4f5d-8c9f-0a3f87e61e07",
+        "wakeReason": "chief_request_created",
+        "queueSeconds": 0.071,
+        "elapsedSeconds": 5901.514,
+        "gatewayRunId": "run_1a2b8cc13886422ebee22b363d85b31d",
+        "logBytes": 397217,
+        "receivedLogBytes": 397217,
+        "logComplete": true,
+        "toolTelemetryObserved": true,
+        "eventCounts": {
+          "tool.started": 179,
+          "tool.completed": 179,
+          "message.delta": 334,
+          "reasoning.available": 8,
+          "message.interim": 7,
+          "run.completed": 1
+        },
+        "toolCounts": {
+          "skill_view": 4,
+          "terminal": 150,
+          "write_file": 18,
+          "search_files": 2,
+          "patch": 3,
+          "skill_manage": 1,
+          "memory": 1
+        },
+        "toolDurationSumSeconds": 420.16900000000027,
+        "tagCounts": {
+          "memory-profile": 36,
+          "issue-api": 12,
+          "credential-scan": 3,
+          "verification": 3
+        },
+        "toolErrors": 7
+      },
+      "3697984f-d55b-4266-ae84-3157c9dd3d70": {
+        "id": "3697984f-d55b-4266-ae84-3157c9dd3d70",
+        "agentId": "fe7d37ce-77f1-4e33-a2ae-6e7cc9732149",
+        "status": "succeeded",
+        "createdAt": "2026-09-28T09:17:03.825Z",
+        "startedAt": "2026-09-28T09:17:03.905Z",
+        "finishedAt": "2026-09-28T10:32:55.056Z",
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "00a3eaa2-79be-463e-9939-5bf0038535d0",
+        "wakeReason": "issue_assigned",
+        "queueSeconds": 0.08,
+        "elapsedSeconds": 4551.151,
+        "gatewayRunId": "run_472310f6b62748c9aa8fd32e65ec5cef",
+        "logBytes": 454810,
+        "receivedLogBytes": 454810,
+        "logComplete": true,
+        "toolTelemetryObserved": true,
+        "eventCounts": {
+          "tool.started": 177,
+          "tool.completed": 177,
+          "message.delta": 389,
+          "reasoning.available": 20,
+          "message.interim": 19,
+          "run.completed": 1
+        },
+        "toolCounts": {
+          "skill_view": 4,
+          "terminal": 101,
+          "read_file": 13,
+          "write_file": 11,
+          "patch": 24,
+          "vision_analyze": 21,
+          "search_files": 2,
+          "memory": 1
+        },
+        "toolDurationSumSeconds": 234.49500000000018,
+        "tagCounts": {
+          "credential-scan": 2,
+          "issue-api": 3,
+          "verification": 6,
+          "report": 24,
+          "memory-profile": 3
+        },
+        "toolErrors": 5
+      },
+      "222d8026-cccb-4eb5-aed3-fbde7da064e7": {
+        "id": "222d8026-cccb-4eb5-aed3-fbde7da064e7",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T19:00:16.932Z",
+        "startedAt": "2026-09-27T19:00:16.996Z",
+        "finishedAt": "2026-09-27T19:26:26.275Z",
+        "errorCode": null,
+        "invocationSource": "automation",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "00bf1478-8cc9-4893-bacc-816bcd92c322",
+        "wakeReason": "issue_children_completed",
+        "queueSeconds": 0.064,
+        "elapsedSeconds": 1569.279,
+        "gatewayRunId": "run_88dfaaa5fc5c40aaac024ccaad6b98ed",
+        "logBytes": 212376,
+        "receivedLogBytes": 212376,
+        "logComplete": true,
+        "toolTelemetryObserved": true,
+        "eventCounts": {
+          "message.delta": 303,
+          "reasoning.available": 9,
+          "message.interim": 8,
+          "tool.started": 52,
+          "tool.completed": 52,
+          "run.completed": 1
+        },
+        "toolCounts": {
+          "terminal": 36,
+          "read_file": 4,
+          "web_extract": 1,
+          "skill_view": 2,
+          "write_file": 3,
+          "patch": 5,
+          "skill_manage": 1
+        },
+        "toolDurationSumSeconds": 326.7,
+        "tagCounts": {
+          "memory-profile": 16,
+          "verification": 5,
+          "credential-scan": 8,
+          "issue-api": 6,
+          "database-inspection": 7,
+          "web": 4,
+          "hiring": 1,
+          "report": 7
+        },
+        "toolErrors": 2
+      },
+      "47274b9b-180c-47b5-bb8d-88ebedd1e4fa": {
+        "id": "47274b9b-180c-47b5-bb8d-88ebedd1e4fa",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T18:36:09.080Z",
+        "startedAt": "2026-09-27T18:36:09.148Z",
+        "finishedAt": "2026-09-27T18:50:29.953Z",
+        "errorCode": null,
+        "invocationSource": "automation",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "00bf1478-8cc9-4893-bacc-816bcd92c322",
+        "wakeReason": "issue_commented",
+        "queueSeconds": 0.068,
+        "elapsedSeconds": 860.805,
+        "gatewayRunId": "run_40d2bd6e4ebf40ba8179d018c1574fef",
+        "logBytes": 135908,
+        "receivedLogBytes": 135908,
+        "logComplete": true,
+        "toolTelemetryObserved": true,
+        "eventCounts": {
+          "tool.started": 27,
+          "tool.completed": 27,
+          "message.delta": 225,
+          "reasoning.available": 8,
+          "message.interim": 7,
+          "run.completed": 1
+        },
+        "toolCounts": {
+          "terminal": 22,
+          "write_file": 3,
+          "read_file": 1,
+          "memory": 1
+        },
+        "toolDurationSumSeconds": 170.552,
+        "tagCounts": {
+          "memory-profile": 3,
+          "web": 1,
+          "credential-scan": 4,
+          "hiring": 3,
+          "verification": 1,
+          "issue-api": 3
+        },
+        "toolErrors": 0
+      },
+      "e72a7f9f-baf5-4de3-8521-3e121ef4b47e": {
+        "id": "e72a7f9f-baf5-4de3-8521-3e121ef4b47e",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T18:22:34.050Z",
+        "startedAt": "2026-09-27T18:22:34.135Z",
+        "finishedAt": "2026-09-27T18:33:12.716Z",
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "00bf1478-8cc9-4893-bacc-816bcd92c322",
+        "wakeReason": "chief_request_created",
+        "queueSeconds": 0.085,
+        "elapsedSeconds": 638.581,
+        "gatewayRunId": "run_e4d0ae2ce6364d46b12002bdfa628abb",
+        "logBytes": 119870,
+        "receivedLogBytes": 119870,
+        "logComplete": true,
+        "toolTelemetryObserved": true,
+        "eventCounts": {
+          "tool.started": 44,
+          "tool.completed": 44,
+          "message.delta": 137,
+          "reasoning.available": 1,
+          "run.completed": 1
+        },
+        "toolCounts": {
+          "skill_view": 5,
+          "terminal": 23,
+          "read_file": 6,
+          "web_extract": 1,
+          "search_files": 6,
+          "web_search": 1,
+          "write_file": 1,
+          "memory": 1
+        },
+        "toolDurationSumSeconds": 40.79200000000001,
+        "tagCounts": {
+          "credential-scan": 7,
+          "issue-api": 7,
+          "memory-profile": 2,
+          "web": 2,
+          "verification": 1
+        },
+        "toolErrors": 1
+      },
+      "5d190b00-5757-45ca-9c17-aa5e9d14f968": {
+        "id": "5d190b00-5757-45ca-9c17-aa5e9d14f968",
+        "agentId": "a78e01ad-5011-4811-9660-87c1f8002781",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T18:48:39.980Z",
+        "startedAt": "2026-09-27T18:48:40.048Z",
+        "finishedAt": "2026-09-27T19:00:33.814Z",
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "d0c066b1-4a5d-4588-8cd1-4ba711bce0d9",
+        "wakeReason": "issue_assigned",
+        "queueSeconds": 0.068,
+        "elapsedSeconds": 713.766,
+        "gatewayRunId": "run_6bd779c8dc594a6cab758baf7fedb403",
+        "logBytes": 120918,
+        "receivedLogBytes": 120918,
+        "logComplete": true,
+        "toolTelemetryObserved": true,
+        "eventCounts": {
+          "tool.started": 22,
+          "tool.completed": 22,
+          "message.delta": 209,
+          "reasoning.available": 5,
+          "message.interim": 4,
+          "run.completed": 1
+        },
+        "toolCounts": {
+          "skill_view": 1,
+          "web_extract": 2,
+          "web_search": 5,
+          "terminal": 5,
+          "write_file": 4,
+          "patch": 1,
+          "memory": 1,
+          "search_files": 1,
+          "skill_manage": 2
+        },
+        "toolDurationSumSeconds": 31.85599999999999,
+        "tagCounts": {
+          "web": 2,
+          "memory-profile": 7
+        },
+        "toolErrors": 1
+      },
+      "1543a5ad-5ce4-43c1-b1b5-aef3e329cc07": {
+        "id": "1543a5ad-5ce4-43c1-b1b5-aef3e329cc07",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T05:00:47.010Z",
+        "startedAt": "2026-09-27T05:00:47.080Z",
+        "finishedAt": "2026-09-27T05:02:46.027Z",
+        "errorCode": null,
+        "invocationSource": "automation",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "2463df70-386a-44f7-9f11-bbafc80186e4",
+        "wakeReason": "issue_children_completed",
+        "queueSeconds": 0.07,
+        "elapsedSeconds": 118.947,
+        "gatewayRunId": null,
+        "logBytes": 184441,
+        "receivedLogBytes": 184441,
+        "logComplete": true,
+        "toolTelemetryObserved": false,
+        "eventCounts": {},
+        "toolCounts": {},
+        "toolDurationSumSeconds": 0,
+        "tagCounts": {},
+        "toolErrors": 0
+      },
+      "d3bf1841-f2e4-476f-8550-f5f78733b29f": {
+        "id": "d3bf1841-f2e4-476f-8550-f5f78733b29f",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T04:43:22.146Z",
+        "startedAt": "2026-09-27T04:43:22.221Z",
+        "finishedAt": "2026-09-27T04:49:04.699Z",
+        "errorCode": null,
+        "invocationSource": "automation",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "2463df70-386a-44f7-9f11-bbafc80186e4",
+        "wakeReason": "issue_commented",
+        "queueSeconds": 0.075,
+        "elapsedSeconds": 342.478,
+        "gatewayRunId": null,
+        "logBytes": 307334,
+        "receivedLogBytes": 307334,
+        "logComplete": true,
+        "toolTelemetryObserved": false,
+        "eventCounts": {},
+        "toolCounts": {},
+        "toolDurationSumSeconds": 0,
+        "tagCounts": {},
+        "toolErrors": 0
+      },
+      "24b2ad7b-0acd-4f95-a9db-ae882a0e2cb0": {
+        "id": "24b2ad7b-0acd-4f95-a9db-ae882a0e2cb0",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T04:39:33.959Z",
+        "startedAt": "2026-09-27T04:39:34.014Z",
+        "finishedAt": "2026-09-27T04:43:22.071Z",
+        "errorCode": null,
+        "invocationSource": "automation",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "2463df70-386a-44f7-9f11-bbafc80186e4",
+        "wakeReason": "issue_commented",
+        "queueSeconds": 0.055,
+        "elapsedSeconds": 228.057,
+        "gatewayRunId": null,
+        "logBytes": 154195,
+        "receivedLogBytes": 154195,
+        "logComplete": true,
+        "toolTelemetryObserved": false,
+        "eventCounts": {},
+        "toolCounts": {},
+        "toolDurationSumSeconds": 0,
+        "tagCounts": {},
+        "toolErrors": 0
+      },
+      "c42cbfe9-b00d-48c7-8de7-b5032fb32a49": {
+        "id": "c42cbfe9-b00d-48c7-8de7-b5032fb32a49",
+        "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T03:35:14.509Z",
+        "startedAt": "2026-09-27T03:35:14.580Z",
+        "finishedAt": "2026-09-27T03:38:50.439Z",
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "2463df70-386a-44f7-9f11-bbafc80186e4",
+        "wakeReason": "chief_request_created",
+        "queueSeconds": 0.071,
+        "elapsedSeconds": 215.859,
+        "gatewayRunId": null,
+        "logBytes": 121244,
+        "receivedLogBytes": 121244,
+        "logComplete": true,
+        "toolTelemetryObserved": false,
+        "eventCounts": {},
+        "toolCounts": {},
+        "toolDurationSumSeconds": 0,
+        "tagCounts": {},
+        "toolErrors": 0
+      },
+      "d0e1700a-d3a4-4350-83c6-5586e84eca4a": {
+        "id": "d0e1700a-d3a4-4350-83c6-5586e84eca4a",
+        "agentId": "694e5a9f-e932-4141-9d20-08cdd653d324",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T04:54:45.037Z",
+        "startedAt": "2026-09-27T04:54:45.092Z",
+        "finishedAt": "2026-09-27T05:01:06.696Z",
+        "errorCode": null,
+        "invocationSource": "automation",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "bf919d17-bfcf-4856-bd41-eb6309a9cc91",
+        "wakeReason": "issue_blockers_resolved",
+        "queueSeconds": 0.055,
+        "elapsedSeconds": 381.604,
+        "gatewayRunId": null,
+        "logBytes": 714451,
+        "receivedLogBytes": 714451,
+        "logComplete": true,
+        "toolTelemetryObserved": false,
+        "eventCounts": {},
+        "toolCounts": {},
+        "toolDurationSumSeconds": 0,
+        "tagCounts": {},
+        "toolErrors": 0
+      },
+      "671b9535-ed15-48aa-a0df-eb19133e2080": {
+        "id": "671b9535-ed15-48aa-a0df-eb19133e2080",
+        "agentId": "11650ed8-bb2c-4c3a-a391-b34bd76c8389",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T04:48:28.363Z",
+        "startedAt": "2026-09-27T04:48:28.415Z",
+        "finishedAt": "2026-09-27T04:54:58.336Z",
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "d6e78b39-649d-4bd2-976b-6c9a01efb8c9",
+        "wakeReason": "issue_assigned",
+        "queueSeconds": 0.052,
+        "elapsedSeconds": 389.921,
+        "gatewayRunId": null,
+        "logBytes": 564971,
+        "receivedLogBytes": 564971,
+        "logComplete": true,
+        "toolTelemetryObserved": false,
+        "eventCounts": {},
+        "toolCounts": {},
+        "toolDurationSumSeconds": 0,
+        "tagCounts": {},
+        "toolErrors": 0
+      },
+      "71d174a7-4416-4cb1-8839-2f7871f19570": {
+        "id": "71d174a7-4416-4cb1-8839-2f7871f19570",
+        "agentId": "d922202d-44cd-4b28-b7bf-c68ff12354f4",
+        "status": "succeeded",
+        "createdAt": "2026-09-27T04:48:28.263Z",
+        "startedAt": "2026-09-27T04:48:28.318Z",
+        "finishedAt": "2026-09-27T04:50:38.890Z",
+        "errorCode": null,
+        "invocationSource": "assignment",
+        "triggerDetail": "system",
+        "adapterType": "hermes_gateway",
+        "taskId": "2a977546-8b82-41f7-8caf-3d0e0265b8af",
+        "wakeReason": "issue_assigned",
+        "queueSeconds": 0.055,
+        "elapsedSeconds": 130.572,
+        "gatewayRunId": null,
+        "logBytes": 137118,
+        "receivedLogBytes": 137118,
+        "logComplete": true,
+        "toolTelemetryObserved": false,
+        "eventCounts": {},
+        "toolCounts": {},
+        "toolDurationSumSeconds": 0,
+        "tagCounts": {},
+        "toolErrors": 0
+      }
+    },
+    "queueStartSecondsRange": [
+      0.051,
+      0.085
+    ],
+    "blogPhasesSeconds": {
+      "requestToApprovalCard": 595.924,
+      "humanApprovalWait": 219.104,
+      "approvedToChildCreated": 750.895,
+      "childCreatedToDone": 696.938,
+      "childDoneToParentDone": 1534.847
+    },
+    "blogTotalSeconds": 3797.708,
+    "caveat": "Blog request explicitly included new-bot creation and memory verification; not a pure title-writing benchmark. Tool duration sum may overlap; non-tool wall time is NOT proven model computation."
+  },
+  "adapterExperimentMaxEffort": {
+    "effort": "max",
+    "adapterSha256": "99c49ca4dfa4700d75044d04b488967a85f7e15d08cbf1070aea7427ca0a7788",
+    "samples": [
+      {
+        "index": 1,
+        "mode": "direct",
+        "wallMs": 4187.056721999999,
+        "firstOutputMs": 3796.3637009999998,
+        "correct": true,
+        "filesUnchanged": true,
+        "payloadHash": "6af2a215a60808b7a10ddeb3b2a3c610deb35207cefb2ae11a519726739e360c",
+        "runId": "run_fd9798d539ab4db1a281dc17aa68171a",
+        "model": "claude-opus-5-5",
+        "apiCalls": 1,
+        "tools": 0,
+        "cacheRead": 0
+      },
+      {
+        "index": 2,
+        "mode": "adapter",
+        "wallMs": 3953.913461,
+        "firstOutputMs": 3419.2169269999995,
+        "correct": true,
+        "filesUnchanged": true,
+        "payloadHash": "6af2a215a60808b7a10ddeb3b2a3c610deb35207cefb2ae11a519726739e360c",
+        "runId": "run_2ca17d3708fa45a1942d569b891dcd34",
+        "model": "claude-opus-5-5",
+        "apiCalls": 1,
+        "tools": 0,
+        "cacheRead": 27796
+      },
+      {
+        "index": 3,
+        "mode": "adapter",
+        "wallMs": 5453.993783,
+        "firstOutputMs": 4575.251437999999,
+        "correct": true,
+        "filesUnchanged": true,
+        "payloadHash": "6af2a215a60808b7a10ddeb3b2a3c610deb35207cefb2ae11a519726739e360c",
+        "runId": "run_a8db578b81cd4ed09cdc7ac7fee14edc",
+        "model": "claude-opus-5-5",
+        "apiCalls": 1,
+        "tools": 0,
+        "cacheRead": 27796
+      },
+      {
+        "index": 4,
+        "mode": "direct",
+        "wallMs": 4087.5423760000012,
+        "firstOutputMs": 3683.7939079999996,
+        "correct": true,
+        "filesUnchanged": true,
+        "payloadHash": "6af2a215a60808b7a10ddeb3b2a3c610deb35207cefb2ae11a519726739e360c",
+        "runId": "run_02df60c05789404d81474faca4dd1117",
+        "model": "claude-opus-5-5",
+        "apiCalls": 1,
+        "tools": 0,
+        "cacheRead": 27796
+      },
+      {
+        "index": 5,
+        "mode": "direct",
+        "wallMs": 3805.063328,
+        "firstOutputMs": 3551.042881999998,
+        "correct": true,
+        "filesUnchanged": true,
+        "payloadHash": "6af2a215a60808b7a10ddeb3b2a3c610deb35207cefb2ae11a519726739e360c",
+        "runId": "run_2b17a62d305140659c9abfc234294155",
+        "model": "claude-opus-5-5",
+        "apiCalls": 1,
+        "tools": 0,
+        "cacheRead": 27796
+      },
+      {
+        "index": 6,
+        "mode": "adapter",
+        "wallMs": 4111.0738710000005,
+        "firstOutputMs": 3509.5910919999988,
+        "correct": true,
+        "filesUnchanged": true,
+        "payloadHash": "6af2a215a60808b7a10ddeb3b2a3c610deb35207cefb2ae11a519726739e360c",
+        "runId": "run_c08022c339ba45d88b47cd4d8568da6b",
+        "model": "claude-opus-5-5",
+        "apiCalls": 1,
+        "tools": 0,
+        "cacheRead": 27796
+      }
+    ]
+  }
+}
