@@ -139,7 +139,7 @@ function buildScene(data: GalaxyData): Scene {
   return { nodes, byId, edges, groupLabel, leafCount, hubOf, capped, total: all.length };
 }
 
-type Proj = { id: string; sx: number; sy: number; r: number; depth: number };
+type Proj = { id: string; sx: number; sy: number; r: number; depth: number; hub: boolean };
 type View = { yaw: number; pitch: number; zoom: number; tYaw: number; tPitch: number; tZoom: number; easing: boolean; vYaw: number; vPitch: number; lastInteract: number };
 
 function prefersReduced() {
@@ -430,7 +430,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
           ctx.strokeStyle = "rgba(214,189,145,.9)"; ctx.lineWidth = 1;
           ctx.beginPath(); ctx.arc(it.sx, it.sy, Math.max(6, R * 0.5) + 3, 0, Math.PI * 2); ctx.stroke();
         }
-        proj.push({ id: n.id, sx: it.sx, sy: it.sy, r: R, depth: it.depth });
+        proj.push({ id: n.id, sx: it.sx, sy: it.sy, r: R, depth: it.depth, hub });
       }
 
       // selection / hover rings (normal blending)
@@ -551,7 +551,10 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       for (const p of projRef.current) {
         const d = Math.hypot(p.sx - x, p.sy - y);
         const lim = Math.max(p.r * 0.45, touch ? 24 : 14);
-        if (d <= lim && d < bd + (best && p.depth < best.depth ? 2 : 0)) { best = p; bd = d; }
+        if (d > lim) continue;
+        // hubs win ties inside their bright core; nearer (smaller depth) stars win small distance differences
+        const score = p.hub ? d * 0.55 : d;
+        if (score < bd - (best && p.depth < best.depth ? 0 : 1)) { best = p; bd = score; }
       }
       return best?.id ?? null;
     };
@@ -601,7 +604,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       view.yaw += dx * 0.0062; view.pitch = clamp(view.pitch + dy * 0.0052, -1.25, 1.25);
       view.tYaw = view.yaw; view.tPitch = view.pitch;
       const now = performance.now(), dtm = Math.max(8, now - lastMove); lastMove = now;
-      view.vYaw = ((dx * 0.0062) / dtm) * 1000 * 0.6; view.vPitch = ((dy * 0.0052) / dtm) * 1000 * 0.6;
+      view.vYaw = clamp(((dx * 0.0062) / dtm) * 1000 * 0.6, -2.4, 2.4); view.vPitch = clamp(((dy * 0.0052) / dtm) * 1000 * 0.6, -1.2, 1.2); // gentle fling
       interact(); schedule();
     };
     const onUp = (e: PointerEvent) => {
