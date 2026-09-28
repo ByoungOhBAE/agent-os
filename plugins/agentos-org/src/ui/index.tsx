@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useHostContext, useHostNavigation, usePluginAction, type PluginPageProps } from "@paperclipai/plugin-sdk/ui";
 import { ICONS, type Icon, type OrgOp } from "../org.js";
+import { splitDepartments } from "../layout.js";
 
 type Member = { id: string; kind: "paperclip" | "hermes"; ref: string; name: string; runtime: string; model: string | null; status: string };
 
@@ -134,8 +135,7 @@ export function OrgChartPage(_props: PluginPageProps) {
   }
 
   const can = view.permissions.canEdit;
-  const chiefDeps = view.departments.filter((d) => d.reportsTo === "chief");
-  const ceoDeps = view.departments.filter((d) => d.reportsTo === "ceo");
+  const { chief: chiefDeps, ceo: ceoDeps } = splitDepartments(view.departments);
   const memberById = (id: string) => view.departments.flatMap((d) => d.members).find((m) => m.id === id) ?? view.unassigned.find((m) => m.id === id) ?? null;
 
   return (
@@ -171,7 +171,7 @@ export function OrgChartPage(_props: PluginPageProps) {
           {ceoDeps.length > 0 && <span className="o-link-label">직속 부서 {ceoDeps.length}</span>}
         </div>
         <span className="o-stem" aria-hidden="true" />
-        <div className="o-chief-row">
+        <div className={`o-chief-row${ceoDeps.length > 0 ? " o-chief-row-side" : ""}`}>
           <div className={`o-card o-card-chief${view.chief ? "" : " o-card-vacant"}`}>
             {view.chief ? <Seal name={view.chief.name} status={view.chief.status} /> : <span className="o-avatar o-avatar-accent" aria-hidden="true"><Glyph icon="compass" /></span>}
             <div className="o-card-body">
@@ -191,10 +191,17 @@ export function OrgChartPage(_props: PluginPageProps) {
               </button>
             )}
           </div>
+          {ceoDeps.length > 0 && (
+            <div className="o-side" role="group" aria-labelledby="o-side-label">
+              <p id="o-side-label" className="o-group-label o-side-label">CEO 직속</p>
+              <ul className="o-side-deps">
+                {ceoDeps.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={setEditing} />)}
+              </ul>
+            </div>
+          )}
         </div>
 
         <DepartmentGroup title="비서실장 산하" departments={chiefDeps} can={can} busy={busy} onEdit={setEditing} />
-        {ceoDeps.length > 0 && <DepartmentGroup title="CEO 직속" departments={ceoDeps} can={can} busy={busy} onEdit={setEditing} />}
         {view.departments.length === 0 && (
           <div className="o-empty">
             <p className="o-empty-title">아직 부서가 없습니다</p>
@@ -246,44 +253,48 @@ function DepartmentGroup({ title, departments, can, busy, onEdit }: { title: str
     <div className="o-group">
       <p className="o-group-label">{title}</p>
       <ul className="o-deps">
-        {departments.map((d) => (
-          <li key={d.id} className="o-dep">
-            <div className="o-dep-head">
-              <span className="o-dep-icon" aria-hidden="true"><Glyph icon={d.icon} /></span>
-              <div className="o-dep-title">
-                <h3 className="o-dep-name">{d.name}</h3>
-                <p className="o-muted o-small">{d.members.length}명</p>
-              </div>
-              {can && <button type="button" className="o-btn o-btn-small" onClick={() => onEdit({ type: "department", id: d.id })} disabled={busy} aria-label={`${d.name} 부서 편집`}>편집</button>}
-            </div>
-            {d.members.length === 0 ? <p className="o-muted o-small o-dep-empty">구성원 없음</p> : (
-              <ul className="o-members">
-                {d.members.map((m) => (
-                  <li key={m.id}>
-                    <button
-                      type="button" className="o-member" disabled={!can || busy}
-                      onClick={() => onEdit({ type: "member", id: m.id })}
-                      aria-label={can ? `${m.name} 편집` : undefined}
-                    >
-                      <Seal name={m.name} status={m.status} />
-                      <span className="o-member-main">
-                        <span className="o-member-name">
-                          {m.lead && <span className="o-lead">부서장</span>}
-                          {m.name}
-                        </span>
-                        <span className="o-member-title">{m.title ?? (m.missing ? "연결이 끊긴 구성원" : "직함 없음")}</span>
-                        {m.duty && <span className="o-member-duty">{m.duty}</span>}
-                      </span>
-                      <Chip member={m} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
+        {departments.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={onEdit} />)}
       </ul>
     </div>
+  );
+}
+
+function DepartmentCard({ department: d, can, busy, onEdit }: { department: Department; can: boolean; busy: boolean; onEdit: (e: Editing) => void }) {
+  return (
+    <li className="o-dep">
+      <div className="o-dep-head">
+        <span className="o-dep-icon" aria-hidden="true"><Glyph icon={d.icon} /></span>
+        <div className="o-dep-title">
+          <h3 className="o-dep-name">{d.name}</h3>
+          <p className="o-muted o-small">{d.members.length}명</p>
+        </div>
+        {can && <button type="button" className="o-btn o-btn-small" onClick={() => onEdit({ type: "department", id: d.id })} disabled={busy} aria-label={`${d.name} 부서 편집`}>편집</button>}
+      </div>
+      {d.members.length === 0 ? <p className="o-muted o-small o-dep-empty">구성원 없음</p> : (
+        <ul className="o-members">
+          {d.members.map((m) => (
+            <li key={m.id}>
+              <button
+                type="button" className="o-member" disabled={!can || busy}
+                onClick={() => onEdit({ type: "member", id: m.id })}
+                aria-label={can ? `${m.name} 편집` : undefined}
+              >
+                <Seal name={m.name} status={m.status} />
+                <span className="o-member-main">
+                  <span className="o-member-name">
+                    {m.lead && <span className="o-lead">부서장</span>}
+                    {m.name}
+                  </span>
+                  <span className="o-member-title">{m.title ?? (m.missing ? "연결이 끊긴 구성원" : "직함 없음")}</span>
+                  {m.duty && <span className="o-member-duty">{m.duty}</span>}
+                </span>
+                <Chip member={m} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
 
@@ -449,6 +460,19 @@ color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .o-hint{margin:0;font-size:12px;color:var(--o-warn)}
 .o-perm{margin:0;font-size:11px;color:var(--o-secondary)}
 .o-chief-row{display:flex;justify-content:center;width:100%}
+/* CEO-direct departments sit on the chief's row: chief stays centred under the CEO, departments to its right. */
+.o-tree:has(.o-chief-row-side){container-type:inline-size}
+.o-chief-row-side{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:14px 24px}
+.o-chief-row-side>.o-card-chief{grid-column:2}
+.o-side{grid-column:3;min-width:0;max-width:100%;padding-left:24px;border-left:1px dashed var(--o-line-strong)}
+.o-side-label{margin:0 0 8px;text-align:left}
+.o-side-deps{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:14px}
+.o-side-deps>.o-dep{width:300px;max-width:100%}
+@container (max-width:1000px){
+  .o-chief-row-side{display:flex;flex-direction:column;align-items:center}
+  .o-side{width:min(100%,560px);padding-left:0;padding-top:14px;border-left:0;border-top:1px dashed var(--o-line-strong)}
+  .o-side-deps>.o-dep{width:100%}
+}
 .o-group{width:100%;margin-top:28px;position:relative}
 .o-group::before{content:"";position:absolute;left:50%;top:-28px;width:1px;height:18px;background:var(--o-line-strong)}
 .o-group-label{margin:0 0 10px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--o-muted);font-weight:680}
@@ -511,6 +535,10 @@ color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
   .o-title{font-size:20px}
   .o-card{width:100%}
   .o-deps,.o-bench-list{grid-template-columns:1fr}
+  .o-chief-row-side{display:flex;flex-direction:column;align-items:stretch}
+  .o-side{width:100%;padding-left:0;padding-top:14px;border-left:0;border-top:1px dashed var(--o-line-strong)}
+  .o-side-deps{flex-direction:column}
+  .o-side-deps>.o-dep{width:100%}
   .o-root{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
 }
 `;
