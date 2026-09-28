@@ -220,7 +220,77 @@
       "ko": "AgentOS BFF(127.0.0.1:4200)는 읽기 전용 GET 요청을 제공합니다: /api/hermes/bots, /api/hermes/learning/graph?profile=, /api/hermes/skills?profile=. Hermes 프로필 id는 한글을 uXXXX 형식으로 인코딩하므로, 이름을 확인할 때는 bots[].title 값을 사용하세요.",
       "en": "The AgentOS BFF (127.0.0.1:4200) serves read-only GETs: /api/hermes/bots, /api/hermes/learning/graph?profile=, /api/hermes/skills?profile=. Hermes profile ids encode Hangul as uXXXX, so use bots[].title for names.",
       "source": "claude-subscription"
+    },
+    "6ed30ef93620": {
+      "ko": "academy-homepage는 git worktree로 여러 브랜치가 서로 다른 디스크 경로에 있다: C:\\Users\\tahar\\academy homepage(master), C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작(메인 개발 브랜치, content generator·local-worker 포함, 여기서 작업), /제미니-도움, /컨텐츠-생성. 새 미커밋 폴더(예: android-notifier/)는 작업한 worktree 경로에만 존재하므로, 사용자가 다른 브랜치 폴더를 보고 있으면 못 찾을 수 있다 — 파일 전달 시 정확한 worktree 절대경로를 명시할 것.",
+      "en": "academy-homepage는 git worktree로 여러 브랜치가 서로 다른 디스크 경로에 있다: C:\\Users\\tahar\\academy homepage(master), C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작(메인 개발 브랜치, content generator·local-worker 포함, 여기서 작업), /제미니-도움, /컨텐츠-생성. 새 미커밋 폴더(예: android-notifier/)는 작업한 worktree 경로에만 존재하므로, 사용자가 다른 브랜치 폴더를 보고 있으면 못 찾을 수 있다 — 파일 전달 시 정확한 worktree 절대경로를 명시할 것.",
+      "source": "already-korean"
+    },
+    "0f9efcfc1ef6": {
+      "ko": "사용자는 짧은 한국어 답변을 선호한다. 홈페이지 UI는 실제 사용자 눈높이와 반응형 화면에서 위치·크기·가독성을 확인해야 하며, 합성 QA를 운영 증거로 과장하지 않길 기대한다. 배포 전후 DB·사진 보존 검증을 중시한다.",
+      "en": "사용자는 짧은 한국어 답변을 선호한다. 홈페이지 UI는 실제 사용자 눈높이와 반응형 화면에서 위치·크기·가독성을 확인해야 하며, 합성 QA를 운영 증거로 과장하지 않길 기대한다. 배포 전후 DB·사진 보존 검증을 중시한다.",
+      "source": "already-korean"
+    },
+    "0819ac9b7d8b": {
+      "ko": "Hermes `/journey` 메모리 카드는 MEMORY.md 원문을 보존한 채 learning_graph.py의 표시 계층에서 한국어로 변환한다. 원문·ID·커서·편집 동작은 변경하지 않는다.",
+      "en": "Hermes `/journey` 메모리 카드는 MEMORY.md 원문을 보존한 채 learning_graph.py의 표시 계층에서 한국어로 변환한다. 원문·ID·커서·편집 동작은 변경하지 않는다.",
+      "source": "already-korean"
+    },
+    "a4d4757271db": {
+      "ko": "Figma MCP(공식, mcp.figma.com, OAuth)를 Hermes에 설치·활성화함 — Figma 링크를 주면 디자인 컨텍스트 읽기/구현 요청 가능.",
+      "en": "Figma MCP(공식, mcp.figma.com, OAuth)를 Hermes에 설치·활성화함 — Figma 링크를 주면 디자인 컨텍스트 읽기/구현 요청 가능.",
+      "source": "already-korean"
+    },
+    "962cdb130995": {
+      "ko": "academy-homepage: 구독 콘텐츠 생성 strict 무폴백 배포됨(local-worker/strict_subscription.py, 선택 제공사 1회만 호출, fail-closed). Gemini API는 웹 상담 전용(gemini-3.8-flash), 콘텐츠 생성엔 안 씀.\n대문 배너 AI 스튜디오(2880x1125, hero-studio) 배포됨: AI 모델 선택, 흰 캔버스 자유배치+마우스 리사이즈(8방향, 회전 대응), 폴더형 사진선택기(라벨 폴더+축소본), 파츠별 창작/보존 정책. 핵심: src/components/admin/HeroBannerStudio.tsx, HeroPhotoPicker.tsx, src/lib/hero-studio/*, scripts/hero-studio-inspect.mjs(격리 브라우저 QA — UI 바뀌면 셀렉터도 갱신).",
+      "en": "academy-homepage: 구독 콘텐츠 생성 strict 무폴백 배포됨(local-worker/strict_subscription.py, 선택 제공사 1회만 호출, fail-closed). Gemini API는 웹 상담 전용(gemini-3.8-flash), 콘텐츠 생성엔 안 씀.\n대문 배너 AI 스튜디오(2880x1125, hero-studio) 배포됨: AI 모델 선택, 흰 캔버스 자유배치+마우스 리사이즈(8방향, 회전 대응), 폴더형 사진선택기(라벨 폴더+축소본), 파츠별 창작/보존 정책. 핵심: src/components/admin/HeroBannerStudio.tsx, HeroPhotoPicker.tsx, src/lib/hero-studio/*, scripts/hero-studio-inspect.mjs(격리 브라우저 QA — UI 바뀌면 셀렉터도 갱신).",
+      "source": "already-korean"
+    },
+    "f1c0d486dc54": {
+      "ko": "Korean cooking academy (한국조리기능장요리발효학원) at kmastercook.com. Gemini API 키는 웹페이지 AI 상담(챗봇) 전용으로만 사용하고 콘텐츠 생성에는 사용하지 않음 — 별도 Gemini 생성 API 엔드포인트로 분리됨.",
+      "en": "Korean cooking academy (한국조리기능장요리발효학원) at kmastercook.com. Gemini API 키는 웹페이지 AI 상담(챗봇) 전용으로만 사용하고 콘텐츠 생성에는 사용하지 않음 — 별도 Gemini 생성 API 엔드포인트로 분리됨.",
+      "source": "already-korean"
+    },
+    "d596e8333e0f": {
+      "ko": "연결 실패 진단에서는 제공사 장애로 단정하거나 문의를 권하기 전에, 에이전트가 바꾼 설정이 원인인지 실제 요청으로 분리 검증하고 잘못된 이전 설명을 명확히 정정하길 기대한다.",
+      "en": "연결 실패 진단에서는 제공사 장애로 단정하거나 문의를 권하기 전에, 에이전트가 바꾼 설정이 원인인지 실제 요청으로 분리 검증하고 잘못된 이전 설명을 명확히 정정하길 기대한다.",
+      "source": "already-korean"
+    },
+    "8f1b4d71f7ee": {
+      "ko": "Figma 작업 요청 시 \"기존 그림을 바꿔\"는 파일의 해당 프레임(예: 1~11)을 직접 수정하라는 뜻이며, 별도 복제본 제안은 원치 않는다. 이전 결과물은 지우지 말고 추가로 보존하길 원한다.",
+      "en": "Figma 작업 요청 시 \"기존 그림을 바꿔\"는 파일의 해당 프레임(예: 1~11)을 직접 수정하라는 뜻이며, 별도 복제본 제안은 원치 않는다. 이전 결과물은 지우지 말고 추가로 보존하길 원한다.",
+      "source": "already-korean"
+    },
+    "df6f17b1813d": {
+      "ko": "사용자는 작업 하나가 끝나면 매번 git 커밋하길 원한다(별도 확인 불필요). 비밀정보·무관한 파일은 커밋에서 제외.",
+      "en": "사용자는 작업 하나가 끝나면 매번 git 커밋하길 원한다(별도 확인 불필요). 비밀정보·무관한 파일은 커밋에서 제외.",
+      "source": "already-korean"
+    },
+    "bd2906e405a9": {
+      "ko": "사용자는 실행 시간 제한 때문에 작업을 인위적으로 쪼개는 것을 원하지 않으며, 작업 내용에 따른 구분을 선호한다. 진행 상황은 단순한 ‘작업 중’ 표시보다 스킬 로딩·명령 실행·파일 작성 등 실제 활동이 실시간으로 보이기를 기대한다.",
+      "en": "사용자는 실행 시간 제한 때문에 작업을 인위적으로 쪼개는 것을 원하지 않으며, 작업 내용에 따른 구분을 선호한다. 진행 상황은 단순한 ‘작업 중’ 표시보다 스킬 로딩·명령 실행·파일 작성 등 실제 활동이 실시간으로 보이기를 기대한다.",
+      "source": "already-korean"
+    },
+    "df9bb7ea1cdb": {
+      "ko": "academy-homepage(Next.js)는 NAS에서 docker-compose로 서비스돼요: app(포트 3080, 도메인 kmastercook.com) + cloudflared tunnel(이름 'academy') + backup 컨테이너. PC에서는 compose up을 절대 하면 안 돼요(운영 터널이 중복으로 뺏길 수 있음). 배포 방법: PC에서 이미지를 빌드(NAS는 RAM이 2GB라 빌드 불가)한 뒤 → SSH로 docker save/load → academy 서비스만 재생성해요. 프로젝트 경로는 /volume1/docker/academy, docker 바이너리는 /var/packages/ContainerManager/target/usr/bin/docker이고, 비밀번호 없이 쓸 수 있는 sudo 권한은 그 바이너리에만 한정돼요(tee 같은 명령은 여전히 비밀번호가 필요해요). ./data(db.sqlite/uploads/originals)는 반드시 보존해야 하고, 배포 전후로 행 수·파일 수를 대조해야 해요. 배포 전에는 migrate deploy·seed도 검토해야 해요. SSH 자격증명은 nas-docker-deployment 스킬의 references/academy-ssh.md에 있어요(DPAPI로 암호화되어 있고, 복호화한 값은 저장하거나 출력하면 안 돼요).",
+      "en": "academy-homepage(Next.js)는 NAS에서 docker-compose로 서비스: app(port 3080, 도메인 kmastercook.com)+cloudflared tunnel(이름 'academy')+backup 컨테이너. PC에서 compose up 절대 금지(운영 터널 중복 hijack). 배포: PC에서 이미지 빌드(NAS RAM 2GB라 빌드 불가)→docker save/load via SSH→academy 서비스만 재생성. Project /volume1/docker/academy, docker 바이너리 /var/packages/ContainerManager/target/usr/bin/docker, passwordless sudo는 그 바이너리에만 범위 제한(tee 등은 비번 요구). ./data(db.sqlite/uploads/originals) 보존 필수, 배포 전후 행수·파일수 대조. 배포 전 migrate deploy·seed 검토. SSH 자격증명: nas-docker-deployment 스킬 references/academy-ssh.md(DPAPI 암호화, 복호화값 저장/출력 금지).",
+      "source": "claude-subscription"
+    },
+    "fbe1068561bd": {
+      "ko": "academy-homepage 개발 규칙: 에이전트/스킬 정의는 .claude/skills와 .claude/agents(원본)에서만 수정하고, 그 다음 `npm run agents:sync`를 실행하면 .agents/와 .codex/ 사본이 자동으로 다시 생성돼요. `npm run agents:check`는 두 버전이 다르지 않은지(drift=0) 확인하며 pretest 단계에서 자동 실행돼요. 확인할 때는 npm test(node --test), npx tsc --noEmit, npx eslint를 사용하세요. 콘텐츠 생성기 프롬프트는 src/lib/prompt-defaults.ts의 applyGrounding() 함수를 통해서만 조합되며, 서버 액션과 local-worker가 이 함수를 공유해요.",
+      "en": "academy-homepage dev conventions: agent/skill defs are edited ONLY under .claude/skills + .claude/agents (source), then `npm run agents:sync` regenerates the .agents/ and .codex/ mirrors; `npm run agents:check` asserts drift=0 (runs in pretest). Verify with npm test (node --test), npx tsc --noEmit, npx eslint. Content-generator prompts are assembled solely via applyGrounding() in src/lib/prompt-defaults.ts, shared by server actions and local-worker.",
+      "source": "claude-subscription"
+    },
+    "9c302cc478a9": {
+      "ko": "kmastercook.com에서 한국조리기능장요리발효학원 웹사이트를 운영하고 있어요 — 가장 자주 다루는 주요 프로젝트예요.",
+      "en": "Runs a Korean cooking academy website (한국조리기능장요리발효학원) at kmastercook.com — primary recurring project.",
+      "source": "claude-subscription"
+    },
+    "46c19085d544": {
+      "ko": "사장님은 간결한 한국어 명령형으로 말씀하시고, 이전에 합의한 절차를 그대로 지키는지 확인해요 — 커밋/배포 전에는 주장이 아니라 검증된 증거를 요구하고, 기준이 느슨해지면 날카로운 책임 질문을 던지는 편이에요.",
+      "en": "User speaks in terse Korean imperatives and holds the agent to previously agreed procedures — expects verification evidence (not claims) before commit/deploy and asks pointed accountability questions when standards slip.",
+      "source": "claude-subscription"
     }
   },
-  "generatedAt": "2026-09-28T16:38:00.307Z"
+  "generatedAt": "2026-09-28T19:04:21.621Z"
 }

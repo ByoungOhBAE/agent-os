@@ -48,7 +48,11 @@ export function MemoryEntryList({ entries, initial, open }: { entries: MemoryEnt
   if (!entries.length) return null;
   const shown = all ? entries : entries.slice(0, initial);
   return <>
-    {shown.length > 0 && <ul className="h-mem-entries">{shown.map(e => <li key={e.index}><details className="h-mem-entry" open={open}><summary><span className="h-mono h-muted">{e.index}</span><span>{e.preview}</span></summary><p>{e.text}</p></details></li>)}</ul>}
+    {shown.length > 0 && <ul className="h-mem-entries">{shown.map(e => <li key={e.index}><details className="h-mem-entry" open={open}>
+      <summary><span className="h-mono h-muted">{e.index}</span><span>{e.preview}{e.pending && <span className="h-pill h-mem-pending" title="한국어 번역이 아직 없어 영어 원문을 보여 줍니다">번역 대기</span>}</span></summary>
+      <p>{e.text}</p>
+      {e.original && <details className="h-mem-original"><summary>원문(영어) 보기</summary><p lang="en">{e.original}</p></details>}
+    </details></li>)}</ul>}
     {entries.length > initial && <button className="h-action h-mem-more" type="button" aria-expanded={all} onClick={() => setAll(!all)}>{all ? "접기" : initial === 0 ? `항목 ${entries.length}개 보기` : `항목 ${entries.length}개 모두 보기`}</button>}
   </>;
 }

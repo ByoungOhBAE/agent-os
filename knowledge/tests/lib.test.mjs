@@ -37,6 +37,11 @@ test("splitEntries drops the title line and splits on §", () => {
 test("isMostlyKorean separates Korean from English with Korean names", () => {
   assert.equal(isMostlyKorean("사장님은 짧은 답을 선호한다."), true);
   assert.equal(isMostlyKorean("The owner runs 한국조리기능장요리발효학원 (kmastercook.com) and prefers short answers."), false);
+  // Korean sentences packed with English terms/paths are still Korean-written: never "translate" them
+  assert.equal(isMostlyKorean("academy-homepage(Next.js)는 NAS에서 docker-compose로 서비스: app(port 3080, 도메인 kmastercook.com)+cloudflared tunnel(이름 'academy')+backup 컨테이너. PC에서 compose up 절대 금지."), true);
+  assert.equal(isMostlyKorean("Chief of staff (비서실장) routes the owner's (사장님) tasks to bots."), false);
+  assert.equal(isMostlyKorean("Video report evidence: one sentence per line ending with [자막 mm:ss] / [음성전사 mm:ss] / [화면 mm:ss] / [보충]."), false);
+  assert.equal(isMostlyKorean("academy-homepage uses git worktrees at different paths: C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작 (main dev branch with the content generator and local-worker; work here); .../제미니-도움; .../컨텐츠-생성."), false);
 });
 
 test("validateRegistry accepts a good registry and rejects bad ones (positive control)", () => {

@@ -1,4 +1,6 @@
 import { profilePattern, readBff, redact } from "./bff.js";
+// type-only: this module is bundled into the browser UI too, so it must not pull in node:fs (knowledge.ts)
+import type { KoLookup } from "./knowledge.js";
 
 export type MemorySource = "hermes" | "paperclip";
 export type MemoryState = "ok" | "empty" | "missing" | "unavailable" | "server-pending" | "not-configured";
@@ -6,8 +8,10 @@ export type MemoryState = "ok" | "empty" | "missing" | "unavailable" | "server-p
 export interface MemoryEntry {
   index: number;          // 1부터
   preview: string;        // 첫 줄 앞 60자 (redact 후), 넘치면 "…"
-  text: string;           // redact(원문, 1200)
+  text: string;           // 화면 문구: 한국어 번역이 있으면 한국어, 없으면 원문 (redact, 1200자)
   chars: number;          // 원문 글자 수(가리기 전, 숫자만)
+  original?: string;      // 한국어로 보여 줄 때 영어 원문 (redact)
+  pending?: boolean;      // 영어인데 아직 번역이 없음
 }
 export interface MemoryFile {
   state: MemoryState;
@@ -73,11 +77,24 @@ export function gaugeTone(chars: number, limit: number): GaugeTone {
   return { tone: "ok", label: "여유", pct };
 }
 
-export function toEntry(text: string, i: number): MemoryEntry {
+const HANGUL = /[\uac00-\ud7a3]/g;
+const KO_GLUED_PARTICLE = /[A-Za-z0-9)\]'"`](?:는|은|이|가|을|를|에서|으로|로|에|의|와|과|도|만)(?![\uac00-\ud7a3])/g;
+/** 한국어로 쓴 항목인지: 한글이 30% 넘거나, 영어 용어에 한국어 조사가 2번 이상 붙음("NAS에서", "docker-compose로"). knowledge/lib.mjs isMostlyKorean 과 같은 기준. */
+export const mostlyKorean = (t: string) => {
+  const letters = t.replace(/[^A-Za-z\uac00-\ud7a3]/g, "");
+  if (!letters.length) return false;
+  return (t.match(HANGUL)?.length ?? 0) / letters.length > 0.3 || (t.match(KO_GLUED_PARTICLE)?.length ?? 0) >= 2;
+};
+
+/** 항목 하나 → 화면용. ko 가 있으면 영어 원문을 한국어로 보여 주고 원문은 original 에 남긴다. 파일은 바꾸지 않는다. */
+export function toEntry(raw: string, i: number, ko?: KoLookup): MemoryEntry {
+  const hit = ko && !mostlyKorean(raw) ? ko(raw) : null;
+  const extra = hit ? { original: redact(raw, 1200) } : ko && !mostlyKorean(raw) ? { pending: true } : {};
+  const text = hit ?? raw;
   const safe = redact(text, 1200);
   const firstLine = Array.from(safe.split("\n")[0] ?? "");
   const more = firstLine.length > 60 || safe.includes("\n");
-  return { index: i + 1, preview: firstLine.slice(0, 60).join("") + (firstLine.length > 60 ? "…" : more ? " …" : ""), text: safe, chars: Array.from(text).length };
+  return { index: i + 1, preview: firstLine.slice(0, 60).join("") + (firstLine.length > 60 ? "…" : more ? " …" : ""), text: safe, chars: Array.from(raw).length, ...extra };
 }
 
 function stateFile(state: MemoryState, limit: number, message?: string): MemoryFile {
@@ -88,7 +105,7 @@ function stateFile(state: MemoryState, limit: number, message?: string): MemoryF
 export function fileFromRaw(raw: string, limit: number, updatedAt: string | null = null): MemoryFile {
   const entries = splitEntries(raw);
   if (!entries.length) return { ...stateFile("empty", limit, MESSAGES.empty), updatedAt };
-  return { state: "ok", chars: countChars(raw), approx: false, limit, entries: entries.slice(0, MAX_ENTRIES).map(toEntry), updatedAt };
+  return { state: "ok", chars: countChars(raw), approx: false, limit, entries: entries.slice(0, MAX_ENTRIES).map((e, i) => toEntry(e, i)), updatedAt };
 }
 
 const isoFrom = (v: unknown): string | null => {
@@ -98,20 +115,20 @@ const isoFrom = (v: unknown): string | null => {
 };
 
 type GraphMemory = { source?: string; title?: string; body?: string; timestamp?: unknown };
-function fileFromItems(items: GraphMemory[], limit: number): MemoryFile {
+function fileFromItems(items: GraphMemory[], limit: number, ko?: KoLookup): MemoryFile {
   const bodies = items.map(m => (typeof m.body === "string" && m.body.trim() ? m.body : m.title ?? "").trim()).filter(Boolean);
   if (!bodies.length) return stateFile("empty", limit, MESSAGES.empty);
   const chars = bodies.reduce((sum, b) => sum + Array.from(b).length, 0) + SEPARATOR_CHARS * (bodies.length - 1);
   const times = items.map(m => isoFrom(m.timestamp)).filter((t): t is string => t !== null).sort();
-  return { state: "ok", chars, approx: true, limit, entries: bodies.slice(0, MAX_ENTRIES).map(toEntry), updatedAt: times.at(-1) ?? null };
+  return { state: "ok", chars, approx: true, limit, entries: bodies.slice(0, MAX_ENTRIES).map((b, i) => toEntry(b, i, ko)), updatedAt: times.at(-1) ?? null };
 }
 
 /** Hermes 그래프의 `memory[]`를 봇 기억(`memory`)과 사장님 정보(`profile`)로 나눈다. */
-export function projectHermesMemory(graph: { memory?: GraphMemory[] } | null | undefined): { bot: MemoryFile; user: MemoryFile } {
+export function projectHermesMemory(graph: { memory?: GraphMemory[] } | null | undefined, ko?: KoLookup): { bot: MemoryFile; user: MemoryFile } {
   const memory = Array.isArray(graph?.memory) ? graph!.memory : [];
   return {
-    bot: fileFromItems(memory.filter(m => m.source === "memory"), BOT_LIMIT),
-    user: fileFromItems(memory.filter(m => m.source === "profile"), USER_LIMIT),
+    bot: fileFromItems(memory.filter(m => m.source === "memory"), BOT_LIMIT, ko),
+    user: fileFromItems(memory.filter(m => m.source === "profile"), USER_LIMIT, ko),
   };
 }
 
@@ -141,7 +158,7 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
 }
 
 type BffReader = typeof readBff;
-export async function readHermesMemory(read: BffReader = readBff): Promise<MemoryOverviewData["hermes"]> {
+export async function readHermesMemory(read: BffReader = readBff, ko?: KoLookup): Promise<MemoryOverviewData["hermes"]> {
   const bots = await read("bots", "default");
   if (bots.status !== "available") return { state: "unavailable", message: MESSAGES.hermesDown, user: null, bots: [] };
   const list: { profile: string; title: string | null }[] = ((bots as any).data?.bots ?? []).map((b: any) => ({ profile: b.profile, title: b.title ?? null }));
@@ -154,7 +171,7 @@ export async function readHermesMemory(read: BffReader = readBff): Promise<Memor
       if (profile === "default") user = stateFile("unavailable", USER_LIMIT, MESSAGES.unavailable);
       return { ...base, memory: stateFile("unavailable", BOT_LIMIT, `${MESSAGES.unavailable.slice(0, -1)} (Hermes 학습 기록 없음).`) };
     }
-    const projected = projectHermesMemory((graph as any).data);
+    const projected = projectHermesMemory((graph as any).data, ko);
     if (profile === "default") user = projected.user;
     return { ...base, memory: projected.bot };
   });
@@ -177,7 +194,7 @@ export function hermesProfileOf(a: PaperclipAgentRow): string | null {
 const isArchived = (a: PaperclipAgentRow) => (a.metadata as any)?.agentosArchived === true || a.status === "terminated";
 
 /** Paperclip 봇 기억 = 짝인 Hermes 프로필의 진짜 Hermes 기억(MEMORY.md·USER.md). 폴더 지정이 필요 없다. */
-export async function readPaperclipMemory(ctx: PaperclipReadCtx, companyId: string, read: BffReader = readBff): Promise<MemoryOverviewData["paperclip"]> {
+export async function readPaperclipMemory(ctx: PaperclipReadCtx, companyId: string, read: BffReader = readBff, ko?: KoLookup): Promise<MemoryOverviewData["paperclip"]> {
   if (!uuidPattern.test(companyId)) return { state: "unavailable", message: MESSAGES.badCompany, user: null, bots: [] };
   let agents;
   try {
@@ -195,7 +212,7 @@ export async function readPaperclipMemory(ctx: PaperclipReadCtx, companyId: stri
     const [graph, skills] = await Promise.all([read("graph", profile), read("skills", profile)]);
     const chips = skills.status === "available" ? hermesSkills((skills as any).data) : null;
     if (graph.status !== "available") return { ...base, skills: chips, memory: stateFile("unavailable", BOT_LIMIT, MESSAGES.unavailable) };
-    const projected = projectHermesMemory((graph as any).data);
+    const projected = projectHermesMemory((graph as any).data, ko);
     if (!user && projected.user.state === "ok") user = projected.user;
     return { ...base, skills: chips, memory: projected.bot };
   });
@@ -203,10 +220,10 @@ export async function readPaperclipMemory(ctx: PaperclipReadCtx, companyId: stri
 }
 
 /** 두 출처는 서로 독립: 한쪽이 실패해도 다른 쪽 결과는 남는다. */
-export async function readMemoryOverview(ctx: PaperclipReadCtx, companyId: string, read: BffReader = readBff): Promise<MemoryOverviewData> {
+export async function readMemoryOverview(ctx: PaperclipReadCtx, companyId: string, read: BffReader = readBff, ko?: KoLookup): Promise<MemoryOverviewData> {
   const [hermes, paperclip] = await Promise.all([
-    readHermesMemory(read).catch(() => ({ state: "unavailable" as const, message: MESSAGES.hermesDown, user: null, bots: [] })),
-    readPaperclipMemory(ctx, companyId, read).catch(() => ({ state: "server-pending" as const, message: MESSAGES.serverPending, user: null, bots: [] })),
+    readHermesMemory(read, ko).catch(() => ({ state: "unavailable" as const, message: MESSAGES.hermesDown, user: null, bots: [] })),
+    readPaperclipMemory(ctx, companyId, read, ko).catch(() => ({ state: "server-pending" as const, message: MESSAGES.serverPending, user: null, bots: [] })),
   ]);
   return { hermes, paperclip };
 }
@@ -232,7 +249,7 @@ export function visibleCards(cards: BotMemoryCard[], filter: MemoryFilter, query
   const searching = q.length >= 2 && q.length <= 60;
   return cards
     .filter(c => filter === "all" || c.source === filter)
-    .map(c => searching ? { ...c, memory: { ...c.memory, entries: c.memory.entries.filter(e => e.text.toLocaleLowerCase().includes(q)) } } : c)
+    .map(c => searching ? { ...c, memory: { ...c.memory, entries: c.memory.entries.filter(e => `${e.text}\n${e.original ?? ""}`.toLocaleLowerCase().includes(q)) } } : c)
     .filter(c => !searching || c.memory.entries.length > 0)
     .sort((a, b) => Number(a.memory.state !== "ok") - Number(b.memory.state !== "ok")
       || (sort === "full" && a.memory.state === "ok" && b.memory.state === "ok" ? pctOf(b) - pctOf(a) : 0)

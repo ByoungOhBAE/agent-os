@@ -26,11 +26,37 @@ export function splitEntries(raw: string): string[] {
 const GENERATED = [/^나는 Paperclip 봇 /, /^I am the Paperclip bot /, /^I am the Hermes bot /, /^My knowledge scopes: /];
 const isGenerated = (t: string) => GENERATED.some(re => re.test(t));
 
+/** Lines AgentOS writes itself (knowledge/lib.mjs identityLine/scopeLine) follow fixed templates: Korean without a model call. */
+export function generatedKo(text: string): string | null {
+  const t = String(text).trim().replace(/\s+/g, " ");
+  let m = t.match(/^I am the Paperclip bot "([^"]+)" \(agent ([0-9a-f]{8})[0-9a-f-]*\) running on Hermes profile ([\w.-]+)\. /);
+  if (m) return `나는 Paperclip 봇 "${m[1]}"이다(에이전트 ${m[2]}, Hermes 프로필 ${m[3]}). 사장님 요청은 비서실장을 거쳐 Paperclip 작업으로 들어온다.`;
+  m = t.match(/^I am the Hermes bot "([^"]+)" \(profile ([\w.-]+)\) working with the owner and other bots in the group chat room "([^"]+)"\.$/);
+  if (m) return `나는 Hermes 봇 "${m[1]}"이다(프로필 ${m[2]}). 단체방 "${m[3]}"에서 사장님·다른 봇들과 함께 일한다.`;
+  m = t.match(/^My knowledge scopes: common \+ projects \[([^\]]*)\]\. They are auto-loaded skills \(([^)]*)\);/);
+  if (m) return `내 지식 범위: 공통 + 프로젝트 [${m[1]}]. 자동으로 불러오는 스킬(${m[2]})로 들어오며 AgentOS가 만든 것이라 직접 고치지 않는다. 새 기억은 영어로, 항목 하나에 사실 하나씩 저장하고 분류는 AgentOS가 나중에 한다.`;
+  return null;
+}
+
+/** English text -> Korean display text (null = not translated yet). Stored translations first, then fixed templates. */
+export type KoLookup = (en: string) => string | null;
+export function koLookup(ko: KoStore): KoLookup {
+  return (en: string) => {
+    const hit = ko.items?.[entryHash(en)]?.ko;
+    return typeof hit === "string" && hit.trim() ? hit : generatedKo(en);
+  };
+}
+
+/** Worker only: the Korean store written by `memory-knowledge.mjs translate`. Missing/broken file -> no Korean. */
+export function readKoStore(repo = REPO): KoStore {
+  try { const k = readSmall(path.join(repo, "knowledge", "data", "ko.json")); return k ? JSON.parse(k) : { items: {} }; } catch { return { items: {} }; }
+}
+
 const MAX_TEXT = 1200;
 const shortLabel = (s: string) => { const one = s.replace(/\s+/g, " ").trim(); return one.length > 26 ? `${one.slice(0, 25)}…` : one; };
 
 function display(en: string, ko: KoStore): { label: string; text: string; original: string; pending: boolean } {
-  const hit = ko.items?.[entryHash(en)]?.ko;
+  const hit = koLookup(ko)(en);
   const original = redact(en, MAX_TEXT);
   if (typeof hit === "string" && hit.trim()) { const text = redact(hit, MAX_TEXT); return { label: shortLabel(text), text, original, pending: false }; }
   return { label: shortLabel(original), text: original, original, pending: true };
@@ -106,7 +132,7 @@ export function readGalaxy(roots = { repo: REPO, hermes: HERMES }): GalaxyResult
   if (!regRaw) return { status: "unavailable", message: "기억 분류표(knowledge/data/registry.json)를 읽을 수 없습니다." };
   let reg: Registry, ko: KoStore = { items: {} };
   try { reg = JSON.parse(regRaw); } catch { return { status: "unavailable", message: "기억 분류표 형식이 올바르지 않습니다." }; }
-  try { const k = readSmall(path.join(roots.repo, "knowledge", "data", "ko.json")); if (k) ko = JSON.parse(k); } catch { /* no Korean yet: show English */ }
+  ko = readKoStore(roots.repo);
   const bots: BotFiles[] = (reg.bots ?? []).filter(b => PROFILE.test(b.profile)).map(b => {
     const mem = path.join(roots.hermes, "profiles", b.profile, "memories");
     return { profile: b.profile, memory: splitEntries(readSmall(path.join(mem, "MEMORY.md")) ?? ""), user: splitEntries(readSmall(path.join(mem, "USER.md")) ?? ""), skills: roleSkills(roots.hermes, b.profile) };

@@ -25,9 +25,20 @@ export const charCount = (s) => Array.from(s).length;
 
 const HANGUL = /[\uac00-\ud7a3]/g;
 /** True when the text is mostly Korean (memory rule: store English). */
+/** Korean particle glued to an English term ("NAS에서", "docker-compose로", "(Next.js)는") = Korean grammar. */
+export const KO_GLUED_PARTICLE = /[A-Za-z0-9)\]'"`](?:는|은|이|가|을|를|에서|으로|로|에|의|와|과|도|만)(?![\uac00-\ud7a3])/g;
+
+/**
+ * Korean-written text: Hangul is >30% of letters, OR the sentence is built in Korean around English terms
+ * (2+ Korean particles glued to English words). English text that quotes Korean names/paths/labels
+ * ("Chief of staff (비서실장) ...", "[자막 mm:ss]") stays English.
+ */
 export function isMostlyKorean(text) {
-  const letters = String(text).replace(/[^A-Za-z\uac00-\ud7a3]/g, "");
-  return letters.length > 0 && (String(text).match(HANGUL)?.length ?? 0) / letters.length > 0.3;
+  const t = String(text);
+  const letters = t.replace(/[^A-Za-z\uac00-\ud7a3]/g, "");
+  if (!letters.length) return false;
+  if ((t.match(HANGUL)?.length ?? 0) / letters.length > 0.3) return true;
+  return (t.match(KO_GLUED_PARTICLE)?.length ?? 0) >= 2;
 }
 
 export const scopeDir = (scope) => scope === "common" ? "common" : scope.replace(":", "-");

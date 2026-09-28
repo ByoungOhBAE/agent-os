@@ -16,7 +16,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, write
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  allSkillScopes, charCount, entryHash, isMostlyKorean, knownHashes, MEMORY_LIMIT, renderMemory, renderSkill, renderUser,
+  allSkillScopes, charCount, entryHash, isMostlyKorean, MEMORY_LIMIT, renderMemory, renderSkill, renderUser,
   scopesForBot, skillName, splitEntries, unclassified, USER_LIMIT, validateRegistry, entriesFor, isGeneratedLine, findDuplicates,
 } from "../knowledge/lib.mjs";
 
@@ -172,14 +172,21 @@ function status(reg) {
   if (!drift) console.log("STATUS_OK"); else process.exitCode = 1;
 }
 
-/** Every English text the dashboard shows: registry entries + bots' own new learnings. */
+/**
+ * Every English text the dashboard shows: registry entries + what is actually in the memory files the
+ * "봇 기억" cards read — the original Hermes memory (default) and every profile, registered or not.
+ * Generated identity/scope lines are templated in the plugin (generatedKo), so they never cost a model call.
+ */
 function collectTexts(reg) {
-  const known = knownHashes(reg);
   const out = new Map();
   for (const e of reg.entries) out.set(entryHash(e.en), e.en);
-  for (const b of reg.bots) for (const f of ["MEMORY.md", "USER.md"]) for (const t of readEntries(memFile(b.profile, f))) {
+  // original wording that the registry later rewrote still sits in unmanaged files (e.g. the original Hermes memory):
+  // the card shows that exact text, so it needs its own translation
+  const files = [path.join(HOME, "memories", "MEMORY.md"), path.join(HOME, "memories", "USER.md"),
+    ...holdings(reg, { all: true }).map((h) => memFile(h.profile, h.file))];
+  for (const file of files) for (const t of readEntries(file)) {
     const h = entryHash(t);
-    if (!isGeneratedLine(t) && !known.has(h) && !out.has(h)) out.set(h, t);
+    if (!isGeneratedLine(t) && !out.has(h)) out.set(h, t);
   }
   return [...out.values()];
 }
