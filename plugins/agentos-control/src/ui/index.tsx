@@ -33,6 +33,10 @@ const STATE_LABEL: Record<AgentState, string> = {
   working: "작업중", waiting: "승인 대기", idle: "대기", paused: "멈춤", error: "오류", unknown: "확인 불가",
 };
 const STATE_ORDER: AgentState[] = ["working", "waiting", "error", "idle", "paused", "unknown"];
+/** Hermes reasoning levels offered here (config.yaml agent.reasoning_effort). */
+const EFFORTS: Array<[string, string]> = [["low", "낮음"], ["medium", "보통"], ["high", "높음 (기본)"], ["max", "최대"]];
+const EFFORT_LABEL: Record<string, string> = { low: "낮음", medium: "보통", high: "높음", max: "최대", minimal: "최소", xhigh: "매우 높음", ultra: "울트라" };
+const effortLabel = (e?: string | null) => (e ? EFFORT_LABEL[e] ?? e : "미설정");
 const CHOICE_LABEL: Record<ApprovalChoice, string> = { once: "이번만 허용", session: "이 세션 허용", always: "항상 허용", deny: "거절" };
 
 /** Host signature seal (styled by the host's .agentos-seal); lamp mirrors the agent state. */
@@ -151,7 +155,7 @@ function RosterPanel({ entries, loading, error, selected, onSelect }: {
                   <Seal name={e.name} state={e.state} size="sm" />
                   <span className="c-agent-main">
                     <span className="c-agent-name">{e.name}</span>
-                    <span className="c-agent-meta">{e.runtime}{e.capabilities.chat ? "" : " · 지시 불가"}</span>
+                    <span className="c-agent-meta">{e.runtime}{e.profile ? ` · 추론 ${effortLabel(e.reasoning)}` : ""}{e.capabilities.chat ? "" : " · 지시 불가"}</span>
                   </span>
                 </button>
               </li>
@@ -184,6 +188,7 @@ function Conversation({ entry, companyId, onBack, onChanged, locked }: { entry: 
   const pause = usePluginAction("pause");
   const resume = usePluginAction("resume");
   const select = usePluginAction("select");
+  const setReasoning = usePluginAction("setReasoning");
   const sessionList = usePluginData<{ sessions: BotSession[] }>(
     "sessions", entry.kind === "hermes" && companyId ? { ...params, companyId } : undefined,
   );
@@ -274,6 +279,19 @@ function Conversation({ entry, companyId, onBack, onChanged, locked }: { entry: 
           )}
         </div>
       </header>
+
+      {entry.profile && (
+        <div className="c-session-bar c-reasoning-bar">
+          <label className="c-session-label" htmlFor={`c-reasoning-${entry.id}`}>추론 강도</label>
+          <select id={`c-reasoning-${entry.id}`} className="c-select c-reasoning" value={entry.reasoning ?? ""} disabled={busy}
+            onChange={(ev) => { const effort = ev.target.value; if (effort && effort !== entry.reasoning) void run(() => setReasoning({ ...params, effort, companyId }), `추론 강도를 ${effortLabel(effort)}(으)로 바꿨습니다. 다음 작업부터 적용됩니다.`); }}>
+            {!entry.reasoning && <option value="">미설정</option>}
+            {entry.reasoning && !EFFORTS.some(([v]) => v === entry.reasoning) && <option value={entry.reasoning}>{effortLabel(entry.reasoning)}</option>}
+            {EFFORTS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+          </select>
+          <span className="c-reasoning-hint c-muted">높을수록 오래 생각하고 구독 사용량이 큽니다 · 진행 중인 작업에는 적용되지 않음</span>
+        </div>
+      )}
 
       {entry.kind === "hermes" && (
         <div className="c-session-bar">
@@ -453,6 +471,7 @@ color:var(--c-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .c-select{flex:1;min-width:0;max-width:100%;min-height:40px;padding:0 10px;background:var(--c-input);border:1px solid var(--c-line-strong);border-radius:6px;color:var(--c-text);font:inherit;font-size:13px}
 .c-select:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 .c-select:disabled{opacity:.6}
+.c-reasoning-bar{flex-wrap:wrap}.c-reasoning{flex:0 1 180px}.c-reasoning-hint{flex:1 1 220px;font-size:11px;line-height:1.4}
 .c-session-note{flex-basis:100%;margin:0;font-size:12px;color:var(--c-warn)}
 .c-history{display:grid;gap:8px;padding-bottom:12px;border-bottom:1px dashed var(--c-line-strong)}
 .c-history-label{margin:0;font-size:11px;color:var(--c-muted);font-weight:650;letter-spacing:.06em}

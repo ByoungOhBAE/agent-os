@@ -6,9 +6,16 @@ import { createBff, BffError, type Bff } from "./bff.js";
 import { createRooms } from "./rooms.js";
 import { createChief, type ActionContext } from "./chief.js";
 import { BOT_PROFILE, UUID, hermesEvent, paperclipChunk, rosterFromSources, type UiEvent } from "./model.js";
+import { HERMES_ROOT, changeEffort, isEffort, profileFromApiBase, readProfileEffort, type Effort } from "./reasoning.js";
 
 type Emit = (channel: string, event: unknown, companyId: string) => void;
-type Deps = { bff?: Bff; bffFor?: (companyId: string) => Promise<Bff>; emit?: Emit; now?: () => number };
+/** Reads/writes profiles/<p>/config.yaml agent.reasoning_effort (injected so tests never touch real files). */
+type Reasoning = { read: (profile: string) => { profile: string; effort: string | null }; change: (profile: string, effort: Effort) => unknown };
+type Deps = { bff?: Bff; bffFor?: (companyId: string) => Promise<Bff>; emit?: Emit; now?: () => number; reasoning?: Reasoning };
+const defaultReasoning: Reasoning = {
+  read: (p) => readProfileEffort(HERMES_ROOT, p),
+  change: (p, e) => changeEffort(HERMES_ROOT, p, e),
+};
 
 const MAX_INPUT = 12000;
 const MAX_TRANSCRIPT = 400;
@@ -102,6 +109,7 @@ function historyFrom(data: unknown): HistoryMessage[] {
 }
 
 export function createControl(ctx: PluginContext, deps: Deps = {}) {
+  const reasoning = deps.reasoning ?? defaultReasoning;
   // Each company may point at its own loopback BFF via plugin config (`bffOrigin`); cache per company.
   const bffCache = new Map<string, Promise<Bff>>();
   const bffFor = deps.bffFor ?? ((companyId: string): Promise<Bff> => {
@@ -328,9 +336,10 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
       };
     }
     const paperclip = agents.status === "fulfilled"
-      ? { status: "available", agents: agents.value.filter((a) => a.status !== "terminated").map((a) => ({ id: a.id, name: a.name, status: a.status, adapterType: a.adapterType })), liveRunAgentIds: liveIds }
+      ? { status: "available", agents: agents.value.filter((a) => a.status !== "terminated").map((a) => ({ id: a.id, name: a.name, status: a.status, adapterType: a.adapterType, profile: a.adapterType === "hermes_gateway" ? profileFromApiBase(a.adapterConfig?.apiBaseUrl) : null })), liveRunAgentIds: liveIds }
       : { status: "unavailable" };
     const entries = rosterFromSources({ paperclip, hermes });
+    for (const e of entries) e.reasoning = e.profile ? reasoning.read(e.profile).effort : null;
     const head = agents.status === "fulfilled" ? agents.value.find((a) => a.title === "비서실장" && a.status !== "terminated") ?? null : null;
     const single = await chief.singleWindow(companyId);
     for (const e of entries) {
@@ -382,7 +391,28 @@ export function createControl(ctx: PluginContext, deps: Deps = {}) {
     return { sessionId: next, history: historyFrom(data) };
   }
 
+  /** Hermes profile behind a roster entry: a hermes_gateway Paperclip agent's /p/<profile>, or a room bot itself. */
+  async function profileOfEntry(companyId: string, kind: unknown, ref: unknown) {
+    if (kind === "hermes") {
+      const p = String(ref ?? "");
+      if (!BOT_PROFILE.test(p) || p === "default") throw new Error("봇 프로필 형식이 올바르지 않습니다.");
+      return p;
+    }
+    const id = String(ref ?? "");
+    if (kind !== "paperclip" || !UUID.test(id)) throw new Error("대상이 올바르지 않습니다.");
+    const a = await ctx.agents.get(id, companyId);
+    const p = a && a.adapterType === "hermes_gateway" ? profileFromApiBase(a.adapterConfig?.apiBaseUrl) : null;
+    if (!p) throw new Error("Hermes 봇이 아닙니다. 추론 강도는 Hermes 봇만 바꿀 수 있습니다.");
+    return p;
+  }
+
   const actions = {
+    /** Changes the bot's agent.reasoning_effort (config.yaml, backed up). Applies from the bot's next run. */
+    async setReasoning(params: Record<string, unknown>) {
+      if (!isEffort(params.effort)) throw new Error("추론 강도는 low·medium·high·max 중 하나여야 합니다.");
+      const profile = await profileOfEntry(companyOf(params), params.kind, params.ref);
+      return reasoning.change(profile, params.effort);
+    },
     async send(params: Record<string, unknown>) {
       const key = conversationKey(params.kind, params.ref);
       const text = input(params.input);

@@ -98,6 +98,44 @@ describe("명단", () => {
   });
 });
 
+describe("추론 강도", () => {
+  function reasoningSetup(files: Record<string, string>) {
+    const writes: Array<[string, string]> = [];
+    const reasoning = {
+      read: (profile: string) => ({ profile, effort: files[profile] ?? null }),
+      change: (profile: string, effort: string) => { if (!(profile in files)) throw new Error("봇 설정 파일이 없습니다"); writes.push([profile, effort]); const before = files[profile]; files[profile] = effort; return { profile, before, after: effort, changed: before !== effort, backup: before !== effort ? "/b" : null }; },
+    };
+    const harness = createTestHarness({ manifest, config: DIRECT });
+    harness.seed({ agents: [
+      agent({ adapterType: "hermes_gateway", adapterConfig: { apiBaseUrl: "http://127.0.0.1:8645/p/pc-abc" } }),
+      agent({ id: "2b2c3d4e-5f60-4718-8a9b-0c1d2e3f4a5b", name: "외부", adapterType: "claude_local", adapterConfig: {} }),
+    ] });
+    const fake = fakeBff({ bots: async () => ({ bots: [{ profile: "room-bot", title: "개발자" }] }), hermesStatus: async (p: string) => ({ profile: p, status: "available" }) });
+    const control = createControl(harness.ctx, { bff: fake.bff, reasoning: reasoning as any });
+    return { control, writes, files };
+  }
+  it("명단에 Hermes 프로필과 현재 추론 강도를 싣는다", async () => {
+    const { control } = reasoningSetup({ "pc-abc": "max", "room-bot": "high" });
+    const e = Object.fromEntries((await control.roster(COMPANY)).entries.map((x) => [x.name, x]));
+    expect([e["비서실장"].profile, e["비서실장"].reasoning]).toEqual(["pc-abc", "max"]);
+    expect([e["개발자"].profile, e["개발자"].reasoning]).toEqual(["room-bot", "high"]);
+    expect([e["외부"].profile, e["외부"].reasoning]).toEqual([null, null]);
+  });
+  it("Paperclip 봇은 짝인 프로필을, 단체방 봇은 자기 프로필을 바꾼다", async () => {
+    const { control, writes } = reasoningSetup({ "pc-abc": "max", "room-bot": "max" });
+    await expect(control.actions.setReasoning({ kind: "paperclip", ref: AGENT, effort: "high", companyId: COMPANY })).resolves.toMatchObject({ before: "max", after: "high", changed: true });
+    await control.actions.setReasoning({ kind: "hermes", ref: "room-bot", effort: "low", companyId: COMPANY });
+    expect(writes).toEqual([["pc-abc", "high"], ["room-bot", "low"]]);
+  });
+  it("허용되지 않은 값·Hermes가 아닌 에이전트·default 프로필은 거부한다", async () => {
+    const { control, writes } = reasoningSetup({ "pc-abc": "max" });
+    await expect(control.actions.setReasoning({ kind: "paperclip", ref: AGENT, effort: "ultra", companyId: COMPANY })).rejects.toThrow();
+    await expect(control.actions.setReasoning({ kind: "paperclip", ref: "2b2c3d4e-5f60-4718-8a9b-0c1d2e3f4a5b", effort: "high", companyId: COMPANY })).rejects.toThrow("Hermes 봇이 아닙니다");
+    await expect(control.actions.setReasoning({ kind: "hermes", ref: "default", effort: "high", companyId: COMPANY })).rejects.toThrow();
+    expect(writes).toEqual([]);
+  });
+});
+
 describe("Hermes 지시", () => {
   it("보내면 사용자 턴을 남기고 스트림을 따라가 응답과 도구를 기록한다", async () => {
     const { control, emitted, calls, feed } = setup();

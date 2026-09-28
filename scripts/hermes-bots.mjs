@@ -20,6 +20,7 @@ import { execFileSync } from "node:child_process";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { readEffort } from "../plugins/agentos-control/src/reasoning.ts";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HOME = path.join(process.env.LOCALAPPDATA || "C:/Users/tahar/AppData/Local", "hermes");
@@ -33,6 +34,7 @@ const WSL_SKILLS = "/home/tahar/.paperclip/cli/current/node_modules/@paperclipai
 const PAPERCLIP_SKILLS = ["paperclip", "paperclip-create-agent", "paperclip-converting-plans-to-tasks"];
 const PASSTHROUGH = ["PAPERCLIP_API_KEY", "PAPERCLIP_API_URL", "PAPERCLIP_COMPANY_ID", "PAPERCLIP_AGENT_ID"];
 const PREFIX = "pc-";
+const DEFAULT_REASONING = "high"; // new bots; change per bot in 통합 관제 or `node scripts/bot-reasoning.mjs set`
 const MARK = { start: "<!-- agentos:hermes-memory:start -->", end: "<!-- agentos:hermes-memory:end -->" };
 
 // ---------- small helpers ----------
@@ -212,6 +214,8 @@ function createProfile(profile, description) {
     hermes(["-p", profile, "config", "set", "terminal.env_passthrough", JSON.stringify(PASSTHROUGH)]);
     hermes(["-p", profile, "config", "set", "memory.memory_enabled", "true"]);
     hermes(["-p", profile, "config", "set", "memory.user_profile_enabled", "true"]);
+    // The template's effort is copied by --clone-from; pin new bots to the default instead (it was max by accident).
+    hermes(["-p", profile, "config", "set", "agent.reasoning_effort", DEFAULT_REASONING]);
     if (!existsSync(path.join(profileHome(profile), "config.yaml"))) throw new Error("config.yaml missing after create");
   });
   step("gateway key", () => {
@@ -353,6 +357,8 @@ if (cmd === "baseline") {
       if (!existsSync(home)) probs.push("profile missing");
       else {
         if (!/memory_enabled:\s*true/.test(readFileSync(path.join(home, "config.yaml"), "utf8"))) probs.push("memory off");
+        const eff = readEffort(readFileSync(path.join(home, "config.yaml"), "utf8"));
+        if (eff === "max") probs.push("reasoning_effort=max (느림·사용량 큼: 의도했다면 무시)");
         for (const f of ["MEMORY.md", "USER.md"]) {
           const p = path.join(home, "memories", f);
           if (!existsSync(p) || readFileSync(p, "utf8").trim().length < 40) probs.push(`${f} empty`);

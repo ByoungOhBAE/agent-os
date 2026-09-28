@@ -153,10 +153,14 @@ export type RosterEntry = {
   capabilities: Capabilities; detail: string;
   /** paperclip agent id or hermes profile */
   ref: string;
+  /** Hermes profile whose config.yaml sets this bot's reasoning (null: not a Hermes bot). */
+  profile?: string | null;
+  /** agent.reasoning_effort from that profile (null: unknown/unset). */
+  reasoning?: string | null;
 };
 
 type Sources = {
-  paperclip: { status: string; agents?: Array<{ id: string; name: string; status: string; adapterType: string }>; liveRunAgentIds?: string[] };
+  paperclip: { status: string; agents?: Array<{ id: string; name: string; status: string; adapterType: string; profile?: string | null }>; liveRunAgentIds?: string[] };
   hermes: { status: string; bots?: Array<{ profile: string; title?: string; keyReady: boolean; gateway: { status: string; busy?: boolean } }> };
 };
 
@@ -169,6 +173,7 @@ export function rosterFromSources(sources: Sources): RosterEntry[] {
         id: `paperclip:${a.id}`, kind: "paperclip", ref: a.id, name: a.name,
         runtime: RUNTIME_LABELS[a.adapterType] ?? a.adapterType, state: agentState(a, live.has(a.id)),
         capabilities: capabilitiesFor({ kind: "paperclip", status: a.status }), detail: a.adapterType,
+        profile: a.profile ?? null,
       });
     }
   }
@@ -180,7 +185,7 @@ export function rosterFromSources(sources: Sources): RosterEntry[] {
       out.push({
         id: `hermes:${b.profile}`, kind: "hermes", ref: b.profile, name: b.title || b.profile,
         runtime: "Hermes 봇", state, capabilities: capabilitiesFor({ kind: "hermes", keyReady: b.keyReady && gw.status === "available" }),
-        detail: b.profile,
+        detail: b.profile, profile: b.profile,
       });
     }
   }
