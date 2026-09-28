@@ -91,6 +91,38 @@
         "agent-os",
         "academy"
       ]
+    },
+    {
+      "profile": "uacc4-ud68d-uc218-ub9bd-uac00",
+      "name": "계획수립가",
+      "room": "림버스 컴퍼니 헬퍼 개발방",
+      "projects": [
+        "rimbus"
+      ]
+    },
+    {
+      "profile": "uac1c-ubc1c-uc790",
+      "name": "개발자",
+      "room": "림버스 컴퍼니 헬퍼 개발방",
+      "projects": [
+        "rimbus"
+      ]
+    },
+    {
+      "profile": "uac80-uc218---uac80-ud1a0-uc790",
+      "name": "검수,검토자",
+      "room": "림버스 컴퍼니 헬퍼 개발방",
+      "projects": [
+        "rimbus"
+      ]
+    },
+    {
+      "profile": "ub514-uc790-uc774-ub108",
+      "name": "디자이너",
+      "room": "림버스 컴퍼니 헬퍼 개발방",
+      "projects": [
+        "rimbus"
+      ]
     }
   ],
   "entries": [

@@ -20,8 +20,10 @@ export const LAYER_LABEL: Record<GalaxyLayer, string> = {
 };
 
 const HUB_LAYERS: ReadonlySet<GalaxyLayer> = new Set<GalaxyLayer>(["common", "project", "bot"]);
-const PROJECT_RING = 260;
-const BOT_ORBIT = 110;
+const PROJECT_RING = 340;
+const BOT_ORBIT = 165;
+const BOT_ARC = 1.05; // radians between sibling bots around their project
+const SHARED_GAP = 130; // spacing between bots that share the same set of projects
 const TAU = Math.PI * 2;
 
 /** FNV-1a 32-bit → [0, 1). */
@@ -38,7 +40,7 @@ function groupPositions(groups: GalaxyGroup[]): Map<string, Vec3> {
   const byKey = new Map(groups.map(g => [g.key, g]));
 
   const projects = groups.filter(g => g.kind === "project" && g.key !== "common").map(g => g.key).sort();
-  const ring = Math.max(PROJECT_RING, projects.length * 58); // many projects → wider ring so bots stay nearest their own project
+  const ring = Math.max(PROJECT_RING, projects.length * 76); // many projects → wider ring so bots stay nearest their own project
   projects.forEach((key, i) => {
     const a = -Math.PI / 2 + (TAU * i) / Math.max(1, projects.length);
     pos.set(key, v(Math.cos(a) * ring, (hash01(`${key}:y`) - 0.5) * 50, Math.sin(a) * ring));
@@ -58,17 +60,27 @@ function groupPositions(groups: GalaxyGroup[]): Map<string, Vec3> {
     list.push(b);
     buckets.set(sig, list);
   }
-  for (const [sig, list] of buckets) {
+  // buckets whose parents surround the centre go last, so they can pick a gap no other bot already uses
+  const surrounds = (sig: string) => {
+    const ps = sig.split("|");
+    if (ps.length < 2) return false;
+    const q = ps.map(p => pos.get(p) ?? v(0, 0, 0));
+    return Math.hypot(q.reduce((s, p) => s + p.x, 0) / q.length, q.reduce((s, p) => s + p.z, 0) / q.length) <= 40;
+  };
+  const ordered = [...buckets].sort(([x], [y]) => Number(surrounds(x)) - Number(surrounds(y)));
+  for (const [sig, list] of ordered) {
     const parents = sig.split("|");
     const k = list.length;
     if (parents.length === 1) {
       const pp = pos.get(parents[0]) ?? v(0, 0, 0);
       const flat = Math.hypot(pp.x, pp.z);
       const a0 = flat > 1 ? Math.atan2(pp.z, pp.x) : hash01(`${sig}:a`) * TAU;
-      const step = k > 1 ? Math.min(0.9, 3.6 / (k - 1)) : 0;
+      const step = k > 1 ? Math.min(BOT_ARC, 4.2 / (k - 1)) : 0;
       list.forEach((b, i) => {
         const a = a0 + (i - (k - 1) / 2) * step;
-        pos.set(b.key, v(pp.x + Math.cos(a) * BOT_ORBIT, pp.y + (hash01(`${b.key}:y`) - 0.5) * 70, pp.z + Math.sin(a) * BOT_ORBIT));
+        // alternate up/down so neighbouring labels never share a line
+        const lift = (i % 2 ? 1 : -1) * 34 + (hash01(`${b.key}:y`) - 0.5) * 16;
+        pos.set(b.key, v(pp.x + Math.cos(a) * BOT_ORBIT, pp.y + lift, pp.z + Math.sin(a) * BOT_ORBIT));
       });
       continue;
     }
@@ -78,16 +90,29 @@ function groupPositions(groups: GalaxyGroup[]): Map<string, Vec3> {
     if (flat > 40) {
       const dx = c.x / flat, dz = c.z / flat;
       list.forEach((b, i) => {
-        const side = (i - (k - 1) / 2) * 70;
-        pos.set(b.key, v(c.x + dx * 70 - dz * side, c.y + 40 + (hash01(`${b.key}:y`) - 0.5) * 30, c.z + dz * 70 + dx * side));
+        const side = (i - (k - 1) / 2) * SHARED_GAP;
+        pos.set(b.key, v(c.x + dx * 110 - dz * side, c.y + 60 + (hash01(`${b.key}:y`) - 0.5) * 30, c.z + dz * 110 + dx * side));
       });
     } else {
-      // parents surround the centre evenly: float above the common hub, overseeing all of them
-      const a0 = hash01(`${sig}:a`) * TAU;
+      // parents surround the centre evenly (e.g. the chief of staff on every project): sit in the widest empty
+      // gap between project hubs, half way out. Floating above the common hub projected straight onto the back
+      // project from the default downward-looking camera.
+      const angles = parents.map(p => { const q = pos.get(p)!; return Math.atan2(q.z, q.x); }).sort((x, y) => x - y);
+      const r = ring * 0.5;
+      const placedBots = [...pos.entries()].filter(([key]) => byKey.get(key)?.kind === "bot").map(([, p]) => p);
+      // widest gap first; among equal gaps, the one farthest from bots already placed
+      let gapMid = 0, best = -Infinity;
+      angles.forEach((a, i) => {
+        const nextA = i + 1 < angles.length ? angles[i + 1] : angles[0] + TAU;
+        const mid = a + (nextA - a) / 2;
+        const spot = v(Math.cos(mid) * r, 0, Math.sin(mid) * r);
+        const clear = placedBots.reduce((m, p) => Math.min(m, Math.hypot(p.x - spot.x, p.z - spot.z)), 1e6);
+        const score = (nextA - a) * 1e4 + Math.min(clear, 1e4 - 1);
+        if (score > best + 1e-9) { best = score; gapMid = mid; }
+      });
       list.forEach((b, i) => {
-        const a = a0 + (TAU * i) / k;
-        const r = k > 1 ? 70 : 0;
-        pos.set(b.key, v(c.x + Math.cos(a) * r, c.y + 150 + (hash01(`${b.key}:y`) - 0.5) * 20, c.z + Math.sin(a) * r));
+        const a = gapMid + (i - (k - 1) / 2) * (SHARED_GAP / r);
+        pos.set(b.key, v(Math.cos(a) * r, c.y + 30 + (hash01(`${b.key}:y`) - 0.5) * 20, Math.sin(a) * r));
       });
     }
   }
@@ -95,11 +120,11 @@ function groupPositions(groups: GalaxyGroup[]): Map<string, Vec3> {
 }
 
 function shellRadius(kind: string, n: number): number {
-  return kind === "bot" ? 22 + 7 * Math.sqrt(n) : 34 + 9 * Math.sqrt(n);
+  return kind === "bot" ? 22 + 7 * Math.sqrt(n) : 40 + 10 * Math.sqrt(n);
 }
 
 /**
- * Deterministic 3D layout. Common hub at the origin, project hubs on a ~260 ring, bots orbit their project (~110),
+ * Deterministic 3D layout. Common hub at the origin, project hubs on a ~340 ring, bots orbit their project (~165),
  * multi-parent bots at their parents' centroid pushed outward, leaves on a flattened shell around their hub.
  * Nodes whose group is unknown attach to common.
  */

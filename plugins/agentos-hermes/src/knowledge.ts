@@ -8,7 +8,7 @@ import { redact } from "./bff.js";
 import type { GalaxyData, GalaxyEdge, GalaxyGroup, GalaxyNode } from "./galaxy.js";
 
 export interface RegistryProject { key: string; name: string; nameKo?: string; workspace?: string }
-export interface RegistryBot { profile: string; agentId?: string; name: string; projects?: string[] }
+export interface RegistryBot { profile: string; agentId?: string; name: string; room?: string; projects?: string[] }
 export interface RegistryEntry { id: string; scope: string; kind: "user" | "knowledge" | "core"; en: string; from?: string[] }
 export interface Registry { projects: RegistryProject[]; bots: RegistryBot[]; entries: RegistryEntry[] }
 /** Korean display store: content hash of the English text -> Korean text. Generated once by the subscription model. */
@@ -23,7 +23,7 @@ export function splitEntries(raw: string): string[] {
   const body = String(raw ?? "").replace(/\r\n?/g, "\n").replace(/^\s*# [^\n]*(\n|$)/, "");
   return body.split(/\n\s*§\s*\n/).map(s => s.trim()).filter(Boolean);
 }
-const GENERATED = [/^나는 Paperclip 봇 /, /^I am the Paperclip bot /, /^My knowledge scopes: /];
+const GENERATED = [/^나는 Paperclip 봇 /, /^I am the Paperclip bot /, /^I am the Hermes bot /, /^My knowledge scopes: /];
 const isGenerated = (t: string) => GENERATED.some(re => re.test(t));
 
 const MAX_TEXT = 1200;

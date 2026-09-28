@@ -51,12 +51,12 @@ describe("layoutGalaxy", () => {
     }
   });
 
-  it("puts the common hub at the origin and project hubs on the ~260 ring", () => {
+  it("puts the common hub at the origin and project hubs on the ~340 ring", () => {
     const pos = layoutGalaxy(sample());
     expect(pos.get("hub:common")).toEqual({ x: 0, y: 0, z: 0 });
     for (const k of ["agent-os", "academy", "rimbus"]) {
       const p = pos.get(`hub:project:${k}`)!;
-      expect(Math.hypot(p.x, p.z)).toBeCloseTo(260, 5);
+      expect(Math.hypot(p.x, p.z)).toBeCloseTo(340, 5);
       expect(Math.abs(p.y)).toBeLessThanOrEqual(25); // slight vertical offset only
     }
   });
@@ -65,8 +65,8 @@ describe("layoutGalaxy", () => {
     const pos = layoutGalaxy(sample());
     const bot = pos.get("hub:bot:design")!;
     const own = dist(bot, pos.get("hub:project:agent-os")!);
-    expect(own).toBeGreaterThan(90);
-    expect(own).toBeLessThan(130);
+    expect(own).toBeGreaterThan(140);
+    expect(own).toBeLessThan(200);
     expect(own).toBeLessThan(dist(bot, pos.get("hub:project:academy")!));
     expect(own).toBeLessThan(dist(bot, pos.get("hub:project:rimbus")!));
     const blog = pos.get("hub:bot:blog")!;
@@ -83,10 +83,10 @@ describe("layoutGalaxy", () => {
     // roughly equidistant to both parents, and nearer to them than to the third project
     expect(Math.abs(dist(yt, a) - dist(yt, b))).toBeLessThan(30);
     expect(dist(yt, a)).toBeLessThan(dist(yt, r));
-    // a bot of all three projects sits near the common axis (centroid) and never collapses onto the common hub
+    // a bot of all three projects sits in an empty gap between projects, clear of the common hub and every project hub
     const chief = pos.get("hub:bot:chief")!;
-    expect(Math.hypot(chief.x, chief.z)).toBeLessThan(80);
-    expect(dist(chief, pos.get("hub:common")!)).toBeGreaterThan(50);
+    expect(dist(chief, pos.get("hub:common")!)).toBeGreaterThan(140);
+    for (const q of [a, b, r]) expect(dist(chief, q)).toBeGreaterThan(200);
   });
 
   it("attaches nodes of an unknown group to the common hub", () => {

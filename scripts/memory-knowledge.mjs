@@ -5,7 +5,8 @@
 //   node scripts/memory-knowledge.mjs plan                  show what apply would write per bot (no writes)
 //   node scripts/memory-knowledge.mjs apply [--bot <profile>]   back up, then write skills / USER.md / MEMORY.md / skills.auto_load
 //   node scripts/memory-knowledge.mjs translate [--dry-run]     Korean display text via the Claude subscription, ONE call for all missing items
-//   node scripts/memory-knowledge.mjs status                per-bot scopes, sizes, translation coverage, drift
+//   node scripts/memory-knowledge.mjs status                per-bot scopes, sizes, translation coverage, drift, duplicates
+//   node scripts/memory-knowledge.mjs duplicates            same fact copied into 2+ bot profiles (should live in one shared scope)
 //
 // A bot only receives: common + projects listed for it in the registry + its own bot scope.
 // Generated skills are copied into each bot profile (skills/agentos/<name>/SKILL.md) only for its scopes,
@@ -16,7 +17,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   allSkillScopes, charCount, entryHash, isMostlyKorean, knownHashes, MEMORY_LIMIT, renderMemory, renderSkill, renderUser,
-  scopesForBot, skillName, splitEntries, unclassified, USER_LIMIT, validateRegistry, entriesFor, isGeneratedLine,
+  scopesForBot, skillName, splitEntries, unclassified, USER_LIMIT, validateRegistry, entriesFor, isGeneratedLine, findDuplicates,
 } from "../knowledge/lib.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -116,6 +117,29 @@ function backup(bots) {
   return dir;
 }
 
+/** Memory files of every Hermes profile (registered bots first). Skips deleted/backup profiles. */
+function holdings(reg, { all }) {
+  const registered = new Set(reg.bots.map((b) => b.profile));
+  const dir = path.join(HOME, "profiles");
+  const names = all ? readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory() && !d.name.startsWith(".") && !/backup/i.test(d.name)).map((d) => d.name) : [...registered];
+  const out = [];
+  for (const profile of names) for (const file of ["MEMORY.md", "USER.md"]) out.push({ profile, file, entries: readEntries(memFile(profile, file)) });
+  return out;
+}
+
+function printDuplicates(reg, dups) {
+  const registered = new Set(reg.bots.map((b) => b.profile));
+  const name = (p) => reg.bots.find((b) => b.profile === p)?.name ?? `${p} (not registered)`;
+  for (const d of dups) {
+    const regHolders = d.profiles.filter((p) => registered.has(p));
+    const where = !regHolders.length ? "only in unregistered profiles (old test bots; register them with --projects or leave them)"
+      : d.classifiedAs ? `already classified as ${d.classifiedAs} -> run apply` : `unclassified -> move to scope ${d.scope} in registry.json, then apply`;
+    console.log(`DUP ${d.file} x${d.profiles.length} ${d.hash} · ${where}`);
+    console.log(`    ${d.text.slice(0, 110).replace(/\n/g, " ")}`);
+    console.log(`    held by: ${d.profiles.map(name).join(", ")}`);
+  }
+}
+
 function status(reg) {
   const ko = loadKo();
   let drift = 0;
@@ -142,6 +166,9 @@ function status(reg) {
   const texts = collectTexts(reg);
   const done = texts.filter((t) => ko.items?.[entryHash(t)]?.ko).length;
   console.log(`translation ${done}/${texts.length}${done === texts.length ? " KO_COMPLETE" : ""}`);
+  const dups = findDuplicates(reg, holdings(reg, { all: false }));
+  if (dups.length) { printDuplicates(reg, dups); drift++; }
+  console.log(`duplicates among registered bots: ${dups.length}`);
   if (!drift) console.log("STATUS_OK"); else process.exitCode = 1;
 }
 
@@ -249,6 +276,12 @@ if (cmd === "check") {
   translate(reg);
 } else if (cmd === "status") {
   status(reg);
+} else if (cmd === "duplicates") {
+  // default: every Hermes profile on this PC; --registered: only bots in the registry
+  const dups = findDuplicates(reg, holdings(reg, { all: !flag("--registered") }));
+  printDuplicates(reg, dups);
+  console.log(`duplicates=${dups.length}${dups.length ? "" : " NO_DUPLICATES"}`);
+  if (dups.length) process.exitCode = 1;
 } else if (cmd === "add-project") {
   // add-project --key k --name "English name" --name-ko "한국어 이름" [--workspace C:/path] [--paperclip-project <id>]
   const key = flag("--key"), name = flag("--name");
@@ -274,6 +307,6 @@ if (cmd === "check") {
   writeFileSync(REG_FILE, JSON.stringify(reg, null, 2) + "\n");
   console.log(`REGISTERED ${name} ${profile} projects=[${projects.join(",")}]`);
 } else {
-  console.error("usage: check | plan [--bot p] | apply [--bot p] | translate [--dry-run] | status | add-project ... | register ...");
+  console.error("usage: check | plan [--bot p] | apply [--bot p] | translate [--dry-run] | status | duplicates [--registered] | add-project ... | register ...");
   process.exitCode = 2;
 }

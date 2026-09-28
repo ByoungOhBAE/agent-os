@@ -31,12 +31,24 @@ node scripts/memory-knowledge.mjs check        # 분류표 검사 (쓰기 없음
 node scripts/memory-knowledge.mjs plan         # 봇별로 무엇이 들어갈지 미리 보기
 node scripts/memory-knowledge.mjs apply        # 백업(.unlazy/memory-knowledge/) 후 적용
 node scripts/memory-knowledge.mjs translate    # 한국어 표시 문구 생성 (빠진 것만, 1회 호출)
-node scripts/memory-knowledge.mjs status       # 봇별 적용 상태 · 번역 현황 (STATUS_OK)
+node scripts/memory-knowledge.mjs status       # 봇별 적용 상태 · 번역 현황 · 봇 사이 중복 기억 (STATUS_OK)
+node scripts/memory-knowledge.mjs duplicates   # 같은 기억이 2개 이상 봇 프로필에 복사돼 있는지 (NO_DUPLICATES)
 node scripts/memory-knowledge.mjs add-project --key <key> --name "<English>" --name-ko "<한국어>" --workspace "<폴더>"
 ```
 
 새 봇은 `hermes-bots.mjs hire … --projects <key,key>`로 만든다. `--projects`는 필수이며, 봇 등록과 `apply --bot`이 함께 실행돼
 **공통 + 지정한 프로젝트 지식만** 받는다.
+
+## 봇 사이 중복 기억
+
+같은 사실이 두 봇 이상의 `MEMORY.md`/`USER.md`에 따로 들어 있으면 **공통 또는 프로젝트 층으로 한 번만** 두어야 한다.
+`duplicates`가 찾아 준다(모든 Hermes 프로필 대상, `--registered`는 등록 봇만).
+
+- 이미 분류표에 있는 사실의 옛 복사본 → 그 봇을 등록(`--projects`)하고 `apply`하면 복사본이 빠지고 스킬로 대체된다.
+- 분류표에 없는 새 사실 → 제안된 scope(모두가 같은 프로젝트면 그 프로젝트, 아니면 공통)로 `registry.json`에 옮기고 `apply` + `translate`.
+- `status`는 등록 봇 사이에 중복이 하나라도 있으면 실패한다.
+
+단체방 봇(Paperclip 밖, Hermes 그룹 채팅)은 분류표 `bots[]`에 `room` 필드로 등록한다. 예: 림버스 개발방의 개발자·검수,검토자·디자이너·계획수립가 → `rimbus`.
 
 ## 봇이 새로 배운 기억
 
@@ -47,3 +59,4 @@ node scripts/memory-knowledge.mjs add-project --key <key> --name "<English>" --n
 
 Hermes 보기 → **02 / 기억 은하**: 공통(가운데) → 프로젝트 → 봇 순서의 3D 은하. 15초마다 다시 읽어 새 기억이 반짝이며 나타난다.
 별을 누르면 한국어 문구와 영어 원문을 함께 보여 준다. 읽기 전용이며, 봇 기억 파일을 쓰지 않는다.
+조작: 왼쪽 끌기 = 회전, **휠 버튼 누른 채 끌기 = 화면 이동**, 휠 = 확대, 시점 초기화 = 회전·이동·확대 원위치.

@@ -27,7 +27,9 @@ const BIRTH_MS = 1200;
 const IDLE_RESUME_MS = 4500;
 const SPIN = 0.05; // rad/s
 const FOV = (48 * Math.PI) / 180;
-const DEFAULT_VIEW = { yaw: 0.22, pitch: 0.5, zoom: 1 }; // first project sits at the back, the rest fan out left/right
+const DEFAULT_VIEW = { yaw: 0.22, pitch: 0.72, zoom: 1 };
+/** Tall, narrow canvases (phones) look down more steeply so the flat disc fills the height instead of a thin band. */
+const pitchFor = (w: number, h: number) => (w > 0 && h / w > 1.2 ? 1.08 : DEFAULT_VIEW.pitch); // first project sits at the back, the rest fan out left/right
 const ZOOM_MIN = 0.55, ZOOM_MAX = 3.2;
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 
@@ -140,7 +142,8 @@ function buildScene(data: GalaxyData): Scene {
 }
 
 type Proj = { id: string; sx: number; sy: number; r: number; depth: number; hub: boolean };
-type View = { yaw: number; pitch: number; zoom: number; tYaw: number; tPitch: number; tZoom: number; easing: boolean; vYaw: number; vPitch: number; lastInteract: number };
+// panX/panY: screen-space shift in CSS px (middle-button drag), eased back to 0 by 시점 초기화
+type View = { yaw: number; pitch: number; zoom: number; tYaw: number; tPitch: number; tZoom: number; panX: number; panY: number; tPanX: number; tPanY: number; easing: boolean; vYaw: number; vPitch: number; lastInteract: number };
 
 function prefersReduced() {
   return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -178,8 +181,9 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
   const hoverRef = useRef<string | null>(null);
   const spinRef = useRef(spin);
   const reducedRef = useRef(reduced);
-  const viewRef = useRef<View>({ ...DEFAULT_VIEW, tYaw: DEFAULT_VIEW.yaw, tPitch: DEFAULT_VIEW.pitch, tZoom: 1, easing: false, vYaw: 0, vPitch: 0, lastInteract: -1e9 });
+  const viewRef = useRef<View>({ ...DEFAULT_VIEW, tYaw: DEFAULT_VIEW.yaw, tPitch: DEFAULT_VIEW.pitch, tZoom: 1, panX: 0, panY: 0, tPanX: 0, tPanY: 0, easing: false, vYaw: 0, vPitch: 0, lastInteract: -1e9 });
   const projRef = useRef<Proj[]>([]);
+  const labelRef = useRef<{ drawn: { id: string; box: [number, number, number, number] }[]; hidden: string[] }>({ drawn: [], hidden: [] });
   const requestRef = useRef<() => void>(() => {});
 
   // live data: keep old positions, animate newcomers
@@ -253,6 +257,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       w = Math.max(1, Math.round(r.width)); h = Math.max(1, Math.round(r.height));
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      if (view.lastInteract < 0) { view.pitch = view.tPitch = pitchFor(w, h); }
       buildBg(); schedule();
     };
     // Fit once per (data, size): bisection on camera distance so every node stays inside the frame at the default
@@ -266,7 +271,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       const padX = w < 520 ? 16 : Math.min(90, w * 0.1), padTop = 44, padBot = 36;
       const fits = (d: number) => {
         for (let a = 0; a < 8; a++) {
-          const cam: Camera = { yaw: (a * Math.PI) / 4, pitch: DEFAULT_VIEW.pitch, distance: d, fov: FOV };
+          const cam: Camera = { yaw: (a * Math.PI) / 4, pitch: pitchFor(w, h), distance: d, fov: FOV };
           for (const p of pts) {
             const q = projectPoint(p, cam, w, h);
             if (!q || q.sx < padX || q.sx > w - padX || q.sy < padTop || q.sy > h - padBot) return false;
@@ -293,8 +298,9 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       if (view.easing) {
         const k = reducedNow ? 1 : 1 - Math.exp(-dt * 5);
         view.yaw += (view.tYaw - view.yaw) * k; view.pitch += (view.tPitch - view.pitch) * k; view.zoom += (view.tZoom - view.zoom) * k;
-        if (Math.abs(view.tYaw - view.yaw) < 1e-3 && Math.abs(view.tPitch - view.pitch) < 1e-3 && Math.abs(view.tZoom - view.zoom) < 1e-3) {
-          view.yaw = view.tYaw; view.pitch = view.tPitch; view.zoom = view.tZoom; view.easing = false;
+        view.panX += (view.tPanX - view.panX) * k; view.panY += (view.tPanY - view.panY) * k;
+        if (Math.abs(view.tYaw - view.yaw) < 1e-3 && Math.abs(view.tPitch - view.pitch) < 1e-3 && Math.abs(view.tZoom - view.zoom) < 1e-3 && Math.abs(view.tPanX - view.panX) < 0.5 && Math.abs(view.tPanY - view.panY) < 0.5) {
+          view.yaw = view.tYaw; view.pitch = view.tPitch; view.zoom = view.tZoom; view.panX = view.tPanX; view.panY = view.tPanY; view.easing = false;
         } else moving = true;
       }
       if (!reducedNow && (Math.abs(view.vYaw) > 1e-4 || Math.abs(view.vPitch) > 1e-4) && !dragging) {
@@ -310,6 +316,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       const sc = sceneRef.current, pos = posRef.current, flt = filterRef.current, reducedNow = reducedRef.current;
       const sel = selRef.current, hov = hoverRef.current;
       const { cam, ref } = camera();
+      const panned = (p: Vec3) => { const q = projectPoint(p, cam, w, h); if (q) { q.sx += view.panX; q.sy += view.panY; } return q; };
       const ext = extentRef.current.r;
       const nearD = cam.distance - ext, farD = cam.distance + ext;
       const depthA = (d: number) => clamp(1 - 0.62 * ((d - nearD) / (farD - nearD)), 0.28, 1);
@@ -335,7 +342,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       for (const n of sc.nodes) {
         if (!flt.visible.has(n.id)) continue;
         const p = pos.get(n.id); if (!p) continue;
-        const pr = projectPoint(p, cam, w, h); if (!pr) continue;
+        const pr = panned(p); if (!pr) continue;
         const it = { n, sx: pr.sx, sy: pr.sy, scale: pr.scale, depth: pr.depth };
         items.push(it); pmap.set(n.id, it);
       }
@@ -365,7 +372,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
         let prev: ReturnType<typeof projectPoint> = null;
         for (let i = 0; i <= 120; i++) {
           const a = (i / 120) * Math.PI * 2;
-          const pr = projectPoint({ x: Math.cos(a) * ringR, y: ringY, z: Math.sin(a) * ringR }, cam, w, h);
+          const pr = panned({ x: Math.cos(a) * ringR, y: ringY, z: Math.sin(a) * ringR });
           if (pr && prev) {
             ctx.strokeStyle = `rgba(230,198,136,${(0.16 * depthA((pr.depth + prev.depth) / 2)).toFixed(3)})`;
             ctx.beginPath(); ctx.moveTo(prev.sx, prev.sy); ctx.lineTo(pr.sx, pr.sy); ctx.stroke();
@@ -457,6 +464,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       }
       labs.sort((a, b) => a.pri - b.pri || a.it.depth - b.it.depth);
       const boxes: [number, number, number, number][] = [];
+      const drawnLabels: { id: string; box: [number, number, number, number] }[] = [], hiddenLabels: string[] = [];
       ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.lineJoin = "round";
       const small = w < 520;
       // selected leaf: its pill label is placed first (reserved box, so bot labels yield to it) and drawn last
@@ -495,14 +503,14 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
         const cands: [number, number][] = [[cx, it.sy + off], [cx, it.sy - off - bh], [it.sx + off + tw / 2 + 4, it.sy - bh / 2], [it.sx - off - tw / 2 - 4, it.sy - bh / 2]];
         let pickC = cands.find(([xx, yy]) => !hits(boxAt(xx, yy)));
         if (!pickC) {
-          if (pri >= 3) continue;
+          if (pri >= 3) { hiddenLabels.push(n.id); continue; }
           // common/project labels must show: take the in-frame candidate that overlaps existing labels least
           const inFrame = cands.map(([xx, yy]) => [clamp(xx, tw / 2 + 8, w - tw / 2 - 8), clamp(yy, 6, h - bh - 6)] as [number, number]);
           pickC = inFrame.reduce((best, c) => overlapArea(boxAt(...c), boxes) < overlapArea(boxAt(...best), boxes) ? c : best, inFrame[0]);
         }
         const [x, y] = pickC;
         const box = boxAt(x, y);
-        boxes.push(box);
+        boxes.push(box); drawnLabels.push({ id: n.id, box });
         const a = (n.id === sel ? 1 : depthA(it.depth)) * (flt.hasQuery && !flt.matched.has(n.id) && n.id !== sel ? 0.55 : 1);
         ctx.globalAlpha = a;
         ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(7,10,9,.88)";
@@ -525,6 +533,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       }
       ctx.globalAlpha = 1;
       projRef.current = proj;
+      labelRef.current = { drawn: drawnLabels, hidden: hiddenLabels };
       return births;
     };
 
@@ -545,6 +554,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
     // ----- input -----
     const pointers = new Map<number, { x: number; y: number }>();
     let downAt = { x: 0, y: 0 }, moved = false, pinchD = 0, lastMove = 0;
+    let panId: number | null = null, panLast = { x: 0, y: 0 };
     const local = (e: PointerEvent | WheelEvent) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
     const pick = (x: number, y: number, touch: boolean) => {
       let best: Proj | null = null, bd = Infinity;
@@ -572,6 +582,14 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       t.style.transform = `translate(${Math.round(left)}px,${Math.round(Math.max(8, top))}px)`;
     };
     const onDown = (e: PointerEvent) => {
+      if (e.button === 1) {
+        // middle (wheel) button held: move the whole view
+        e.preventDefault();
+        canvas.setPointerCapture?.(e.pointerId);
+        panId = e.pointerId; panLast = local(e); dragging = true;
+        view.vYaw = view.vPitch = 0; canvas.style.cursor = "grabbing";
+        interact(); hideTip(); return;
+      }
       if (e.button !== undefined && e.button > 0) return;
       canvas.setPointerCapture?.(e.pointerId);
       const p = local(e);
@@ -582,6 +600,11 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
     };
     const onMove = (e: PointerEvent) => {
       const p = local(e);
+      if (panId === e.pointerId) {
+        view.panX = view.tPanX = clamp(view.panX + p.x - panLast.x, -w, w);
+        view.panY = view.tPanY = clamp(view.panY + p.y - panLast.y, -h, h);
+        panLast = p; interact(); schedule(); return;
+      }
       if (!pointers.has(e.pointerId)) {
         if (e.pointerType === "mouse") {
           const id = pick(p.x, p.y, false);
@@ -608,6 +631,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       interact(); schedule();
     };
     const onUp = (e: PointerEvent) => {
+      if (panId === e.pointerId) { panId = null; dragging = false; canvas.style.cursor = ""; interact(); schedule(); return; }
       if (!pointers.has(e.pointerId)) return;
       const wasSingle = pointers.size === 1;
       pointers.delete(e.pointerId);
@@ -624,6 +648,8 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
         interact(); schedule();
       }
     };
+    // Windows shows an auto-scroll cursor on middle press unless mousedown is cancelled
+    const onMouseDown = (e: MouseEvent) => { if (e.button === 1) e.preventDefault(); };
     const onLeave = () => { if (hoverRef.current) { hoverRef.current = null; canvas.style.cursor = ""; schedule(); } hideTip(); };
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -645,6 +671,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       view.lastInteract = performance.now(); view.easing = true; view.vYaw = view.vPitch = 0; schedule();
     };
     canvas.addEventListener("pointerdown", onDown);
+    canvas.addEventListener("mousedown", onMouseDown);
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerup", onUp);
     canvas.addEventListener("pointercancel", onUp);
@@ -653,6 +680,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
     canvas.addEventListener("keydown", onKey);
     // test/QA probe: projected positions of the last frame (read-only copy)
     (canvas as unknown as { __galaxyProbe?: () => Proj[] }).__galaxyProbe = () => projRef.current.map(p => ({ ...p }));
+    (canvas as unknown as { __galaxyLabels?: () => unknown }).__galaxyLabels = () => JSON.parse(JSON.stringify(labelRef.current));
 
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     ro?.observe(wrap);
@@ -665,6 +693,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
       cancelAnimationFrame(raf); ro?.disconnect(); io?.disconnect();
       document.removeEventListener("visibilitychange", onVis);
       canvas.removeEventListener("pointerdown", onDown); canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("mousedown", onMouseDown);
       canvas.removeEventListener("pointerup", onUp); canvas.removeEventListener("pointercancel", onUp);
       canvas.removeEventListener("pointerleave", onLeave); canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("keydown", onKey);
@@ -675,7 +704,8 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
   const resetView = () => {
     const v = viewRef.current;
     const turns = Math.round((v.yaw - DEFAULT_VIEW.yaw) / (Math.PI * 2));
-    Object.assign(v, { tYaw: DEFAULT_VIEW.yaw + turns * Math.PI * 2, tPitch: DEFAULT_VIEW.pitch, tZoom: 1, vYaw: 0, vPitch: 0, easing: true, lastInteract: -1e9 });
+    const r = wrapRef.current?.getBoundingClientRect();
+    Object.assign(v, { tYaw: DEFAULT_VIEW.yaw + turns * Math.PI * 2, tPitch: r ? pitchFor(r.width, r.height) : DEFAULT_VIEW.pitch, tZoom: 1, tPanX: 0, tPanY: 0, vYaw: 0, vPitch: 0, easing: true, lastInteract: -1e9 });
     requestRef.current();
   };
   const focusNode = (id: string) => {
@@ -740,7 +770,7 @@ export function MemoryGalaxy3D({ data }: { data: GalaxyData }) {
           <li><i className="g-lg-hub" aria-hidden="true" />큰 별 = 공통·프로젝트·봇</li>
           <li><i className="g-lg-leaf" aria-hidden="true" />작은 별 = 기억 조각</li>
           <li><i className="g-lg-line" aria-hidden="true" />선 = 어디에 속하는지</li>
-          <li className="g-hint">끌어서 돌리기 · 휠이나 두 손가락으로 확대</li>
+          <li className="g-hint">끌어서 돌리기 · 휠 버튼 누른 채 끌어 이동 · 휠로 확대</li>
         </ul>
       </div>
       <aside className="g-inspector" aria-live="polite" aria-label="고른 별 정보">

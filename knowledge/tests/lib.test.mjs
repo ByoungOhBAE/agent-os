@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   entryHash, splitEntries, isMostlyKorean, validateRegistry, scopesForBot, renderUser, renderMemory, renderSkill,
-  unclassified, allSkillScopes, skillName, charCount, USER_LIMIT, MEMORY_LIMIT,
+  unclassified, allSkillScopes, skillName, charCount, USER_LIMIT, MEMORY_LIMIT, findDuplicates, sharedScope, identityLine, isGeneratedLine,
 } from "../lib.mjs";
 
 const reg = {
@@ -95,4 +95,50 @@ test("skills are generated per scope and a chief with two projects gets both", (
   assert.equal(renderSkill(reg, "bot:pc-b"), null);
   assert.equal(skillName("bot:pc-a"), "agentos-bot-pc-a");
   assert.deepEqual(scopesForBot(reg, "pc-c"), ["common", "project:alpha", "project:beta", "bot:pc-c"]);
+});
+
+test("findDuplicates: the same unclassified fact in two bots is flagged once, with the shared project as scope", () => {
+  const shared = "Alpha staging lives on port 9000.";
+  const d = findDuplicates(reg, [
+    { profile: "pc-a", file: "MEMORY.md", entries: [shared, "A private note."] },
+    { profile: "pc-c", file: "MEMORY.md", entries: [shared] },
+  ]);
+  assert.equal(d.length, 1);
+  assert.equal(d[0].text, shared);
+  assert.deepEqual(d[0].profiles, ["pc-a", "pc-c"]);
+  assert.equal(d[0].scope, "project:alpha");
+  assert.equal(d[0].classifiedAs, null);
+});
+
+test("findDuplicates: an already-classified fact still copied into two bots is reported as a stale copy", () => {
+  // "Owner prefers short answers." came from x/USER.md#aaaaaaaaaaaa; a raw copy whose hash is that source hash is a leftover
+  const regWithSource = { ...reg, entries: [...reg.entries, { id: "k9", scope: "project:alpha", kind: "knowledge", en: "Alpha NAS port is 22.", from: [`r/MEMORY.md#${entryHash("알파 NAS 포트는 22")}`] }] };
+  const d = findDuplicates(regWithSource, [
+    { profile: "room-1", file: "MEMORY.md", entries: ["알파 NAS 포트는 22"] },
+    { profile: "room-2", file: "MEMORY.md", entries: ["알파 NAS 포트는 22"] },
+  ]);
+  assert.equal(d.length, 1);
+  assert.equal(d[0].classifiedAs, "k9");
+  assert.equal(d[0].scope, "common"); // unregistered holders share no project
+});
+
+test("findDuplicates: facts already in the registry, identity lines and single-holder facts are not duplicates", () => {
+  const d = findDuplicates(reg, [
+    { profile: "pc-a", file: "MEMORY.md", entries: ["Alpha deploys via NAS.", identityLine(reg.bots[0]), "Only A has this."] },
+    { profile: "pc-b", file: "MEMORY.md", entries: ["Alpha deploys via NAS.", identityLine(reg.bots[1])] },
+  ]);
+  assert.deepEqual(d, []);
+});
+
+test("sharedScope: no common project -> common; one shared project -> that project", () => {
+  assert.equal(sharedScope(reg, ["pc-a", "pc-b"]), "common");
+  assert.equal(sharedScope(reg, ["pc-b", "pc-c"]), "project:beta");
+  assert.equal(sharedScope(reg, ["pc-c", "pc-c"]), "common"); // two shared projects -> ambiguous -> common
+});
+
+test("room bots (Hermes group chat, no Paperclip agent) get their own identity line, still recognised as generated", () => {
+  const line = identityLine({ profile: "p-room", name: "Dev", room: "Helper room" });
+  assert.match(line, /^I am the Hermes bot "Dev" \(profile p-room\)/);
+  assert.ok(!line.includes("Paperclip"));
+  assert.ok(isGeneratedLine(line));
 });
