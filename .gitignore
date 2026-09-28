@@ -12,3 +12,6 @@ paperclip-host-ui/
 
 # Local completion ledgers
 .unlazy/
+
+# Linked Git worktrees kept inside this project (e.g. team/memory-visual).
+.worktrees/
