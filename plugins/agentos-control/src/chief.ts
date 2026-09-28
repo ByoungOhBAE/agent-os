@@ -6,6 +6,7 @@
 import type { PluginContext } from "@paperclipai/plugin-sdk";
 import { BffError } from "./bff.js";
 import { UUID } from "./model.js";
+import { requestTitle } from "./task-title.js";
 
 export const ORIGIN = "plugin:agentos.control:chief" as const;
 export const CHIEF_TITLE = "비서실장";
@@ -45,11 +46,6 @@ function text(value: unknown, label: string, max: number) {
   const t = value.trim();
   if (t.length > max) throw new BffError(`${label}은(는) ${max.toLocaleString()}자 이하로 입력하세요.`, 400);
   return t;
-}
-
-function titleOf(request: string) {
-  const line = request.split("\n").map((l) => l.trim()).find(Boolean) ?? "요청";
-  return line.length > 60 ? `${line.slice(0, 59)}…` : line;
 }
 
 export type ActionContext = { actor?: { type?: string; userId?: string | null } | null } | null | undefined;
@@ -177,8 +173,10 @@ export function createChief(ctx: PluginContext) {
       const chief = await chiefOf(companyId);
       if (!chief) throw new BffError("비서실장이 지정되지 않았습니다. 조직 배치도에서 먼저 지정하세요.", 409);
       if (chief.status === "paused" || chief.status === "pending_approval") throw new BffError("비서실장이 일시정지 상태입니다. 재개한 뒤 요청하세요.", 409);
+      // 작업 제목 규칙: "프로젝트 › 작업-순번". The chief renames it to the planned path while planning.
+      const titles = (await ctx.issues.list({ companyId, limit: 1000 })).map((i) => i.title);
       const issue = await ctx.issues.create({
-        companyId, title: `요청: ${titleOf(body)}`, description: body, status: "todo", priority: "medium",
+        companyId, title: requestTitle(body, titles), description: body, status: "todo", priority: "medium",
         assigneeAgentId: chief.id, originKind: ORIGIN, actor: { actorUserId: userId },
       });
       // Assignment through the plugin bridge does not queue a heartbeat on its own; wake the chief once.

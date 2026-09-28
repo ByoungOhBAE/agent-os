@@ -78,11 +78,15 @@ describe("chief-of-staff desk", () => {
     const issue = await harness.ctx.issues.get(r.id, COMPANY);
     expect(issue?.assigneeAgentId).toBe(CHIEF);
     expect(issue?.originKind).toBe(ORIGIN);
-    expect(issue?.title).toBe("요청: 학원 블로그 글 1편을 써 줘");
+    expect(issue?.title).toBe("학원 블로그 글 1편을 써 줘-1");
+    const again = await harness.performAction<{ id: string }>("chiefRequestCreate",
+      { companyId: COMPANY, input: "학원 블로그 글 1편을 써 줘" }, { actor: BOARD, companyId: COMPANY });
+    expect((await harness.ctx.issues.get(again.id, COMPANY))?.title).toBe("학원 블로그 글 1편을 써 줘-2");
     const desk = await control.chief.desk(COMPANY);
     expect(desk.chief?.id).toBe(CHIEF);
     expect(desk.singleWindow).toBe(true);
-    expect(desk.requests.map((q) => [q.id, q.stage])).toEqual([[r.id, "planning"]]);
+    expect(desk.requests.map((q) => q.stage)).toEqual(["planning", "planning"]);
+    expect(desk.requests.map((q) => q.id)).toContain(r.id);
   });
 
   it("only a board user can make a request; empty or missing chief is refused", async () => {
