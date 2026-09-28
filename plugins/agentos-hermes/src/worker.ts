@@ -1,6 +1,7 @@
 import { definePlugin, runWorker } from "@paperclipai/plugin-sdk";
 import { readBff } from "./bff.js";
 import { readMemoryOverview } from "./memory.js";
+import { readGalaxy } from "./knowledge.js";
 
 const plugin = definePlugin({
   async setup(ctx) {
@@ -13,6 +14,7 @@ const plugin = definePlugin({
     ctx.data.register("hermes-runtime", async () => readBff("runtime", "default"));
     ctx.data.register("hermes-bots", async () => readBff("bots", "default"));
     ctx.data.register("memory-overview", async p => readMemoryOverview(ctx, String(p.companyId ?? "")));
+    ctx.data.register("memory-galaxy", async () => readGalaxy());
   },
 });
 export default plugin;

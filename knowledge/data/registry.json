@@ -1,0 +1,507 @@
+{
+  "version": 1,
+  "note": "Canonical AgentOS knowledge registry. English only. Scope: common | project:<key> | bot:<profile>. Kind: user (-> USER.md), knowledge (-> generated skill), core (-> bot MEMORY.md). Edit here, then run `node scripts/memory-knowledge.mjs build`.",
+  "projects": [
+    {
+      "key": "agent-os",
+      "name": "AgentOS dashboard",
+      "nameKo": "AgentOS 대시보드",
+      "paperclipProjectId": "7646bfc5-1286-4491-9070-e89895360565",
+      "workspace": "C:/Users/tahar/orca/workspaces/agent os"
+    },
+    {
+      "key": "academy",
+      "name": "Cooking academy website",
+      "nameKo": "요리학원 홈페이지",
+      "paperclipProjectId": null,
+      "workspace": "C:/Users/tahar/orca/workspaces/academy homepage"
+    },
+    {
+      "key": "rimbus",
+      "name": "Mirror Ledger (Limbus Company)",
+      "nameKo": "미러 레저(림버스)",
+      "paperclipProjectId": null,
+      "workspace": "C:/Users/tahar/orca/workspaces/rimbus company project"
+    }
+  ],
+  "bots": [
+    {
+      "profile": "pc-ebb0943f",
+      "agentId": "23dd30d4-9a68-4a5d-83f6-942c4380462d",
+      "name": "비서실장",
+      "projects": [
+        "agent-os",
+        "academy",
+        "rimbus"
+      ]
+    },
+    {
+      "profile": "pc-26df4505",
+      "agentId": "11650ed8-bb2c-4c3a-a391-b34bd76c8389",
+      "name": "대시보드개선_화면디자인",
+      "projects": [
+        "agent-os"
+      ]
+    },
+    {
+      "profile": "pc-59bd3c1d",
+      "agentId": "694e5a9f-e932-4141-9d20-08cdd653d324",
+      "name": "대시보드개선_코드구현",
+      "projects": [
+        "agent-os"
+      ]
+    },
+    {
+      "profile": "pc-adfb6817",
+      "agentId": "d922202d-44cd-4b28-b7bf-c68ff12354f4",
+      "name": "대시보드개선_스킬탐색",
+      "projects": [
+        "agent-os"
+      ]
+    },
+    {
+      "profile": "pc-2e6cbe27",
+      "agentId": "dce6dcc3-db97-4e20-bfb5-dc8684660407",
+      "name": "시험_연결확인",
+      "projects": [
+        "agent-os"
+      ]
+    },
+    {
+      "profile": "pc-8ca245c2",
+      "agentId": "a78e01ad-5011-4811-9660-87c1f8002781",
+      "name": "콘텐츠_블로그제목",
+      "projects": [
+        "academy"
+      ]
+    },
+    {
+      "profile": "pc-7686fab2",
+      "agentId": "f3dc1fd7-1cc6-47f2-9edb-e7100e8e1ab3",
+      "name": "콘텐츠_SNS문구",
+      "projects": [
+        "academy"
+      ]
+    },
+    {
+      "profile": "pc-5910516a",
+      "agentId": "fe7d37ce-77f1-4e33-a2ae-6e7cc9732149",
+      "name": "콘텐츠_유튜브분석",
+      "projects": [
+        "agent-os",
+        "academy"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "u-plain-korean",
+      "scope": "common",
+      "kind": "user",
+      "from": [
+        "hermes-root/MEMORY.md#0f9efcfc1ef6"
+      ],
+      "en": "The owner is a beginner and prefers short answers in plain Korean: lead with the answer, keep jargon out, use tables when they help."
+    },
+    {
+      "id": "u-evidence",
+      "scope": "common",
+      "kind": "user",
+      "from": [
+        "USER.md#46c19085d544"
+      ],
+      "en": "The owner gives terse Korean instructions and holds agents to previously agreed procedures; show verification evidence (not claims) before a commit or deploy."
+    },
+    {
+      "id": "u-no-fake-qa",
+      "scope": "common",
+      "kind": "user",
+      "from": [
+        "hermes-root/MEMORY.md#0f9efcfc1ef6"
+      ],
+      "en": "Never present synthetic or mocked QA as production evidence."
+    },
+    {
+      "id": "u-connection-diagnosis",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "USER.md#d596e8333e0f"
+      ],
+      "en": "When a connection fails, first rule out settings the agent itself changed by testing with real requests before blaming the provider or suggesting support; clearly correct any earlier wrong explanation."
+    },
+    {
+      "id": "u-figma-in-place",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "USER.md#8f1b4d71f7ee"
+      ],
+      "en": "For Figma work, 'change the existing drawing' means edit the named frames in place (e.g. frames 1-11); do not propose a copy. Keep earlier outputs and add new ones alongside."
+    },
+    {
+      "id": "u-commit-each",
+      "scope": "common",
+      "kind": "user",
+      "from": [
+        "USER.md#df6f17b1813d"
+      ],
+      "en": "Commit to git after each finished unit of work without asking; exclude secrets and unrelated files."
+    },
+    {
+      "id": "u-no-time-split",
+      "scope": "common",
+      "kind": "user",
+      "from": [
+        "hermes-root/USER.md#bd2906e405a9"
+      ],
+      "en": "Split work by content, never to fit a runtime limit. Progress should show real activity (skills loaded, commands run, files written), not just 'working'."
+    },
+    {
+      "id": "u-cancel-restart",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-ebb0943f/USER.md#69ee08a578fd"
+      ],
+      "en": "A cancelled task is marked cancelled, not done, and its records and outputs are kept. A restart is a new request with a new folder (agent-work/restart/<request id>/)."
+    },
+    {
+      "id": "u-check-screen",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-ebb0943f/USER.md#8f2a2bd42b46"
+      ],
+      "en": "The owner checks results on the AgentOS dashboard screen itself (e.g. an agent's Skills field); confirm the visible screen, not only the backend, before reporting done."
+    },
+    {
+      "id": "u-academy-owner",
+      "scope": "project:academy",
+      "kind": "user",
+      "from": [
+        "USER.md#9c302cc478a9",
+        "USER.md#f1c0d486dc54"
+      ],
+      "en": "The owner runs the Korean cooking academy 한국조리기능장요리발효학원 (website kmastercook.com). Its Gemini API key is only for the website's AI consultation chatbot, never for content generation (separate endpoint)."
+    },
+    {
+      "id": "c-git-identity",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-26df4505/MEMORY.md#a5fa2e23b159",
+        "pc-59bd3c1d/MEMORY.md#cb350960077b"
+      ],
+      "en": "Worktree copies have no git identity. Commit with `git -c user.name=\"<bot name>\" -c user.email=\"agent-<first 8 chars of agent id>@paperclip.local\" commit`; never change git config files."
+    },
+    {
+      "id": "c-others-changes",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-59bd3c1d/MEMORY.md#d6bcbcc4e669"
+      ],
+      "en": "A source repo folder may hold other people's uncommitted changes; never stage, move, or commit them."
+    },
+    {
+      "id": "c-no-jq",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-59bd3c1d/MEMORY.md#518881e1157a"
+      ],
+      "en": "jq is not installed; build and read JSON with `node -e`."
+    },
+    {
+      "id": "c-tsc-exit",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-59bd3c1d/MEMORY.md#9c8ef2d396ae"
+      ],
+      "en": "`npx tsc` may print npm notices first. Redirect output to a file and check `$?`; piping into grep returns grep's exit code instead."
+    },
+    {
+      "id": "c-issue-doc",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-26df4505/MEMORY.md#1670d66ad564"
+      ],
+      "en": "Upload an issue document with PUT /api/issues/:id/documents/:key and body {title, format: \"markdown\", body}."
+    },
+    {
+      "id": "c-run-env",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-8ca245c2/MEMORY.md#7853e30b5ada"
+      ],
+      "en": "Paperclip runs expose PAPERCLIP_API_URL and PAPERCLIP_API_KEY but no PAPERCLIP_RUN_ID; use the Run ID from the wake message for X-Paperclip-Run-Id. Send Korean bodies with Python urllib (json.dumps ensure_ascii=False, UTF-8) to avoid broken text."
+    },
+    {
+      "id": "c-hires-orgchart",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "pc-ebb0943f/MEMORY.md#033dd8abe4ad"
+      ],
+      "en": "In this company, agent-hires creates a bot immediately without an approval step. Org-chart apply needs expectedVersion, which rises by 1 per operation."
+    },
+    {
+      "id": "c-figma-mcp",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [
+        "hermes-root/MEMORY.md#a4d4757271db"
+      ],
+      "en": "The owner's desktop Hermes has the official Figma MCP (mcp.figma.com, OAuth), so Figma links can be read for design context."
+    },
+    {
+      "id": "c-knowledge-scopes",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": [],
+      "en": "Knowledge is split by scope: agentos-common (every bot), agentos-project-<key> (only bots assigned to that project), agentos-bot-<profile> (one bot's specialist notes). The source is knowledge/data/registry.json in the AgentOS repo; generated skills must not be edited by hand. Store memory entries in English; the dashboard shows a Korean translation."
+    },
+    {
+      "id": "a-repo-path",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-ebb0943f/MEMORY.md#a31ea049d022"
+      ],
+      "en": "The AgentOS repo is /mnt/c/Users/tahar/orca/workspaces/agent os (Windows: C:\\Users\\tahar\\orca\\workspaces\\agent os). In WSL, git status can flag CRLF-only changes; check real changes with `git diff --ignore-cr-at-eol`."
+    },
+    {
+      "id": "a-worktree-location",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-ebb0943f/MEMORY.md#fa1920c5f335"
+      ],
+      "en": "The dashboard team's worktree is agent os/.worktrees/memory-visual (branch team/memory-visual, already merged into main). The old sibling folder agent os-memory-visual no longer exists."
+    },
+    {
+      "id": "a-worktree-from-main",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-ebb0943f/MEMORY.md#0073027a73aa",
+        "pc-ebb0943f/MEMORY.md#277ba7f8c685"
+      ],
+      "en": "Create a worktree from the latest main commit: re-check `git log -1 main` right before creating it and report if main moved. Never carry the original checkout's uncommitted changes (especially server/index.mjs) into a worktree or a commit."
+    },
+    {
+      "id": "a-narrow-scope",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-ebb0943f/MEMORY.md#fa67a6761c6e"
+      ],
+      "en": "Keep work inside the requested folder. Root src/App.tsx and src/styles.css hold other people's uncommitted work; do not touch them unless asked."
+    },
+    {
+      "id": "a-plugin-stack",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-26df4505/MEMORY.md#04c7f39e1e3a",
+        "pc-59bd3c1d/MEMORY.md#a0ace930abbd",
+        "pc-adfb6817/MEMORY.md#c1b4a875fd1a"
+      ],
+      "en": "The agentos-hermes plugin is React 19 + TypeScript + vitest with no Tailwind, chart library, Testing Library, or react-dom. All CSS lives in the `styles` string of src/ui/index.tsx under the `.agentos-hermes` prefix (no CSS file is loaded); tokens --h-* (background #101716, card #161e1c, accent #bdd1aa). Test logic by extracting pure functions into src/*.ts."
+    },
+    {
+      "id": "a-bff-routes",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-26df4505/MEMORY.md#180c0c7808af"
+      ],
+      "en": "The AgentOS BFF (127.0.0.1:4200) serves read-only GETs: /api/hermes/bots, /api/hermes/learning/graph?profile=, /api/hermes/skills?profile=. Hermes profile ids encode Hangul as uXXXX, so use bots[].title for names."
+    },
+    {
+      "id": "a-plugin-capabilities",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-26df4505/MEMORY.md#8bdcdca6ada3",
+        "pc-ebb0943f/MEMORY.md#2a60c98872ff"
+      ],
+      "en": "Plugin SDK methods need manifest capabilities (e.g. agents.read; local.folders plus a localFolders declaration); see plugin-sdk dist/host-client-factory.js. Adding capabilities or localFolders requires reinstalling the plugin and choosing folders, an operational change that needs the owner's approval."
+    },
+    {
+      "id": "a-bot-permissions",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-26df4505/MEMORY.md#7f8624268f51"
+      ],
+      "en": "With bot permissions, other bots' adapterConfig reads as {} and /api/agents/:id/skills is refused; report such data as unverified."
+    },
+    {
+      "id": "a-test-harness",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "pc-59bd3c1d/MEMORY.md#0e9664332364"
+      ],
+      "en": "The plugin SDK test harness createTestHarness returns configured:false when localFolders is unset; verify that write functions are never called by using a vi.fn fake ctx."
+    },
+    {
+      "id": "a-journey-display",
+      "scope": "project:agent-os",
+      "kind": "knowledge",
+      "from": [
+        "hermes-root/MEMORY.md#0819ac9b7d8b"
+      ],
+      "en": "Hermes /journey memory cards are translated to Korean only in the display layer (learning_graph.py view); never change the source text, IDs, cursor, or edit behaviour."
+    },
+    {
+      "id": "k-worktrees",
+      "scope": "project:academy",
+      "kind": "knowledge",
+      "from": [
+        "hermes-root/MEMORY.md#6ed30ef93620"
+      ],
+      "en": "academy-homepage uses git worktrees at different paths: C:\\Users\\tahar\\academy homepage (master); C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작 (main dev branch with the content generator and local-worker; work here); .../제미니-도움; .../컨텐츠-생성. A new uncommitted folder exists only in the worktree where it was made, so always give the exact worktree absolute path."
+    },
+    {
+      "id": "k-nas-deploy",
+      "scope": "project:academy",
+      "kind": "knowledge",
+      "from": [
+        "hermes-root/MEMORY.md#df9bb7ea1cdb"
+      ],
+      "en": "academy-homepage (Next.js) runs on the NAS with docker-compose: app (port 3080, domain kmastercook.com) + cloudflared tunnel 'academy' + backup container. Never run compose up on the PC (it would hijack the production tunnel). Deploy: build the image on the PC (the 2 GB NAS cannot build) -> docker save/load over SSH -> recreate only the academy service. Project /volume1/docker/academy; docker binary /var/packages/ContainerManager/target/usr/bin/docker; passwordless sudo covers only that binary. Preserve ./data (db.sqlite, uploads, originals) and compare row and file counts before and after. Review migrate deploy and seed before deploying. SSH credentials: nas-docker-deployment skill references/academy-ssh.md (DPAPI-encrypted; never store or print decrypted values)."
+    },
+    {
+      "id": "k-dev-conventions",
+      "scope": "project:academy",
+      "kind": "knowledge",
+      "from": [
+        "hermes-root/MEMORY.md#fbe1068561bd"
+      ],
+      "en": "academy-homepage conventions: edit agent/skill definitions only under .claude/skills and .claude/agents, then `npm run agents:sync` regenerates the .agents/ and .codex/ mirrors; `npm run agents:check` asserts zero drift (runs in pretest). Verify with npm test (node --test), npx tsc --noEmit, npx eslint. Content-generator prompts are assembled only through applyGrounding() in src/lib/prompt-defaults.ts, shared by server actions and local-worker."
+    },
+    {
+      "id": "k-content-hero",
+      "scope": "project:academy",
+      "kind": "knowledge",
+      "from": [
+        "hermes-root/MEMORY.md#962cdb130995",
+        "uacc4-ud68d-uc218-ub9bd-uac00/MEMORY.md#7d66984d043c"
+      ],
+      "en": "academy-homepage status: subscription content generation is strict with no fallback (local-worker/strict_subscription.py calls only the chosen provider once, fail-closed). The Gemini API (gemini-3.8-flash) serves only the web consultation chat. The hero banner AI studio (2880x1125, hero-studio) is deployed: model choice, free placement on a white canvas with 8-way rotation-aware resize, folder-style photo picker, per-part create/preserve policy. Key files: src/components/admin/HeroBannerStudio.tsx, HeroPhotoPicker.tsx, src/lib/hero-studio/*, scripts/hero-studio-inspect.mjs (isolated browser QA; update its selectors when the UI changes). Details: academy-hero-studio and academy-content-generator skills."
+    },
+    {
+      "id": "k-ui-data-checks",
+      "scope": "project:academy",
+      "kind": "knowledge",
+      "from": [
+        "hermes-root/MEMORY.md#0f9efcfc1ef6"
+      ],
+      "en": "Check the homepage UI at real user eye level on responsive widths (position, size, readability). Verify that DB rows and photo files are preserved before and after every deploy."
+    },
+    {
+      "id": "k-writing-rules",
+      "scope": "project:academy",
+      "kind": "knowledge",
+      "from": [
+        "pc-8ca245c2/MEMORY.md#1b296fc09634",
+        "pc-8ca245c2/MEMORY.md#45a168a6b40d",
+        "pc-ebb0943f/MEMORY.md#c70eff00e719"
+      ],
+      "en": "Academy public writing: tone is 'professional yet friendly' (not a stiff report, not hype); readers are people interested in cooking and fermentation and prospective students. Banned: unfounded superlatives (best, perfect, special, No.1), promises of exam success or health effects (immunity, diet, efficacy), prices or tuition, and facts not given (class dates, prices, reviews, statistics, awards, instructor names). A recruiting line for a specific class is allowed only when the task gives that class's details; award or opening news from kmastercook.com/notices is not used in titles unless the task says so. Source of these rules: academy homepage/홈페이지제작 src/lib/prompt-defaults.ts and content-quality-policy.ts."
+    },
+    {
+      "id": "r-mirror-ledger",
+      "scope": "project:rimbus",
+      "kind": "knowledge",
+      "from": [
+        "uacc4-ud68d-uc218-ub9bd-uac00/MEMORY.md#a2bb71001628"
+      ],
+      "en": "Limbus Company mirror-dungeon service 'Mirror Ledger' (Electron overlay + strategy web, login and subscription): C:\\Users\\tahar\\orca\\workspaces\\rimbus company project (plan docs/plan/PLAN.md). Four group-chat bots collaborate (designer, reviewer, developer, planner). Never commit or upload game text or images (© Project Moon)."
+    },
+    {
+      "id": "b-youtube-workdir",
+      "scope": "bot:pc-5910516a",
+      "kind": "knowledge",
+      "from": [
+        "pc-5910516a/MEMORY.md#8307d26ec43e"
+      ],
+      "en": "agent-work rules (from HER-17): write new results to agent-work/restart/<request>/bot/ and only read the original demo/<video id>/. Source env/setenv.sh first so uv, pip and HF caches and TMP stay inside agent-work/env (otherwise files once landed in the global uv cache). env/tools/extract_frames.py deletes frames/*/*.jpg in its target and vision_note.py writes to D/report/, so for new work extract frames with ffmpeg into B directly and keep viewing notes in B/vision_seen.json. runlog/progress (first argument = result folder) and pc_api.py (get/comment/doc-put/attach/patch; key only from the environment) live in env/tools/."
+    },
+    {
+      "id": "b-youtube-report",
+      "scope": "bot:pc-5910516a",
+      "kind": "knowledge",
+      "from": [
+        "pc-5910516a/MEMORY.md#e9d935fc22fa"
+      ],
+      "en": "Video report evidence format: one sentence per line ending with [자막 mm:ss] / [음성전사 mm:ss] / [화면 mm:ss] / [보충] / [보충: 설명란]; quotes copy the original text exactly inside double quotes followed by the evidence tag. Known pitfalls: youtube-content fetch_transcript.py fails with 'No transcript found' unless given --language ko; seeking ffmpeg -ss to a rounded pts_time from frames.json can land one frame late (the true source time gives identical pixels); vision_analyze readings vanish on context compression, so write each frame's reading to a file right away."
+    },
+    {
+      "id": "b-blog-output",
+      "scope": "bot:pc-8ca245c2",
+      "kind": "knowledge",
+      "from": [
+        "pc-8ca245c2/MEMORY.md#df5d29762882"
+      ],
+      "en": "Blog-title task output: the issue document 'titles' holds only a '| 번호 | 제목 | 한 줄 설명 |' table; the comment holds the same table + a self-check table (기준 | 결과, with each title's length including spaces counted by a program) + the memories saved this time; then the issue is set to done. Count and length limits follow the task description exactly (e.g. titles within 40 characters including spaces, description a single sentence without line breaks)."
+    },
+    {
+      "id": "b-skills-search",
+      "scope": "bot:pc-adfb6817",
+      "kind": "knowledge",
+      "from": [
+        "pc-adfb6817/MEMORY.md#e3b3aca397cd"
+      ],
+      "en": "`npx skills find <query>` searches without installing. Strip colour codes with sed 's/\\x1b\\[[0-9;]*m//g'. GitHub stars come from api.github.com/repos/<owner>/<repo> and count the whole repository."
+    },
+    {
+      "id": "b-skills-proof",
+      "scope": "bot:pc-adfb6817",
+      "kind": "knowledge",
+      "from": [
+        "pc-adfb6817/MEMORY.md#402c8843e45e"
+      ],
+      "en": "To prove nothing was installed, compare the company skill list (GET /api/companies/{id}/skills) and the ~/.claude/skills folder listing before and after the task."
+    },
+    {
+      "id": "b-skills-overlap",
+      "scope": "bot:pc-adfb6817",
+      "kind": "knowledge",
+      "from": [
+        "pc-adfb6817/MEMORY.md#0481033595d8"
+      ],
+      "en": "The Claude runtime has built-in dataviz and code-review skills; mark similar external skills as overlapping ('겹침')."
+    },
+    {
+      "id": "b-chief-hermes-home",
+      "scope": "bot:pc-ebb0943f",
+      "kind": "knowledge",
+      "from": [
+        "pc-ebb0943f/MEMORY.md#76112009d03d"
+      ],
+      "en": "In the chief's sessions HERMES_HOME is my own profile folder, not the Hermes root. hermes-bots.mjs passes the root to its child tools since commit 48630ac, but still run hire and similar commands as HERMES_HOME=\"C:/Users/tahar/AppData/Local/hermes\" node.exe .... While the gateway runs, hermes profile delete fails on a locked file (WinError 32). The empty profile folder left by the failed HER-11 is pc-a243fe69."
+    },
+    {
+      "id": "core-test-passed",
+      "scope": "bot:pc-2e6cbe27",
+      "kind": "core",
+      "from": [
+        "pc-2e6cbe27/MEMORY.md#acd709f7cd72"
+      ],
+      "en": "I passed the Paperclip connection test on 2026-09-28; results go into an issue comment and the issue is set to done."
+    }
+  ],
+  "dropped": [
+    {
+      "from": "*/MEMORY.md identity lines",
+      "reason": "Rewritten in English as each bot's generated identity entry."
+    }
+  ]
+}

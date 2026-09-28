@@ -1,7 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useHostLocation, useHostNavigation, usePluginData, type PluginPageProps } from "@paperclipai/plugin-sdk/ui";
 import { sessionHref, selectedSession, selectedProfile, costLabel, billingLabel } from "./session.js";
 import { MemoryOverview } from "./memory.js";
+import { MemoryGalaxy3D, galaxyStyles } from "./galaxy3d.js";
+import type { GalaxyData } from "../galaxy.js";
+
+type GalaxyResult = { status: "available"; data: GalaxyData; translated: number; pending: number } | { status: "unavailable"; message: string };
+const GALAXY_POLL_MS = 15_000;
+/** Live 3D memory galaxy: re-reads registry + bot memory files every 15 s so new memories appear without reloading. */
+function LiveGalaxy() {
+  const galaxy = usePluginData<GalaxyResult>("memory-galaxy");
+  const { refresh } = galaxy;
+  useEffect(() => { const t = setInterval(() => { if (document.visibilityState === "visible") refresh(); }, GALAXY_POLL_MS); return () => clearInterval(t); }, [refresh]);
+  const v = galaxy.data;
+  return <section className="h-panel"><style>{galaxyStyles}</style>
+    <header className="h-panel-head"><h2 style={{ whiteSpace: "nowrap" }}>기억 은하</h2><small style={{ whiteSpace: "normal", textAlign: "right" }}>15초마다 자동 갱신 · 읽기 전용</small></header>
+    {!v ? <div className="h-state" data-kind={galaxy.error ? "error" : undefined}><span className="h-state-mark" />{galaxy.error ? "기억 은하를 불러오지 못했습니다." : "불러오는 중…"}</div>
+      : v.status !== "available" ? <div className="h-state" data-kind="error"><span className="h-state-mark" />{v.message}</div>
+      : <><div className="h-statline"><strong>{v.translated + v.pending}</strong><span>기억·지식 조각 · 한국어 번역 {v.translated}개{v.pending ? ` · 번역 대기 ${v.pending}개(영어 원문 표시)` : ""}</span></div>
+        <div className="h-panel-body"><MemoryGalaxy3D data={v.data} /></div></>}
+  </section>;
+}
 
 type Result = { status: string; message?: string; source?: string; data?: Record<string, any> };
 type Data = ReturnType<typeof usePluginData<Result>>;
@@ -131,11 +150,13 @@ export function HermesPage(_props: PluginPageProps) {
       <Panel title="MCP 목록" caption="구성 출처 · 상태" data={mcp}>{v => <div className="h-panel-body"><ul className="h-rows">{(v.servers ?? []).map((s: any, i: number) => <li className="h-row" key={i}><div className="h-row-main"><strong>{s.name}</strong><span className="h-row-meta">{s.transport} · {s.source}</span></div><span className="h-pill" data-tone={s.enabled ? "good" : "off"}>{s.enabled ? "활성" : "비활성"}</span></li>)}</ul>{!(v.servers ?? []).length && <p className="h-muted">등록된 서버 없음</p>}</div>}</Panel></div></div>
       <section className="h-find h-panel" aria-label="세션 찾기"><div className="h-panel-body"><form className="h-search" onSubmit={e => { e.preventDefault(); if (draft.trim().length >= 2 && draft.trim().length <= 120) setQuery(draft.trim()); }}><label>세션 찾기 · ID와 본문<input value={draft} onChange={e => setDraft(e.target.value)} minLength={2} maxLength={120} placeholder="검색어를 입력하세요" /></label><button className="h-action h-action-primary" type="submit">검색</button></form></div></section>
       {query && <Search profile={profile} query={query} />}
-      <div className="h-intro">02 / 기억 한눈에 보기</div>
+      <div className="h-intro">02 / 기억 은하 · 공통 → 프로젝트 → 봇</div>
+      <LiveGalaxy />
+      <div className="h-intro">03 / 기억 한눈에 보기</div>
       <MemoryOverview />
-      <div className="h-intro">03 / 봇 채팅</div>
+      <div className="h-intro">04 / 봇 채팅</div>
       <BotChats data={bots} />
-      <div className="h-intro">04 / 기억 관계 그래프</div>
+      <div className="h-intro">05 / 기억 관계 그래프 (Hermes /journey)</div>
       <Panel title="/journey 기억 · 그래프/은하" caption="관계 탐색 · 읽기 전용" data={graph}>{v => <><div className="h-statline"><strong>{(v.memory ?? []).length}</strong><span>기억 · 노드 {(v.nodes ?? []).length}개 · 연결 {(v.edges ?? []).length}개 · 시각화 최대 160노드</span></div><div className="h-panel-body"><Galaxy nodes={v.nodes} edges={v.edges} /></div><div className="h-subhead">기억 원문</div><ul className="h-memory">{(v.memory ?? []).map((m: any) => <li key={m.id}><details><summary>{m.title} <span className="h-muted">[{m.source}]</span></summary><p>{m.body}</p></details></li>)}</ul></>}</Panel>
     </>}
   </div></main>;

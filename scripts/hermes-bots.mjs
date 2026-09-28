@@ -114,6 +114,8 @@ function soulFor(name, agentId, role) {
   변경 요청에는 \`-H "X-Paperclip-Run-Id: <깨울 때 받은 Run ID>"\` 를 붙입니다. 자세한 사용법은 \`paperclip\` 스킬.
 - 기억: Hermes 기억 도구(memory)가 당신의 기억입니다. 일을 끝내기 전, 다음 작업에도 쓸모 있는 오래 가는 사실
   (사장님이 고쳐 준 점, 반복 규칙, 환경 사실, 실수에서 배운 교훈)만 memory 도구로 저장합니다. 진행 상황·비밀값은 저장하지 않습니다.
+  기억은 **영어로, 항목 하나에 사실 하나**로 저장합니다(대시보드가 한국어로 번역해 보여 줍니다).
+  공통·프로젝트 지식은 \`agentos-*\` 스킬로 자동으로 들어옵니다. 그 스킬 파일은 직접 고치지 않습니다.
 - 사장님은 초보입니다. 모든 글은 쉬운 한국어로 씁니다.
 
 ---
@@ -125,13 +127,26 @@ ${stripBlock(role).trim()}
 function seedMemory(profile, name, agentId, carried) {
   const dir = path.join(profileHome(profile), "memories");
   mkdirSync(dir, { recursive: true });
-  const entries = [`나는 Paperclip 봇 "${name}"(에이전트 ${agentId})이고 Hermes 프로필 ${profile}에서 돈다. 사장님 요청은 비서실장을 거쳐 Paperclip 작업으로 온다.`,
-    ...carried.filter((e) => !/hermes-memory|\$AGENT_HOME|MEMORY\.md·USER\.md/.test(e))];
+  // Carried entries from a previous runtime are kept as-is; `memory-knowledge.mjs apply` then adds the English identity line,
+  // the scope pointer and this bot's scoped USER.md (common + its projects only — never the whole root USER.md).
+  const entries = carried.filter((e) => !/hermes-memory|\$AGENT_HOME|MEMORY\.md·USER\.md/.test(e));
   let text = "";
-  for (const e of entries) { const next = text ? `${text}\n§\n${e}` : e; if (next.length > 2200) break; text = next; }
+  for (const e of entries) { const next = text ? `${text}\n§\n${e}` : e; if (next.length > 1600) break; text = next; }
   writeFileSync(path.join(dir, "MEMORY.md"), text);
-  // 사장님 정보 = the default profile's USER.md, the same one the user's other Hermes bots start from
-  writeFileSync(path.join(dir, "USER.md"), readFileSync(path.join(HOME, "memories", "USER.md"), "utf8"));
+  if (!existsSync(path.join(dir, "USER.md"))) writeFileSync(path.join(dir, "USER.md"), "");
+}
+/** Register the bot's projects in knowledge/data/registry.json and write its scoped knowledge (skills, USER.md, MEMORY.md). */
+function applyKnowledge(profile, agentId, name, projects) {
+  const kb = path.join(REPO, "scripts", "memory-knowledge.mjs");
+  const run = (args) => execFileSync(process.execPath, [kb, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
+  console.log(run(["register", "--bot", profile, "--agent", agentId, "--name", name, "--projects", projects.join(",")]));
+  console.log(run(["apply", "--bot", profile]).split(/\r?\n/).join(" | "));
+}
+/** --projects a,b (keys of knowledge/data/registry.json). Required so a new bot only gets its own projects' knowledge. */
+function projectsArg() {
+  const raw = arg("--projects");
+  if (!raw) fail("--projects <프로젝트키,쉼표구분> 가 필요합니다 (봇은 그 프로젝트의 기억만 받습니다). 목록: node scripts/memory-knowledge.mjs check 후 knowledge/data/registry.json 의 projects[].key");
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
 }
 function findSkillDir(root, name) {
   if (!existsSync(root)) return null;
@@ -242,6 +257,9 @@ if (cmd === "baseline") {
   const name = arg("--name"), title = arg("--title") || name, reportsTo = arg("--reports-to"), roleFile = arg("--role-file");
   if (!name || !/^[^\s_]+_[^\s_]+$/.test(name)) fail("--name 은 부서명_담당업무 형식(밑줄 1개, 띄어쓰기 없음)");
   if (!reportsTo || !roleFile || !existsSync(roleFile)) fail("--reports-to 와 --role-file(존재하는 파일)이 필요합니다");
+  const projects = projectsArg();
+  const known = JSON.parse(readFileSync(path.join(REPO, "knowledge", "data", "registry.json"), "utf8")).projects.map((p) => p.key);
+  if (projects.some((k) => !known.includes(k))) fail(`알 수 없는 프로젝트: ${projects.filter((k) => !known.includes(k)).join(",")} (있는 것: ${known.join(",")})`);
   if ((await agents()).some((a) => a.name === name)) fail(`같은 이름의 봇이 이미 있습니다: ${name}`);
   const role = readFileSync(roleFile, "utf8");
   const profile = newProfile();
@@ -257,9 +275,11 @@ if (cmd === "baseline") {
   seedMemory(profile, name, created.id, []);
   await loadCompanySkills();
   installSkills(profile, (arg("--skills") || "").split(",").map((s) => s.trim()).filter(Boolean));
-  console.log(`HIRED ${created.id} ${name} profile=${profile}`);
+  applyKnowledge(profile, created.id, name, projects);
+  console.log(`HIRED ${created.id} ${name} profile=${profile} projects=${projects.join(",")}`);
 } else if (cmd === "convert") {
   const id = arg("--agent");
+  const projects = projectsArg();
   const a = await agent(id);
   if (a.adapterType === "hermes_gateway") { console.log(`already hermes_gateway ${id} profile=${profileOf(a)}`); process.exit(0); }
   const role = agentsMd(id);
@@ -279,6 +299,7 @@ if (cmd === "baseline") {
   writeFileSync(path.join(profileHome(profile), "SOUL.md"), soulFor(a.name, id, role));
   seedMemory(profile, a.name, id, carried);
   installSkills(profile, []);
+  applyKnowledge(profile, id, a.name, projects);
   // A claude_local bot carries a Claude-subscription aiConnection binding; hermes_gateway bills through the Hermes
   // profile's own login, so the binding must be dropped (Paperclip keeps the old one unless runtimeConfig omits it).
   const { aiConnection: _drop, ...runtimeConfig } = a.runtimeConfig ?? {};

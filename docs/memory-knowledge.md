@@ -1,0 +1,49 @@
+# 봇 기억 구조 (공통 · 프로젝트 · 봇)
+
+AgentOS 봇들의 기억을 **공통 지식 / 프로젝트 지식 / 봇 전문 지식**으로 나눠 관리한다.
+원본은 영어 한 곳(`knowledge/data/registry.json`)이고, 대시보드는 한국어로 보여 준다.
+
+## 층
+
+| 층 | 들어가는 곳 | 받는 봇 | 글자 제한 |
+|---|---|---|---|
+| 공통 지식 (`scope: common`, `kind: knowledge`) | 스킬 `agentos-common` | 모든 봇 | 없음 |
+| 프로젝트 지식 (`scope: project:<key>`) | 스킬 `agentos-project-<key>` | 그 프로젝트에 배정된 봇만 | 없음 |
+| 봇 전문 지식 (`scope: bot:<profile>`) | 스킬 `agentos-bot-<profile>` | 그 봇만 | 없음 |
+| 사장님 정보 (`kind: user`) | 봇의 `USER.md` | 공통 + 배정 프로젝트 것만 | 1,375자 |
+| 봇 핵심 기억 (`kind: core`) | 봇의 `MEMORY.md` | 그 봇만 | 2,200자 |
+
+- 스킬은 각 봇 프로필의 `skills/agentos/`에 **그 봇 범위의 것만** 복사되고, `config.yaml`의 `skills.auto_load`로 매 세션 자동 로드된다.
+  다른 프로젝트의 스킬은 그 봇 프로필에 아예 없다.
+- `MEMORY.md` 첫 두 줄은 자동 생성(영어 신원 줄 + 지식 범위 안내). 봇이 새로 저장한 기억은 그 뒤에 그대로 남는다.
+
+## 규칙
+
+- 원본은 **영어**, 항목 하나에 사실 하나. 비밀값·진행 상황 금지. `check`가 한국어 원문과 비밀값 모양을 거부한다.
+- 생성된 스킬·`MEMORY.md` 머리 줄은 손으로 고치지 않는다. `registry.json`을 고치고 `apply`.
+- 한국어는 `knowledge/data/ko.json`에 따로 저장(키 = 영어 원문의 내용 해시). 원문이 바뀌면 해시가 달라져 "번역 대기"로 표시되고,
+  `translate`가 **구독 모델(Claude Code, claude.ai 로그인) 1회 호출**로 빠진 것만 만든다. 영어 원문은 절대 수정하지 않는다.
+
+## 명령
+
+```bash
+node scripts/memory-knowledge.mjs check        # 분류표 검사 (쓰기 없음)
+node scripts/memory-knowledge.mjs plan         # 봇별로 무엇이 들어갈지 미리 보기
+node scripts/memory-knowledge.mjs apply        # 백업(.unlazy/memory-knowledge/) 후 적용
+node scripts/memory-knowledge.mjs translate    # 한국어 표시 문구 생성 (빠진 것만, 1회 호출)
+node scripts/memory-knowledge.mjs status       # 봇별 적용 상태 · 번역 현황 (STATUS_OK)
+node scripts/memory-knowledge.mjs add-project --key <key> --name "<English>" --name-ko "<한국어>" --workspace "<폴더>"
+```
+
+새 봇은 `hermes-bots.mjs hire … --projects <key,key>`로 만든다. `--projects`는 필수이며, 봇 등록과 `apply --bot`이 함께 실행돼
+**공통 + 지정한 프로젝트 지식만** 받는다.
+
+## 봇이 새로 배운 기억
+
+봇은 Hermes 기억 도구로 자기 `MEMORY.md`/`USER.md`에 계속 저장한다. `apply`는 분류표에 없는 항목을 지우지 않고 그대로 옮긴다.
+주기적으로 `plan`의 `carried:` 목록을 보고 공통/프로젝트/봇으로 분류해 `registry.json`에 옮긴 뒤 `apply` + `translate` 한다.
+
+## 대시보드
+
+Hermes 보기 → **02 / 기억 은하**: 공통(가운데) → 프로젝트 → 봇 순서의 3D 은하. 15초마다 다시 읽어 새 기억이 반짝이며 나타난다.
+별을 누르면 한국어 문구와 영어 원문을 함께 보여 준다. 읽기 전용이며, 봇 기억 파일을 쓰지 않는다.

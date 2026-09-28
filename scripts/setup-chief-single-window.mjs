@@ -91,9 +91,14 @@ const SECTION = `${START}
 \`\`\`bash
 node "C:/Users/tahar/orca/workspaces/agent os/scripts/hermes-bots.mjs" hire --name "<부서명_담당업무>" --title "<담당업무>" \\
   --reports-to "$PAPERCLIP_AGENT_ID" --source-issue "<요청 이슈 ID>" \\
-  --role-file "C:/Users/tahar/AppData/Local/hermes/cache/paperclip-roles/<봇이름>.md" --skills "<역할에 맞는 Hermes 스킬, 쉼표 구분(없으면 생략)>"
+  --role-file "C:/Users/tahar/AppData/Local/hermes/cache/paperclip-roles/<봇이름>.md" --skills "<역할에 맞는 Hermes 스킬, 쉼표 구분(없으면 생략)>" \\
+  --projects "<이 봇이 맡을 프로젝트 키, 쉼표 구분>"
 \`\`\`
         출력 \`HIRED <에이전트ID> <이름> profile=<프로필>\` 이 나와야 성공입니다. \`FAIL\` 이면 그 문구를 그대로 보고하고 추측으로 재시도하지 않습니다.
+     - \`--projects\`(필수): 봇은 **공통 지식 + 여기 적은 프로젝트의 지식만** 받습니다. 프로젝트 키는
+       \`C:/Users/tahar/orca/workspaces/agent os/knowledge/data/registry.json\`의 \`projects[].key\`
+       (현재 \`agent-os\`=AgentOS 대시보드, \`academy\`=요리학원 홈페이지, \`rimbus\`=미러 레저).
+       새 프로젝트라면 먼저 \`node ".../scripts/memory-knowledge.mjs" add-project --key <영문키> --name "<English name>" --name-ko "<한국어 이름>" --workspace "<폴더>"\`.
      - \`name\`: **\`부서명_담당업무\`** 형식 (밑줄 1개, 띄어쓰기 없음, 예: \`콘텐츠_블로그작성\`, \`디자인_배너제작\`)
      - 이 명령이 Hermes 프로필 생성(Opus 5.5 구독·기억 켜짐·사장님 정보 USER.md), Paperclip 연결, 기본 스킬(paperclip 등) 설치, 연결 키 보관을 한 번에 합니다.
      - 스킬 예: 스킬 찾는 봇 → \`find-skills\`, 디자인 → \`interface-design\`.
