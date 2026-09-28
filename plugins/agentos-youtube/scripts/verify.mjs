@@ -11,8 +11,9 @@ const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const docs=['README.md','docs/chief-of-staff-process-plan.md','docs/dashboard-redesign-plan.md','docs/group-chat-control-plan.md','docs/hermes-bot-redesign-plan.md','docs/online-migration-runbook-b.md','docs/online-operation-plan.md','docs/unified-control-contract.md','docs/unified-control-plan.md'];
 const allowed=new Set(docs);
-// User-approved code exception (2026-09-28): default per-run limit for new bots raised to 4h.
-const approvedCode=new Set(['scripts/hermes-bots.mjs']);
+// User-approved code exceptions (2026-09-28): new bots get no per-run time limit (timeoutSec 0);
+// task title rule (프로젝트 › 작업 › 세부작업-N) in the chief request flow and its managed instructions.
+const approvedCode=new Set(['scripts/hermes-bots.mjs','plugins/agentos-control/src/chief.ts','plugins/agentos-control/tests/chief.spec.ts','scripts/setup-chief-single-window.mjs']);
 export function compare(baseline, current, permitted=new Set()) {
   return Object.entries(baseline).filter(([f,h])=>!permitted.has(f)&&current[f]!==h).map(([f])=>f);
 }
@@ -24,7 +25,7 @@ if(mode==='preservation') {
   assert.deepEqual(compare({a:'original'}, {}), ['a'], 'missing file must not pass');
   const changed=compare(baseline.files,current,new Set([...allowed,...approvedCode]));
   assert.deepEqual(changed,[],`protected files changed: ${changed.join(', ')}`);
-  const hb=read('scripts/hermes-bots.mjs');assert(hb.includes('timeoutSec: 14400,')&&!hb.includes('timeoutSec: 1800,'),'hermes-bots default limit must be 14400');
+  const hb=read('scripts/hermes-bots.mjs');assert(hb.includes('timeoutSec: 0,')&&!/timeoutSec: [1-9]\d*,/.test(hb),'hermes-bots default must be no limit (timeoutSec 0)');
   console.log(`PRESERVATION_VERIFIED baseline=${Object.keys(baseline.files).length} allowedDocs=${allowed.size} approvedCode=${approvedCode.size}`);
 } else if(mode==='docs') {
   for(const f of docs) {

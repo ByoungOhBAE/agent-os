@@ -55,11 +55,3 @@
 ## 본작업 시작 경계
 
 비서실장이 find-skills로 검토하고 분석 담당에게 필요한 스킬을 연결한 뒤 실제 결과/능력표를 제시한다. 검토한 스킬 지침, 도구 설치, 영상 접근, 이미지 이해는 별개의 확인 항목이다. 새 분석 화면은 능력 시연을 사용자에게 먼저 보여준 뒤 범위를 확정한다. 에이전트는 본 폴더의 `agent-work/`와 지정된 분석 프로필 외 기존 코드·다른 프로필을 수정하지 않는다.
-
-## 변경 기록: 봇 1회 실행 제한 30분 → 4시간 (2026-09-28, 사용자 결정)
-
-- 원인: HER-14 실행 `f5d6c26a`가 `Hermes gateway run timed out after 1800s`로 종료. 제한은 Paperclip 봇 설정 `adapterConfig.timeoutSec` 하나이며, `@paperclipai/hermes-paperclip-adapter` `gateway/server/execute.js`가 이 값으로 타이머를 걸고 시간이 되면 Hermes 실행을 stop 한다. Hermes 프로필에는 시간 제한이 없고 `agent.max_turns: 500`만 있다.
-- 적용: `hermes_gateway` 봇 8개 모두 `timeoutSec` 1800 → 14400 (`plugins/agentos-youtube/scripts/set-run-timeout.mjs --apply`, 읽어 되돌려 다른 설정 키 불변 확인, `RUN_TIMEOUT_OK 8 bots`).
-- 새 봇 기본값: `scripts/hermes-bots.mjs` `gatewayConfig()`의 `timeoutSec`를 14400으로 변경 (사용자가 승인한 기존 코드 예외 1건).
-- 적용 시점: 새로 시작하는 실행부터. 변경 전에 이미 시작된 실행(예: 비서실장 `170974db`)은 시작할 때의 30분 제한을 그대로 따른다.
-- 그대로 둔 것: `hermes_local`·`claude_local` 봇(일시정지된 시험 봇 2개), Hermes 게이트웨이·서버 재시작 없음.
