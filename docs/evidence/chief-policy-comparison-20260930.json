@@ -1,0 +1,83 @@
+{
+ "note": "planning-only replay via real chief gateway (pc-ebb0943f), reasoning high, fresh session per run, n=1 per task/condition. 'writes' excludes the read-only org bridge 'view' action.",
+ "runs": [
+  {
+   "label": "after-1",
+   "status": "completed",
+   "wall": 120.628,
+   "api": 7,
+   "tools": 9,
+   "out": 9802,
+   "cache": 254160,
+   "sys": 50238,
+   "plan": 4093,
+   "internal": 0,
+   "writes": 0
+  },
+  {
+   "label": "after-2",
+   "status": "completed",
+   "wall": 81.401,
+   "api": 6,
+   "tools": 10,
+   "out": 6901,
+   "cache": 233343,
+   "sys": 50238,
+   "plan": 2926,
+   "internal": 0,
+   "writes": 0
+  },
+  {
+   "label": "before-1",
+   "status": "completed",
+   "wall": 217.003,
+   "api": 10,
+   "tools": 13,
+   "out": 14993,
+   "cache": 651944,
+   "sys": 51339,
+   "plan": 5671,
+   "internal": 3,
+   "writes": 0
+  },
+  {
+   "label": "before-2",
+   "status": "completed",
+   "wall": 81.376,
+   "api": 9,
+   "tools": 11,
+   "out": 7462,
+   "cache": 570731,
+   "sys": 51341,
+   "plan": 3374,
+   "internal": 2,
+   "writes": 0
+  },
+  {
+   "label": "final-1",
+   "status": "completed",
+   "wall": 120.625,
+   "api": 9,
+   "tools": 11,
+   "out": 10682,
+   "cache": 364209,
+   "sys": 50475,
+   "plan": 3930,
+   "internal": 0,
+   "writes": 0
+  },
+  {
+   "label": "final-2",
+   "status": "completed",
+   "wall": 90.423,
+   "api": 6,
+   "tools": 8,
+   "out": 7715,
+   "cache": 235146,
+   "sys": 50475,
+   "plan": 2484,
+   "internal": 0,
+   "writes": 0
+  }
+ ]
+}
