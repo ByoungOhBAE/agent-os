@@ -23,7 +23,7 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readEffort } from "../plugins/agentos-control/src/reasoning.ts";
-import { isRoleReviewApproval, resolveRoleDocKey, roleDocTitleMatches } from "./hire-gate.mjs";
+import { hasRoleReviewApproval, resolveRoleDocKey, roleDocTitleMatches } from "./hire-gate.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HOME = path.join(process.env.LOCALAPPDATA || "C:/Users/tahar/AppData/Local", "hermes");
@@ -248,8 +248,9 @@ const newProfile = () => PREFIX + randomBytes(4).toString("hex");
 // A hire is allowed only when (A) the boss accepted a plan confirmation on the source issue (resolvedByUserId set,
 // resolvedByAgentId empty) and (B) the role text equals the issue document `roleKey` (--role-doc, default role-<name>;
 // Paperclip keys are ^[a-z0-9][a-z0-9_-]*$ so Korean names need --role-doc role-<english>), whose first line is exactly
-// `# <name>` (binds the document to this bot) and which passed the reviewer (issue execution lastDecisionOutcome=approved
-// or a reviewer comment "## 완료" naming the key). Everything is read from Paperclip, nothing is trusted from the CLI caller.
+// `# <name>` (binds the document to this bot) and which passed the reviewer: a reviewer bot's "## 완료" comment naming the
+// exact key, written at or after the document's latest revision (an issue-level review decision does not count, because it
+// is not tied to this document). Everything is read from Paperclip, nothing is trusted from the CLI caller.
 async function hireGate(issueId, name, roleKey, roleText) {
   if (!issueId) fail("채용에는 --source-issue <사장님이 계획을 승인한 이슈 id> 가 필요합니다");
   const iss = await pc("GET", `/issues/${issueId}`);
@@ -269,17 +270,18 @@ async function hireGate(issueId, name, roleKey, roleText) {
   if (!roleDocTitleMatches(doc.body, name)) fail(`채용 거부: 역할 문서 ${roleKey} 의 첫 줄이 정확히 "# ${name}" 이 아닙니다 (문서와 봇 이름을 묶는 줄입니다)`);
   const norm = (t) => String(t ?? "").replace(/\r\n/g, "\n").trim();
   if (norm(doc.body) !== norm(roleText)) fail(`채용 거부: --role-file 내용이 이슈 문서 ${roleKey} 와 다릅니다 (검수받은 문서를 그대로 쓰세요)`);
-  // reviewer pass: the issue's execution decision is approved, or a comment by an agent other than the assignee starts with "## 완료"
-  const ex = await pc("GET", `/issues/${issueId}/execution`);
-  const decided = ex.json?.lastDecisionOutcome === "approved" || ex.json?.execution?.lastDecisionOutcome === "approved";
-  let reviewed = decided;
-  if (!reviewed) {
-    const cm = await pc("GET", `/issues/${issueId}/comments`);
-    const cl = Array.isArray(cm.json) ? cm.json : (cm.json?.comments ?? []);
-    const reviewerIds = new Set((await agents()).filter((a) => /^검수/.test(a.name)).map((a) => a.id));
-    reviewed = cl.some((c) => reviewerIds.has(c.authorAgentId) && isRoleReviewApproval(c.body, roleKey));
-  }
-  if (!reviewed) fail(`채용 거부: 역할 문서 ${roleKey} 에 대한 검수 승인(검수 봇의 "## 완료" 댓글에 ${roleKey} 언급, 또는 review stage approved)이 없습니다`);
+  // reviewer pass: a reviewer bot's "## 완료" comment naming this exact key, written after the document's latest revision.
+  // The issue's review-stage decision is not accepted on its own: it is not tied to this key or revision.
+  const cm = await pc("GET", `/issues/${issueId}/comments`);
+  const cl = Array.isArray(cm.json) ? cm.json : (cm.json?.comments ?? []);
+  const reviewerIds = new Set((await agents()).filter((a) => /^검수/.test(a.name)).map((a) => a.id));
+  // time of the latest revision: the newest of the document's updatedAt and its revisions' createdAt (fail closed if none)
+  const revs = await pc("GET", `/issues/${issueId}/documents/${roleKey}/revisions`);
+  const rl = Array.isArray(revs.json) ? revs.json : (revs.json?.revisions ?? []);
+  const revisionAt = [doc.updatedAt, listed.updatedAt, ...rl.map((r) => r.createdAt)].filter((t) => Number.isFinite(Date.parse(String(t))))
+    .sort((x, y) => Date.parse(y) - Date.parse(x))[0];
+  if (!hasRoleReviewApproval(cl, reviewerIds, roleKey, revisionAt))
+    fail(`채용 거부: 역할 문서 ${roleKey} 의 최신판(${revisionAt ?? "시각 모름"})에 대한 검수 승인이 없습니다 (검수 봇이 그 이후에 "## 완료" 로 시작하고 ${roleKey} 를 적은 댓글을 이 이슈에 남겨야 합니다. 문서를 고쳤다면 다시 검수받으세요)`);
   return { issue: iss.json?.identifier ?? issueId, approval: approval.id, roleDoc: doc.id ?? listed.id, roleKey };
 }
 function installGuard(profile, role, mode) {

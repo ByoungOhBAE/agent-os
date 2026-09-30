@@ -24,9 +24,12 @@ export function resolveRoleDocKey(name, roleDocArg) {
   return { ok: true, key };
 }
 
-/** The first line of the role document must be exactly `# <bot name>` (BOM and CR line endings ignored). */
+/**
+ * The first line of the role document must be exactly `# <bot name>`. Nothing before it is allowed (a BOM or any
+ * other invisible character fails); only the line ending itself (\n or \r\n) is not part of the line.
+ */
 export function roleDocTitleMatches(body, name) {
-  const first = String(body ?? "").replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").split("\n")[0];
+  const first = String(body ?? "").split("\n")[0].replace(/\r$/, "");
   return first === `# ${name}`;
 }
 
@@ -38,4 +41,22 @@ export function isRoleReviewApproval(commentBody, key) {
   if (!/^##\s*완료/.test(body)) return false;
   // exact key: `role-content-blog` must not be satisfied by a mention of `role-content-blog2`
   return new RegExp(`(?<![a-z0-9_-])${escapeRe(key)}(?![a-z0-9_-])`).test(body);
+}
+
+/**
+ * The chosen role document passed review only when a reviewer bot wrote a "## 완료" comment naming exactly this key
+ * AT OR AFTER the document's latest revision. An issue-level approval, an approval of another document, or an approval
+ * of an older revision of this document does not count. Missing or unreadable times fail closed.
+ * @param {Array<{authorAgentId?: string, body?: string, createdAt?: string}>} comments
+ * @param {Set<string>} reviewerIds agent ids of reviewer bots
+ * @param {string} key role document key
+ * @param {string} revisionAt time the document's latest revision was created (document updatedAt)
+ */
+export function hasRoleReviewApproval(comments, reviewerIds, key, revisionAt) {
+  const rev = Date.parse(String(revisionAt ?? ""));
+  if (!Number.isFinite(rev)) return false;
+  return (comments ?? []).some((c) => {
+    const at = Date.parse(String(c?.createdAt ?? ""));
+    return reviewerIds.has(c?.authorAgentId) && Number.isFinite(at) && at >= rev && isRoleReviewApproval(c?.body, key);
+  });
 }
