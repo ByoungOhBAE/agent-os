@@ -6,7 +6,8 @@
 //   baseline <file>                       snapshot memory hashes of every Hermes profile + gateway pid/start
 //   compare  <file> [--allow-prefix pc-]  unchanged since baseline (except allowed prefix) -> BASELINE_OK
 //   probe    [profile]                    gateway auth: root, /p/<profile>/ with own key / wrong key / unknown
-//   hire     --name 부서_업무 --title T --reports-to <agentId> --role-file <md> [--source-issue <id>] [--skills a,b]
+//   hire     --name 부서_업무 --title T --reports-to <agentId> --role-file <md> --source-issue <id> --projects <k,k>
+//            [--role-doc role-<english>] [--skills a,b]   role doc key defaults to role-<name>; Korean names need --role-doc
 //   convert  --agent <agentId>            switch an existing Paperclip bot to its own Hermes profile (memory migrated)
 //   skills   --agent <agentId> --add a,b   install role skills (Hermes skills, else Paperclip company skill)
 //   sync-soul [all|<agentId>]             regenerate SOUL.md of gateway bots from their Paperclip AGENTS.md
@@ -22,6 +23,7 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readEffort } from "../plugins/agentos-control/src/reasoning.ts";
+import { isRoleReviewApproval, resolveRoleDocKey, roleDocTitleMatches } from "./hire-gate.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HOME = path.join(process.env.LOCALAPPDATA || "C:/Users/tahar/AppData/Local", "hermes");
@@ -244,10 +246,11 @@ const newProfile = () => PREFIX + randomBytes(4).toString("hex");
 // ---------- commands ----------
 // ---- hire gate ----------------------------------------------------------------------------------------------
 // A hire is allowed only when (A) the boss accepted a plan confirmation on the source issue (resolvedByUserId set,
-// resolvedByAgentId empty) and (B) the role text equals the issue document `role-<name>` whose latest revision was
-// created before that approval and which passed the reviewer (issue execution lastDecisionOutcome=approved or a
-// reviewer comment "## 완료" on the issue). Everything is read from Paperclip, nothing is trusted from the CLI caller.
-async function hireGate(issueId, name, roleText) {
+// resolvedByAgentId empty) and (B) the role text equals the issue document `roleKey` (--role-doc, default role-<name>;
+// Paperclip keys are ^[a-z0-9][a-z0-9_-]*$ so Korean names need --role-doc role-<english>), whose first line is exactly
+// `# <name>` (binds the document to this bot) and which passed the reviewer (issue execution lastDecisionOutcome=approved
+// or a reviewer comment "## 완료" naming the key). Everything is read from Paperclip, nothing is trusted from the CLI caller.
+async function hireGate(issueId, name, roleKey, roleText) {
   if (!issueId) fail("채용에는 --source-issue <사장님이 계획을 승인한 이슈 id> 가 필요합니다");
   const iss = await pc("GET", `/issues/${issueId}`);
   if (iss.status !== 200) fail(`--source-issue ${issueId}: HTTP ${iss.status}`);
@@ -259,10 +262,13 @@ async function hireGate(issueId, name, roleText) {
   const approval = ok[0];
   const docs = await pc("GET", `/issues/${issueId}/documents`);
   const dl = Array.isArray(docs.json) ? docs.json : (docs.json?.documents ?? []);
-  const doc = dl.find((d) => d.key === `role-${name}`);
-  if (!doc) fail(`채용 거부: 이슈에 역할 문서 role-${name} 이 없습니다 (PUT /api/issues/${issueId}/documents/role-${name} 로 먼저 올리고 검수를 받으세요)`);
+  const listed = dl.find((d) => d.key === roleKey);
+  if (!listed) fail(`채용 거부: 이슈에 역할 문서 ${roleKey} 가 없습니다 (역할 문서 없음 — PUT /api/issues/${issueId}/documents/${roleKey} 로 먼저 올리고 검수를 받으세요)`);
+  // the list may omit bodies; read the document itself when it does
+  const doc = typeof listed.body === "string" ? listed : ((await pc("GET", `/issues/${issueId}/documents/${roleKey}`)).json ?? listed);
+  if (!roleDocTitleMatches(doc.body, name)) fail(`채용 거부: 역할 문서 ${roleKey} 의 첫 줄이 정확히 "# ${name}" 이 아닙니다 (문서와 봇 이름을 묶는 줄입니다)`);
   const norm = (t) => String(t ?? "").replace(/\r\n/g, "\n").trim();
-  if (norm(doc.body) !== norm(roleText)) fail(`채용 거부: --role-file 내용이 이슈 문서 role-${name} 과 다릅니다 (검수받은 문서를 그대로 쓰세요)`);
+  if (norm(doc.body) !== norm(roleText)) fail(`채용 거부: --role-file 내용이 이슈 문서 ${roleKey} 와 다릅니다 (검수받은 문서를 그대로 쓰세요)`);
   // reviewer pass: the issue's execution decision is approved, or a comment by an agent other than the assignee starts with "## 완료"
   const ex = await pc("GET", `/issues/${issueId}/execution`);
   const decided = ex.json?.lastDecisionOutcome === "approved" || ex.json?.execution?.lastDecisionOutcome === "approved";
@@ -271,10 +277,10 @@ async function hireGate(issueId, name, roleText) {
     const cm = await pc("GET", `/issues/${issueId}/comments`);
     const cl = Array.isArray(cm.json) ? cm.json : (cm.json?.comments ?? []);
     const reviewerIds = new Set((await agents()).filter((a) => /^검수/.test(a.name)).map((a) => a.id));
-    reviewed = cl.some((c) => reviewerIds.has(c.authorAgentId) && /^##\s*완료/.test(String(c.body ?? "").trim()) && String(c.body).includes(`role-${name}`));
+    reviewed = cl.some((c) => reviewerIds.has(c.authorAgentId) && isRoleReviewApproval(c.body, roleKey));
   }
-  if (!reviewed) fail(`채용 거부: 역할 문서 role-${name} 에 대한 검수 승인(검수 봇의 "## 완료" 댓글 또는 review stage approved)이 없습니다`);
-  return { issue: iss.json?.identifier ?? issueId, approval: approval.id, roleDoc: doc.id };
+  if (!reviewed) fail(`채용 거부: 역할 문서 ${roleKey} 에 대한 검수 승인(검수 봇의 "## 완료" 댓글에 ${roleKey} 언급, 또는 review stage approved)이 없습니다`);
+  return { issue: iss.json?.identifier ?? issueId, approval: approval.id, roleDoc: doc.id ?? listed.id, roleKey };
 }
 function installGuard(profile, role, mode) {
   const src = path.join(REPO, "hermes-plugins", "agentos-guard");
@@ -323,14 +329,18 @@ if (cmd === "baseline") {
   const name = arg("--name"), title = arg("--title") || name, reportsTo = arg("--reports-to"), roleFile = arg("--role-file");
   if (!name || !/^[^\s_]+_[^\s_]+$/.test(name)) fail("--name 은 부서명_담당업무 형식(밑줄 1개, 띄어쓰기 없음)");
   if (!reportsTo || !roleFile || !existsSync(roleFile)) fail("--reports-to 와 --role-file(존재하는 파일)이 필요합니다");
+  // role document key: --role-doc role-<english>, or role-<name> when the name itself is a valid Paperclip key
+  const roleDocArg = process.argv.includes("--role-doc") ? (arg("--role-doc") ?? "") : undefined;
+  const roleDoc = resolveRoleDocKey(name, roleDocArg);
+  if (!roleDoc.ok) fail(`채용 거부: ${roleDoc.error}`);
   const projects = projectsArg();
   const known = JSON.parse(readFileSync(path.join(REPO, "knowledge", "data", "registry.json"), "utf8")).projects.map((p) => p.key);
   if (projects.some((k) => !known.includes(k))) fail(`알 수 없는 프로젝트: ${projects.filter((k) => !known.includes(k)).join(",")} (있는 것: ${known.join(",")})`);
   if ((await agents()).some((a) => a.name === name)) fail(`같은 이름의 봇이 이미 있습니다: ${name}`);
   const role = readFileSync(roleFile, "utf8");
-  // ---- hire gate: the boss approved a plan on --source-issue, and the role text was reviewed as issue document role-<name>
-  const gate = await hireGate(arg("--source-issue"), name, role);
-  console.log(`HIRE_GATE_OK issue=${gate.issue} approval=${gate.approval} roleDoc=${gate.roleDoc}`);
+  // ---- hire gate: the boss approved a plan on --source-issue, and the role text was reviewed as issue document roleDoc.key
+  const gate = await hireGate(arg("--source-issue"), name, roleDoc.key, role);
+  console.log(`HIRE_GATE_OK issue=${gate.issue} approval=${gate.approval} roleDoc=${gate.roleDoc} key=${gate.roleKey}`);
   const profile = newProfile();
   createProfile(profile, `Paperclip 봇 ${name}`);
   const body = { name, role: "general", title, reportsTo, capabilities: title, adapterType: "hermes_gateway", adapterConfig: gatewayConfig(profile),
