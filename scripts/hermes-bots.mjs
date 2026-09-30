@@ -14,6 +14,7 @@
 //   verify   [all|<agentId>]              -> VERIFY_ALL_OK
 //   leak-scan                             -> LEAK_SCAN_OK
 //   check-chief                           -> CHIEF_HERMES_DEFAULT_OK
+//   guard    --agent <id>|--profile <p> --role chief|reviewer|worker [--mode warn|block] | --status   install agentos-guard plugin
 import { createHash, randomBytes } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -409,7 +410,41 @@ if (cmd === "baseline") {
   if (!/hermes-bots\.mjs"? hire/.test(soul)) probs.push("chief SOUL.md not synced");
   console.log(probs.length ? `problems: ${probs.join("; ")}` : "CHIEF_HERMES_DEFAULT_OK");
   if (probs.length) process.exitCode = 1;
+} else if (cmd === "guard") {
+  // guard --agent <agentId>|--profile <p> --role chief|reviewer|worker [--mode warn|block]   install/update agentos-guard
+  // guard --status                                                                         list which profiles carry it
+  const role = arg("--role"), mode = arg("--mode") || "warn";
+  const src = path.join(REPO, "hermes-plugins", "agentos-guard");
+  const files = ["plugin.yaml", "__init__.py", "rules.yaml"];
+  const hashOf = (dir) => createHash("sha256").update(files.map((f) => existsSync(path.join(dir, f)) ? readFileSync(path.join(dir, f)) : "").join("\0")).digest("hex").slice(0, 12);
+  if (process.argv.includes("--status")) {
+    for (const p of readdirSync(path.join(HOME, "profiles"))) {
+      const dir = path.join(HOME, "profiles", p, "plugins", "agentos-guard");
+      if (!existsSync(dir)) continue;
+      const cfg = readFileSync(path.join(HOME, "profiles", p, "config.yaml"), "utf8");
+      const r = cfg.match(/agentos-guard:\s*\n\s*settings:\s*\n(?:\s+.*\n)*?\s+role:\s*(\S+)/)?.[1] ?? "?", m = cfg.match(/agentos-guard:[\s\S]*?mode:\s*(\S+)/)?.[1] ?? "?";
+      console.log(`${p} role=${r} mode=${m} ${hashOf(dir) === hashOf(src) ? "up-to-date" : "STALE"}`);
+    }
+  } else {
+    if (!["chief", "reviewer", "worker"].includes(role)) fail("--role chief|reviewer|worker 필요");
+    if (!["warn", "block"].includes(mode)) fail("--mode warn|block");
+    const profile = arg("--profile") || (arg("--agent") ? profileOf(await agent(arg("--agent"))) : null);
+    if (!profile || !existsSync(profileHome(profile))) fail(`프로필을 찾을 수 없습니다: ${profile}`);
+    const dst = path.join(profileHome(profile), "plugins", "agentos-guard");
+    mkdirSync(dst, { recursive: true });
+    for (const f of files) cpSync(path.join(src, f), path.join(dst, f));
+    hermes(["-p", profile, "config", "set", "plugins.entries.agentos-guard.settings.role", role]);
+    hermes(["-p", profile, "config", "set", "plugins.entries.agentos-guard.settings.mode", mode]);
+    const names = hermes(["-p", profile, "config", "get", "plugins.enabled"]).split(/\r?\n/).map((l) => l.trim().replace(/^- /, "")).filter((l) => l && !/^(✓|✗|\[)/.test(l));
+    if (!names.includes("agentos-guard")) {
+      hermes(["-p", profile, "config", "set", "plugins.enabled", JSON.stringify([...names, "agentos-guard"])]);
+    }
+    const after = readFileSync(path.join(profileHome(profile), "config.yaml"), "utf8");
+    const enabledAfter = hermes(["-p", profile, "config", "get", "plugins.enabled"]);
+    if (!/- agentos-guard/.test(enabledAfter) || names.some((n) => !enabledAfter.includes(`- ${n}`)) || !new RegExp(`role: ${role}`).test(after)) fail("config.yaml 반영 실패(기존 plugins.enabled 항목 보존 확인)");
+    console.log(`GUARD_INSTALLED profile=${profile} role=${role} mode=${mode} hash=${hashOf(dst)} — 게이트웨이 재시작 후 적용`);
+  }
 } else {
-  console.error("usage: baseline|compare|probe|hire|convert|sync-soul|archive|verify|leak-scan|check-chief");
+  console.error("usage: baseline|compare|probe|hire|convert|sync-soul|archive|verify|leak-scan|check-chief|guard");
   process.exitCode = 2;
 }

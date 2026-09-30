@@ -1,0 +1,204 @@
+"""Unit tests for agentos-guard rules. Run:
+  <hermes venv>/python -m unittest hermes-plugins/agentos-guard/test_guard.py -v
+"""
+import importlib.util
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+spec = importlib.util.spec_from_file_location("agentos_guard", HERE / "__init__.py")
+mod = importlib.util.module_from_spec(spec)
+sys.modules["agentos_guard"] = mod
+spec.loader.exec_module(mod)
+RULES = mod.load_rules(HERE / "rules.yaml")
+
+
+def g(role, mode="block"):
+    return mod.Guard(RULES, role, mode)
+
+
+CURL = 'curl -s -X PATCH "$PAPERCLIP_API_URL/api/issues/abc" -H "Authorization: Bearer $PAPERCLIP_API_KEY" -d \'{"status":"done"}\''
+
+
+class ChiefRules(unittest.TestCase):
+    def setUp(self):
+        self.c = g("chief")
+
+    # allowed — chief's own job
+    def test_paperclip_curl_allowed(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": CURL}))
+
+    def test_curl_pipe_python_print_allowed(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": CURL + " | python -c \"import sys,json;print(json.load(sys.stdin)['id'])\""}))
+
+    def test_hire_allowed(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": "node C:/x/agent os/scripts/hermes-bots.mjs hire --name a --title b --reports-to c --role-file d.md --projects x"}))
+
+    def test_readonly_git_allowed(self):
+        for cmd in ("git status", "git log --oneline -5", "git diff --name-only", "git stash list", "ls -la", "rg -n foo docs", "cat docs/plan.md"):
+            self.assertIsNone(self.c.evaluate("terminal", {"command": cmd}), cmd)
+
+    def test_plan_md_write_allowed(self):
+        self.assertIsNone(self.c.evaluate("write_file", {"path": "C:/Users/x/hermes/profiles/pc-1/workspace/plans/HER-30-plan.md"}))
+        self.assertIsNone(self.c.evaluate("patch", {"path": "/c/Users/x/profiles/pc-1/workspace/report.md"}))
+
+    def test_read_tools_untouched(self):
+        for tool in ("read_file", "search_files", "web_search", "delegate_task", "memory", "clarify"):
+            self.assertIsNone(self.c.evaluate(tool, {"path": "x.py"}), tool)
+
+    # blocked — producing
+    def test_code_write_blocked(self):
+        for p in ("scripts/x.mjs", "src/App.tsx", "config.yaml", "a.py", "workspace/notes/tool.json"):
+            self.assertIsNotNone(self.c.evaluate("write_file", {"path": p, "content": "x"}), p)
+
+    def test_md_outside_workspace_blocked(self):
+        self.assertIsNotNone(self.c.evaluate("write_file", {"path": "C:/Users/x/orca/workspaces/agent os/docs/plan.md"}))
+        self.assertIsNotNone(self.c.evaluate("patch", {"path": "C:/Users/x/hermes/profiles/pc-1/SOUL.md"}))
+
+    def test_installs_builds_blocked(self):
+        for cmd in ("npm install", "npm run build", "npx tsc --noEmit", "pip install requests", "uv pip install x",
+                    "docker compose up", "ssh nas ls", "sudo rm -rf /"):
+            self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd}), cmd)
+
+    def test_git_writes_blocked(self):
+        for cmd in ("git add -A && git commit -m x", "git push origin main", "git checkout -b f", "git stash"):
+            self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd}), cmd)
+
+    def test_file_mutation_and_redirect_blocked(self):
+        for cmd in ("rm -rf node_modules", "mv a b", "cp a b", "echo hi > out.txt", "cat a >> b", "sed -i 's/a/b/' f", "mkdir x"):
+            self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd}), cmd)
+
+    def test_running_arbitrary_scripts_blocked(self):
+        for cmd in ("python scripts/deploy.py", "node scripts/setup-chief-of-staff.mjs a b c", "node server/index.mjs"):
+            self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd}), cmd)
+
+    def test_chained_deny_wins_over_allowed_head(self):
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": CURL + " && npm install"}))
+
+    def test_execute_code_blocked(self):
+        self.assertIsNotNone(self.c.evaluate("execute_code", {"code": "print(1)"}))
+
+    def test_skill_edit_blocked_but_view_ok(self):
+        self.assertIsNotNone(self.c.evaluate("skill_manage", {"operations": [{"name": "chief", "action": "patch"}]}))
+        self.assertIsNotNone(self.c.evaluate("skill_manage", {"action": "create", "name": "x"}))
+        self.assertIsNone(self.c.evaluate("skill_view", {"name": "chief"}))
+
+    # --- false positives observed in the first live run (HER-24) ---
+    def test_git_dash_C_readonly_allowed(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'git -C "C:/Users/tahar/orca/workspaces/agent os" status --short | head -n 3'}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": 'git -C "C:/x/agent os" commit -am x'}))
+
+    def test_payload_text_does_not_trigger_deny(self):
+        body = '{"status":"done","comment":"3번 npm --version 은 차단됨. git commit 도 안 함. rm -rf 언급"}'
+        self.assertIsNone(self.c.evaluate("terminal", {"command": f'curl -s -X PATCH "$PAPERCLIP_API_URL/api/issues/x" -H "Content-Type: application/json" -d \'{body}\''}))
+
+    def test_heredoc_body_is_data(self):
+        cmd = 'curl -s -X POST "$PAPERCLIP_API_URL/api/issues/x/comments" -H "Content-Type: application/json" --data-binary @- <<\'EOF\'\n{"body":"npm install 과 git push 는 막혔습니다\\nrm -rf 도"}\nEOF'
+        self.assertIsNone(self.c.evaluate("terminal", {"command": cmd}))
+
+    def test_scratch_json_write_allowed(self):
+        self.assertIsNone(self.c.evaluate("write_file", {"path": "C:/Users/tahar/AppData/Local/hermes/profiles/pc-ebb0943f/cache/scratch/her24-comment.json"}))
+        self.assertIsNone(self.c.evaluate("write_file", {"path": "C:/Users/x/profiles/pc-1/workspace/HER-24-evidence/before.json"}))
+        self.assertIsNotNone(self.c.evaluate("write_file", {"path": "C:/x/agent os/docs/x.json"}))
+
+    def test_redirect_into_scratch_allowed_elsewhere_blocked(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'printf \'%s\' \'{"body":"x"}\' > "$TMPDIR/her24/body.json"'}))
+        self.assertIsNone(self.c.evaluate("terminal", {"command": "curl -s $PAPERCLIP_API_URL/api/issues/x > C:/Users/x/cache/scratch/issue.json"}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": "echo hi > docs/out.md"}))
+
+    def test_inline_python_read_only_allowed_write_blocked(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'python -c "import json,urllib.request;print(json.load(urllib.request.urlopen(\'http://x\'))[\'id\'])"'}))
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'python -c "import os,json,urllib.request\\nb=\'## 보고\\nnpm 차단됨\'\\nreq=urllib.request.Request(os.environ[\'PAPERCLIP_API_URL\']+\'/api/x\',data=json.dumps({\'body\':b}).encode(),method=\'POST\')\\nprint(urllib.request.urlopen(req).status)"'}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": 'python -c "import subprocess;subprocess.run([\'npm\',\'install\'])"'}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": 'python -c "open(\'x.mjs\',\'w\').write(\'1\')"'}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": 'python -c "import os;os.system(\'git push\')"'}))
+
+    def test_shell_escape_blocked(self):
+        for cmd in ('bash -c "npm install"', "powershell -Command \"git push\"", 'wsl -d Ubuntu -- bash -lc "rm -rf x"', 'cmd /c "del x"'):
+            self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd}), cmd)
+
+    def test_variable_assignment_lines_allowed(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'RUN=abc; ISSUE=def\ncurl -s "$PAPERCLIP_API_URL/api/issues/$ISSUE" -H "X-Paperclip-Run-Id: $RUN"'}))
+
+    # --- false positives observed in the second live run (HER-25): JS arrows inside node -e looked like redirects ---
+    def test_node_e_arrow_functions_not_redirects(self):
+        cmd = 'curl -s "$PAPERCLIP_API_URL/api/issues/x/comments" -H "Authorization: Bearer $K" | node -e "let s=\'\';process.stdin.on(\'data\',d=>s+=d).on(\'end\',()=>{console.log(JSON.parse(s).length)})"'
+        self.assertIsNone(self.c.evaluate("terminal", {"command": cmd}))
+        cmd2 = 'node -e "const fs=require(\'fs\');const c=fs.readFileSync(\'C:/x/cache/scratch/c.md\',\'utf8\');fetch(process.env.PAPERCLIP_API_URL+\'/api/x\',{method:\'POST\',body:JSON.stringify({body:c})}).then(r=>console.log(r.status))"'
+        self.assertIsNone(self.c.evaluate("terminal", {"command": cmd2}))
+
+    def test_node_e_dangerous_blocked(self):
+        for code in ("require('child_process').execSync('npm i')", "require('fs').writeFileSync('x.mjs','1')", "process.stdout.write(eval('1'))"):
+            self.assertIsNotNone(self.c.evaluate("terminal", {"command": f'node -e "{code}"'}), code)
+
+    def test_quoted_redirect_target_resolved(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'echo x > "C:/Users/x/AppData/Local/hermes/cache/scratch/a.txt"'}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": 'echo x > "C:/Users/x/orca/agent os/docs/a.md"'}))
+
+
+class ReviewerRules(unittest.TestCase):
+    def setUp(self):
+        self.r = g("reviewer")
+
+    def test_verification_commands_allowed(self):
+        for cmd in ("npm test", "npm run build", "npx tsc --noEmit", "node --test", "pytest -q", "git log -3", "git diff --name-only HEAD~1", "git stash list",
+                    "python -c \"print(len(open('a.md',encoding='utf-8').read()))\"", CURL):
+            self.assertIsNone(self.r.evaluate("terminal", {"command": cmd}), cmd)
+
+    def test_evidence_write_allowed(self):
+        self.assertIsNone(self.r.evaluate("write_file", {"path": "C:/p/pc-2/workspace/review-evidence/HER-30.md"}))
+        self.assertIsNone(self.r.evaluate("write_file", {"path": "C:/p/pc-2/workspace/review-HER-30.md"}))
+
+    def test_deliverable_edits_blocked(self):
+        for p in ("C:/x/agent os/src/App.tsx", "C:/x/academy/README.md", "C:/p/pc-2/workspace/draft.md"):
+            self.assertIsNotNone(self.r.evaluate("patch", {"path": p, "new_string": "x"}), p)
+
+    def test_commits_installs_blocked(self):
+        for cmd in ("git commit -am fix", "git push", "git checkout .", "git stash", "npm install lodash", "pip install x",
+                    "rm -rf dist", "echo x > a.md", "sed -i 's/a/b/' a.md", "docker ps", "node scripts/hermes-bots.mjs hire --name x"):
+            self.assertIsNotNone(self.r.evaluate("terminal", {"command": cmd}), cmd)
+
+    def test_delegate_blocked(self):
+        self.assertIsNotNone(self.r.evaluate("delegate_task", {"tasks": []}))
+
+
+class BudgetAndMode(unittest.TestCase):
+    def test_budget_counts_per_session(self):
+        rules = {"roles": {"worker": {"budget": {"max_tool_calls": 3}}}}
+        w = mod.Guard(rules, "worker", "block")
+        for _ in range(3):
+            self.assertIsNone(w.evaluate("read_file", {}, "s1"))
+        self.assertIn("예산 초과", w.evaluate("read_file", {}, "s1"))
+        self.assertIsNone(w.evaluate("read_file", {}, "s2"))  # other session unaffected
+
+    def test_warn_mode_logs_but_passes(self):
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / "guard.jsonl"
+            c = mod.Guard(RULES, "chief", "warn", log)
+            self.assertIsNone(c.decide("terminal", {"command": "npm install"}, "s"))
+            self.assertEqual(len(log.read_text(encoding="utf-8").splitlines()), 1)
+            self.assertIn('"mode": "warn"', log.read_text(encoding="utf-8"))
+
+    def test_block_mode_returns_hook_shape(self):
+        with tempfile.TemporaryDirectory() as d:
+            c = mod.Guard(RULES, "chief", "block", Path(d) / "g.jsonl")
+            out = c.decide("terminal", {"command": "npm install"}, "s")
+            self.assertEqual(out["action"], "block")
+            self.assertIn("[agentos-guard]", out["message"])
+
+    def test_bad_role_or_mode(self):
+        with self.assertRaises(ValueError):
+            mod.Guard(RULES, "ceo", "block")
+        with self.assertRaises(ValueError):
+            mod.Guard(RULES, "chief", "audit")
+
+    def test_worker_role_is_permissive(self):
+        w = g("worker")
+        self.assertIsNone(w.evaluate("terminal", {"command": "npm install && git commit -am x"}))
+        self.assertIsNone(w.evaluate("write_file", {"path": "src/x.ts"}))
+
+
+if __name__ == "__main__":
+    unittest.main()

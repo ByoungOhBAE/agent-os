@@ -1,0 +1,7 @@
+name: agentos-guard
+kind: standalone
+version: "0.1.0"
+description: "AgentOS role guard: blocks (or warns about) tool calls that fall outside a bot's role — chief of staff must not produce, reviewer must not edit deliverables — and caps tool calls per session. Rules in rules.yaml; role/mode via plugins.entries.agentos-guard.settings."
+author: AgentOS
+provides_hooks:
+  - pre_tool_call

@@ -1,0 +1,103 @@
+# agentos-guard rules. One block per role. Evaluated by __init__.py.
+#
+# Semantics
+#   tools.deny             : tool names always blocked for this role
+#   skill_manage.deny_actions : skill_manage actions blocked
+#   write.any_ext_paths    : globs where ANY file type may be written (scratch for curl bodies, evidence)
+#   write.allow_paths      : otherwise write_file/patch paths must match one of these globs (empty = any)
+#   write.deny_ext         : extensions blocked outside any_ext_paths
+#   terminal.*             : each pipeline segment (split on | && || ; newline, quotes/heredocs respected)
+#                            is checked on its SHAPE — quoted strings and heredoc bodies are blanked first,
+#                            so payload text (a comment mentioning "npm") never triggers a rule.
+#     deny                 : regex that must NOT match the shape (deny wins)
+#     allow                : shape must match at least one (empty list = any)
+#     inline_python_guard  : python -c "<code>" is allowed unless the code spawns/writes (see _PY_DANGER)
+#     redirect_guard       : `> file` / `>> file` only into scratch, Temp, $TMPDIR or *-evidence folders
+#     (shell -c / powershell -Command / wsl -- … are always refused: they would smuggle a new command line)
+#   budget.max_tool_calls  : per session_id; when exceeded every tool call is blocked
+# mode (warn|block) and role come from config.yaml:
+#   plugins.entries.agentos-guard.settings: { role: chief, mode: warn }
+
+version: 2
+
+roles:
+  chief:
+    tools:
+      deny: [execute_code, code_execution]
+    skill_manage:
+      deny_actions: [create, patch, write_file, remove_file, delete]
+    write:
+      any_ext_paths:                             # request bodies for curl, evidence snapshots
+        - "**/cache/scratch/**"
+        - "**/Temp/**"
+        - "**/workspace/**-evidence/**"
+      allow_paths:
+        - "**/workspace/**/*.md"
+        - "**/workspace/**/*.txt"
+        - "**/plans/**/*.md"
+      deny_ext: [.py, .mjs, .cjs, .js, .ts, .tsx, .jsx, .json, .yaml, .yml, .toml, .sh, .ps1, .bat, .cmd, .sql, .env, .ini, .cfg]
+    terminal:
+      inline_python_guard: true
+      redirect_guard: true                       # > file only into scratch/Temp/-evidence
+      allow:
+        - '^curl\b'                                # Paperclip API
+        - '^node\s+.*hermes-bots\.mjs"?\s+(hire|list|status|probe|sync-soul)\b'
+        - '^node\s+.*setup-chief-single-window\.mjs"?(\s|$)'
+        - '^git(\s+-C\s+("[^"]*"|\S+))?\s+(status|log|diff|show|branch|rev-parse|stash\s+(list|show))\b'
+        - '^(ls|dir|cat|type|head|tail|wc|rg|grep|find|pwd|echo|printf|date|whoami|hostname|jq|sort|uniq|cut|tr|awk|sed|cd)\b'
+        - '^(export\s+)?[A-Za-z_][A-Za-z0-9_]*=' # variable assignment lines (RUN=…; ISSUE=…)
+        - '^(paperclipai|paperclip)\s+\S*\s*(list|get|show|status|view)\b'
+      deny:
+        - '\b(npm|npx|pnpm|yarn|pip3?|uv|poetry|cargo|go|docker|docker-compose|ssh|scp|rsync|sudo)\b'
+        - '\bgit(\s+-C\s+("[^"]*"|\S+))?\s+(commit|push|pull|fetch|checkout|switch|merge|rebase|reset|stash(?!\s+(list|show))|add|rm|mv|tag|cherry-pick|revert|clean)\b'
+        - '\b(rm|rmdir|del|erase|mv|move|cp|copy|mkdir|touch|chmod|chown|tee)\b'
+        - '\bsed\s+-i\b'
+        - '\bpython3?\s+(?!-c)\S+\.py\b'
+        - '\bnode\s+(?!.*(hermes-bots|setup-chief-single-window)\.mjs)("[^"]*"|\S+)\.(m?js|cjs|ts)\b'
+    budget:
+      max_tool_calls: 120
+
+  reviewer:
+    tools:
+      deny: [delegate_task, execute_code, code_execution]
+    skill_manage:
+      deny_actions: [create, patch, write_file, remove_file, delete]
+    write:
+      any_ext_paths:
+        - "**/cache/scratch/**"
+        - "**/Temp/**"
+        - "**/workspace/review-evidence/**"
+      allow_paths:
+        - "**/workspace/**/review-*.md"
+      deny_ext: []
+    terminal:
+      inline_python_guard: true
+      redirect_guard: true
+      allow:
+        - '.*'                                     # default allow; deny list below carries the policy
+      deny:
+        - '\bgit(\s+-C\s+("[^"]*"|\S+))?\s+(commit|push|pull|checkout|switch|merge|rebase|reset|stash(?!\s+(list|show))|add|rm|mv|tag|cherry-pick|revert|clean|apply)\b'
+        - '\b(rm|rmdir|del|erase|mv|move|cp|copy|chmod|chown|tee)\b'
+        - '\bsed\s+-i\b'
+        - '\b(npm|pnpm|yarn)\s+(install|i|add|remove|uninstall|publish|link|update)\b'
+        - '\b(pip3?|uv)\s+(install|uninstall)\b'
+        - '\b(docker|docker-compose|ssh|scp|rsync|sudo)\b'
+        - '\bnode\s+.*hermes-bots\.mjs"?\s+(hire|convert|archive|sync-soul|guard)\b'
+    budget:
+      max_tool_calls: 200
+
+  worker:
+    tools:
+      deny: []
+    skill_manage:
+      deny_actions: []
+    write:
+      any_ext_paths: []
+      allow_paths: []
+      deny_ext: []
+    terminal:
+      inline_python_guard: false
+      allow: ['.*']
+      deny: []
+    budget:
+      max_tool_calls: 400
