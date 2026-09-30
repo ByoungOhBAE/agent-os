@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  applyOps, authorize, emptyOrg, OrgError, syncPlan, viewOf,
+  applyOps, authorize, emptyOrg, normalizeOrg, OrgError, syncPlan, viewOf, workspacePlan, workspaceText,
   type Actor, type Org, type OrgOp, type Member,
 } from "../src/org.js";
 
@@ -256,5 +256,84 @@ describe("화면용 보기", () => {
     expect(view.unassigned.map((m) => m.name)).toEqual(["디자이너"]);
     expect(view.runtimeCounts).toEqual([{ runtime: "Claude", count: 2 }, { runtime: "Codex", count: 1 }, { runtime: "Hermes 봇", count: 1 }]);
     expect(view.permissions).toEqual({ canEdit: true, canAppointChief: true });
+  });
+});
+
+describe("부서 작업 폴더", () => {
+  const DEFAULT = "C:\\Users\\me\\orca\\workspaces";
+  const HERMES = "hermes:ub514-uc790-uc774-ub108";
+  const profileOf = (id: string) => (id === AGENT_A ? "pc-aaaaaaaa" : id === CHIEF ? "pc-chief000" : null);
+
+  it("절대 경로만 받고 끝 구분자를 정리한다; 상대 경로·..·제어문자는 거부", () => {
+    expect(workspaceText("C:\\work\\dept\\")).toBe("C:\\work\\dept");
+    expect(workspaceText("/srv/dept/")).toBe("/srv/dept");
+    expect(workspaceText("  ")).toBeNull();
+    expect(workspaceText(undefined)).toBeNull();
+    expect(() => workspaceText("work/dept")).toThrowError(/절대 경로/);
+    expect(() => workspaceText("C:\\work\\..\\other")).toThrowError(/\.\./);
+    expect(() => workspaceText("C:\\work\\a\nb")).toThrowError(/제어 문자/);
+    expect(() => workspaceText("C:\\" + "x".repeat(300))).toThrowError(/260자/);
+    expect(() => workspaceText(42)).toThrowError(OrgError);
+  });
+
+  it("부서 생성·수정에서 작업 폴더를 저장하고 비우면 null이 된다", () => {
+    const org = run(withChief(), CEO, [{ op: "createDepartment", name: "콘텐츠", workspace: "C:\\work\\content\\" }]).org;
+    expect(org.departments[0].workspace).toBe("C:\\work\\content");
+    const cleared = run(org, chief, [{ op: "updateDepartment", id: org.departments[0].id, workspace: "" }]).org;
+    expect(cleared.departments[0].workspace).toBeNull();
+    const untouched = run(org, chief, [{ op: "updateDepartment", id: org.departments[0].id, name: "콘텐츠2" }]).org;
+    expect(untouched.departments[0].workspace).toBe("C:\\work\\content");
+    expect(() => run(org, chief, [{ op: "updateDepartment", id: org.departments[0].id, workspace: "relative" }])).toThrowError(OrgError);
+  });
+
+  it("저장된 값이 잘못됐으면 null로 정규화하고 예전 저장분(필드 없음)도 읽는다", () => {
+    const raw = { departments: [{ id: "d1", name: "A", workspace: "not-absolute" }, { id: "d2", name: "B" }] };
+    expect(normalizeOrg(raw).departments.map((d) => d.workspace)).toEqual([null, null]);
+    expect(normalizeOrg({ departments: [{ id: "d1", name: "A", workspace: "/srv/a" }] }).departments[0].workspace).toBe("/srv/a");
+    expect(normalizeOrg({ workspaceManaged: ["pc-a", "../x", "pc-a", 3] }).workspaceManaged).toEqual(["pc-a"]);
+    expect(normalizeOrg({}).workspaceManaged).toEqual([]);
+  });
+
+  it("배치된 봇은 부서 폴더로; 이 플러그인이 관리하던 봇만 기본값으로 되돌리고 남은 봇은 건드리지 않는다 (paperclip·hermes 모두)", () => {
+    let org = run(withChief(), CEO, [
+      { op: "createDepartment", name: "콘텐츠", workspace: "C:\\work\\content" },
+      { op: "createDepartment", name: "개발" },
+    ]).org;
+    const [content, dev] = org.departments;
+    org = run(org, CEO, [
+      { op: "assign", member: `paperclip:${AGENT_A}`, departmentId: content.id },
+      { op: "assign", member: HERMES, departmentId: dev.id },
+    ]).org;
+    org.workspaceManaged = ["ub514-uc790-uc774-ub108", "pc-gone"];
+    const bots = [
+      { profile: "pc-aaaaaaaa", cwd: DEFAULT },
+      { profile: "ub514-uc790-uc774-ub108", cwd: "C:\\work\\old" }, // managed earlier, now in a dept without folder → restore
+      { profile: "pc-chief000", cwd: "C:\\somewhere" },
+      { profile: "pc-unplaced", cwd: "C:\\work\\content" }, // never managed → untouched
+      { profile: "content-writer", cwd: "." }, // never managed → untouched
+    ];
+    expect(workspacePlan(org, bots, profileOf, DEFAULT)).toEqual({
+      items: [
+        { profile: "pc-aaaaaaaa", cwd: "C:\\work\\content", department: "콘텐츠" },
+        { profile: "ub514-uc790-uc774-ub108", cwd: null, department: null },
+      ],
+      desired: ["pc-aaaaaaaa"],
+    });
+  });
+
+  it("이미 맞는 cwd(구분자·대소문자 차이 무시)는 계획에서 빠지고 비서실장 프로필은 절대 건드리지 않는다", () => {
+    let org = run(withChief(), CEO, [{ op: "createDepartment", name: "콘텐츠", workspace: "C:\\work\\content" }]).org;
+    org = run(org, CEO, [{ op: "assign", member: `paperclip:${AGENT_A}`, departmentId: org.departments[0].id }]).org;
+    org.workspaceManaged = ["pc-aaaaaaaa", "pc-chief000", "pc-x"];
+    const bots = [{ profile: "pc-aaaaaaaa", cwd: "c:/work/content/" }, { profile: "pc-chief000", cwd: "C:\\elsewhere" }, { profile: "pc-x", cwd: DEFAULT.toLowerCase() }];
+    expect(workspacePlan(org, bots, profileOf, DEFAULT)).toEqual({ items: [], desired: ["pc-aaaaaaaa"] });
+  });
+
+  it("부서 폴더를 비우면 관리하던 소속 봇이 기본값으로 돌아간다", () => {
+    let org = run(withChief(), CEO, [{ op: "createDepartment", name: "콘텐츠", workspace: "C:\\work\\content" }]).org;
+    org = run(org, CEO, [{ op: "assign", member: `paperclip:${AGENT_A}`, departmentId: org.departments[0].id }]).org;
+    org = run(org, CEO, [{ op: "updateDepartment", id: org.departments[0].id, workspace: null }]).org;
+    org.workspaceManaged = ["pc-aaaaaaaa"];
+    expect(workspacePlan(org, [{ profile: "pc-aaaaaaaa", cwd: "C:\\work\\content" }], profileOf, DEFAULT)).toEqual({ items: [{ profile: "pc-aaaaaaaa", cwd: null, department: null }], desired: [] });
   });
 });

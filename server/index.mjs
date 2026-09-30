@@ -6,7 +6,9 @@ import { fileURLToPath } from "node:url";
 import { codexRequest } from "./codex.mjs";
 import { readJsonCli } from "./cli-read.mjs";
 import { readHermesBots } from "./hermes-bots.mjs";
+import { listBotWorkspaces, setBotWorkspace, WorkspaceError } from "./bot-workspace.mjs";
 import { createControlRoutes } from "./control.mjs";
+import { createRoomRoutes } from "./rooms.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
@@ -491,6 +493,22 @@ async function route(req, res, url) {
       throw new HttpError(503, "Hermes 봇 채팅 목록을 읽을 수 없습니다.");
     }
     return json(res, 200, result);
+  }
+  // Department workspaces (org-chart plugin): which folder each bot profile runs in.
+  if (pathname === "/api/hermes/workspaces" && method === "GET") {
+    return json(res, 200, listBotWorkspaces());
+  }
+  const workspaceOf = pathname.match(/^\/api\/hermes\/workspaces\/([^/]+)$/);
+  if (workspaceOf && method === "PATCH") {
+    const input = await body(req);
+    if (input.cwd !== null && input.cwd !== undefined && typeof input.cwd !== "string")
+      throw new HttpError(400, "cwd는 문자열 또는 null이어야 합니다.");
+    try {
+      return json(res, 200, await setBotWorkspace(decodeURIComponent(workspaceOf[1]), input.cwd ?? null));
+    } catch (error) {
+      if (error instanceof WorkspaceError) throw new HttpError(error.status, error.message);
+      throw new HttpError(502, `작업 폴더 적용 실패: ${error instanceof Error ? error.message.slice(0, 200) : "알 수 없음"}`);
+    }
   }
   if (pathname === "/api/hermes/profiles" && method === "GET") {
     const result = await dashboardRequest("/api/profiles");

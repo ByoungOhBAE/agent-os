@@ -18,12 +18,22 @@ function Seal({ name, status }: { name: string; status: string }) {
   return <span className="agentos-seal" data-agentos-seal="" data-lamp={lampOf(status)} aria-hidden="true">{glyph}</span>;
 }
 type ViewMember = Member & { title: string | null; duty: string | null; lead: boolean; missing: boolean };
-type Department = { id: string; name: string; icon: Icon; reportsTo: "ceo" | "chief"; members: ViewMember[] };
+type Department = { id: string; name: string; icon: Icon; reportsTo: "ceo" | "chief"; workspace: string | null; members: ViewMember[] };
+/** Actual terminal.cwd of each placed Hermes bot vs the folder its department expects (read from profile configs). */
+type WorkspaceInfo = { profile: string; cwd: string | null; expected: string; applied: boolean };
+type Workspaces = { available: boolean; default: string | null; members: Record<string, WorkspaceInfo> };
 type View = {
   version: number; chief: Member | null; chiefMissing: boolean; departments: Department[]; unassigned: Member[];
   runtimeCounts: { runtime: string; count: number }[]; permissions: { canEdit: boolean; canAppointChief: boolean };
   updatedAt: string | null; updatedBy: string | null; viewer: string; hermes: string; paperclip: string; chiefCanConfigure: boolean;
+  workspaces?: Workspaces;
 };
+
+/** `C:\a\b\c\d` → `…\c\d` for card headers; the full path lives in the title attribute. */
+function shortPath(p: string) {
+  const parts = p.split(/[\\/]+/).filter(Boolean);
+  return parts.length > 2 ? `…${p.includes("\\") ? "\\" : "/"}${parts.slice(-2).join(p.includes("\\") ? "\\" : "/")}` : p;
+}
 type Sync = { applied: number; failed: { name: string; error: string }[] };
 type Editing = { type: "department"; id: string | null } | { type: "member"; id: string } | { type: "chief" } | null;
 
@@ -195,13 +205,13 @@ export function OrgChartPage(_props: PluginPageProps) {
             <div className="o-side" role="group" aria-labelledby="o-side-label">
               <p id="o-side-label" className="o-group-label o-side-label">CEO 직속</p>
               <ul className="o-side-deps">
-                {ceoDeps.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={setEditing} />)}
+                {ceoDeps.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={setEditing} workspaces={view.workspaces} />)}
               </ul>
             </div>
           )}
         </div>
 
-        <DepartmentGroup title="비서실장 산하" departments={chiefDeps} can={can} busy={busy} onEdit={setEditing} />
+        <DepartmentGroup title="비서실장 산하" departments={chiefDeps} can={can} busy={busy} onEdit={setEditing} workspaces={view.workspaces} />
         {view.departments.length === 0 && (
           <div className="o-empty">
             <p className="o-empty-title">아직 부서가 없습니다</p>
@@ -247,26 +257,26 @@ export function OrgChartPage(_props: PluginPageProps) {
   );
 }
 
-function DepartmentGroup({ title, departments, can, busy, onEdit }: { title: string; departments: Department[]; can: boolean; busy: boolean; onEdit: (e: Editing) => void }) {
+function DepartmentGroup({ title, departments, can, busy, onEdit, workspaces }: { title: string; departments: Department[]; can: boolean; busy: boolean; onEdit: (e: Editing) => void; workspaces?: Workspaces }) {
   if (departments.length === 0) return null;
   return (
     <div className="o-group">
       <p className="o-group-label">{title}</p>
       <ul className="o-deps">
-        {departments.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={onEdit} />)}
+        {departments.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={onEdit} workspaces={workspaces} />)}
       </ul>
     </div>
   );
 }
 
-function DepartmentCard({ department: d, can, busy, onEdit }: { department: Department; can: boolean; busy: boolean; onEdit: (e: Editing) => void }) {
+function DepartmentCard({ department: d, can, busy, onEdit, workspaces }: { department: Department; can: boolean; busy: boolean; onEdit: (e: Editing) => void; workspaces?: Workspaces }) {
   return (
     <li className="o-dep">
       <div className="o-dep-head">
         <span className="o-dep-icon" aria-hidden="true"><Glyph icon={d.icon} /></span>
         <div className="o-dep-title">
           <h3 className="o-dep-name">{d.name}</h3>
-          <p className="o-muted o-small">{d.members.length}명</p>
+          <p className="o-muted o-small">{d.members.length}명{d.workspace && <> · <span className="o-dep-ws" title={d.workspace}>{shortPath(d.workspace)}</span></>}</p>
         </div>
         {can && <button type="button" className="o-btn o-btn-small" onClick={() => onEdit({ type: "department", id: d.id })} disabled={busy} aria-label={`${d.name} 부서 편집`}>편집</button>}
       </div>
@@ -284,6 +294,9 @@ function DepartmentCard({ department: d, can, busy, onEdit }: { department: Depa
                   <span className="o-member-name">
                     {m.lead && <span className="o-lead">부서장</span>}
                     {m.name}
+                    {workspaces?.members[m.id] && !workspaces.members[m.id].applied && (
+                      <span className="o-ws-warn" title={`실제 폴더: ${workspaces.members[m.id].cwd ?? "(없음)"} · 기대: ${workspaces.members[m.id].expected}`}>폴더 미적용</span>
+                    )}
                   </span>
                   <span className="o-member-title">{m.title ?? (m.missing ? "연결이 끊긴 구성원" : "직함 없음")}</span>
                   {m.duty && <span className="o-member-duty">{m.duty}</span>}
@@ -314,6 +327,7 @@ function Editor({ editing, view, member, busy, onClose, onApply }: {
   const [name, setName] = useState(dep?.name ?? "");
   const [icon, setIcon] = useState<Icon>(dep?.icon ?? "team");
   const [reportsTo, setReportsTo] = useState<"ceo" | "chief">(dep?.reportsTo ?? "chief");
+  const [workspace, setWorkspace] = useState(dep?.workspace ?? "");
   const [departmentId, setDepartmentId] = useState(placedIn?.id ?? view.departments[0]?.id ?? "");
   const [title, setTitle] = useState(member?.title ?? "");
   const [duty, setDuty] = useState(member?.duty ?? "");
@@ -325,8 +339,9 @@ function Editor({ editing, view, member, busy, onClose, onApply }: {
   function submit(event: FormEvent) {
     event.preventDefault();
     if (editing.type === "department") {
-      if (dep) onApply([{ op: "updateDepartment", id: dep.id, name, icon, reportsTo }], `${name} 부서를 수정했습니다`);
-      else onApply([{ op: "createDepartment", name, icon, reportsTo }], `${name.trim()} 부서를 만들었습니다`);
+      const ws = workspace.trim() || null;
+      if (dep) onApply([{ op: "updateDepartment", id: dep.id, name, icon, reportsTo, workspace: ws }], `${name} 부서를 수정했습니다`);
+      else onApply([{ op: "createDepartment", name, icon, reportsTo, workspace: ws }], `${name.trim()} 부서를 만들었습니다`);
     } else if (editing.type === "member" && member) {
       onApply([{ op: "assign", member: member.id, departmentId, title: title.trim() || null, duty: duty.trim() || null, lead }], `${member.name}을(를) 배치했습니다`);
     } else if (editing.type === "chief" && chiefId) {
@@ -371,6 +386,10 @@ function Editor({ editing, view, member, busy, onClose, onApply }: {
                 <option value="chief">비서실장 산하</option>
                 <option value="ceo">CEO 직속</option>
               </select>
+            </label>
+            <label className="o-field"><span>작업 폴더</span>
+              <input className="o-input" value={workspace} onChange={(e) => setWorkspace(e.target.value)} maxLength={260} placeholder={view.workspaces?.default ? `비우면 기본: ${view.workspaces.default}` : "예: C:\\Users\\me\\project"} spellCheck={false} />
+              <span className="o-muted o-small">이 PC의 절대 경로. 이 부서에 배치된 Hermes 봇은 모두 이 폴더에서 동작합니다(다음 실행부터). 비우면 기본 폴더로 되돌립니다.</span>
             </label>
           </>
         )}
@@ -493,6 +512,8 @@ color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .o-member-title{font-size:12px;color:var(--o-secondary);overflow-wrap:anywhere}
 .o-member-duty{font-size:11px;color:var(--o-muted);overflow-wrap:anywhere}
 .o-lead{font-size:10px;font-weight:700;color:var(--o-ink);background:var(--o-accent);border-radius:4px;padding:1px 6px}
+.o-dep-ws{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--o-secondary)}
+.o-ws-warn{font-size:10px;font-weight:700;color:var(--o-ink);background:var(--o-warn,#e0b25a);border-radius:4px;padding:1px 6px}
 .o-chip{flex:none;align-self:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;border:1px solid var(--o-line-strong);color:var(--o-secondary)}
 .o-chip-claude{color:var(--o-accent);border-color:rgba(189,209,170,.35);background:rgba(189,209,170,.08)}
 .o-chip-codex{color:var(--o-codex);border-color:rgba(159,199,192,.35);background:rgba(159,199,192,.08)}

@@ -3,8 +3,8 @@
 // host-verified actor, and mirrors reporting lines/titles to Paperclip through the loopback BFF.
 import { definePlugin, runWorker, type PluginContext } from "@paperclipai/plugin-sdk";
 import {
-  applyOps, emptyOrg, normalizeOrg, OrgError, syncPlan, viewOf, managedIds,
-  type Actor, type Member, type Org, type OrgOp, UUID,
+  applyOps, emptyOrg, normalizeOrg, OrgError, syncPlan, viewOf, managedIds, workspacePlan, samePath,
+  type Actor, type Member, type Org, type OrgOp, type BotRow, UUID,
 } from "./org.js";
 
 const BOT_PROFILE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
@@ -14,6 +14,10 @@ const STATE = (companyId: string) => ({ scopeKind: "company" as const, scopeId: 
 export type OrgBff = {
   bots(): Promise<{ bots?: Array<{ profile?: unknown; title?: unknown }> }>;
   patchAgentOrg(agentId: string, body: Record<string, unknown>): Promise<unknown>;
+  /** Every named bot profile with its current terminal.cwd, plus the default folder. */
+  workspaces(): Promise<{ default?: unknown; bots?: Array<{ profile?: unknown; cwd?: unknown }> }>;
+  /** cwd null → BFF default. Resolves with the value re-read from the profile config. */
+  setWorkspace(profile: string, cwd: string | null): Promise<{ cwd?: unknown; changed?: unknown }>;
 };
 
 type ActionContext = { actor?: { type?: string; userId?: string | null; agentId?: string | null } | null; companyId?: string | null } | null;
@@ -54,6 +58,11 @@ export function createBff(origin = DEFAULT_ORIGIN, fetcher: typeof fetch = fetch
       if (!UUID.test(agentId)) throw new Error("에이전트 ID 형식이 올바르지 않습니다.");
       return call(`/api/control/paperclip/agents/${agentId}/org`, { method: "PATCH", body });
     },
+    workspaces: () => call("/api/hermes/workspaces"),
+    setWorkspace: (profile, cwd) => {
+      if (!BOT_PROFILE.test(profile)) throw new Error("봇 프로필 이름이 올바르지 않습니다.");
+      return call(`/api/hermes/workspaces/${encodeURIComponent(profile)}`, { method: "PATCH", body: { cwd } });
+    },
   };
 }
 
@@ -68,6 +77,13 @@ export function modelLabel(raw: unknown): string | null {
   const claude = raw.match(/^claude-(opus|sonnet|haiku)-(\d+)-(\d+)/);
   if (claude) return `${claude[1][0].toUpperCase()}${claude[1].slice(1)} ${claude[2]}.${claude[3]}`;
   return raw.slice(0, 40);
+}
+
+/** Paperclip hermes_gateway agent → Hermes profile (`…/p/<profile>`); anything else has no profile. */
+export function profileOfAgent(row: { adapterType?: unknown; adapterConfig?: { apiBaseUrl?: unknown } | null } | undefined): string | null {
+  if (!row || row.adapterType !== "hermes_gateway") return null;
+  const m = String(row.adapterConfig?.apiBaseUrl ?? "").match(/\/p\/([a-z0-9][a-z0-9_-]{0,63})\/?$/i);
+  return m ? m[1].toLowerCase() : null;
 }
 
 function companyOf(params: Record<string, unknown>, context?: ActionContext) {
@@ -184,6 +200,7 @@ export function createOrgService(ctx: PluginContext, deps: Deps = {}) {
     }
   }
 
+  /** Returns the workspaceManaged list the org should persist (null when the list could not be read). */
   async function sync(companyId: string, org: Org, rows: any[], list: Member[]) {
     const plan = syncPlan(org, rows.map((a) => ({ id: a.id, reportsTo: a.reportsTo ?? null, title: a.title ?? null, capabilities: a.capabilities ?? null })));
     const bff = await bffFor(companyId);
@@ -199,14 +216,75 @@ export function createOrgService(ctx: PluginContext, deps: Deps = {}) {
         failed.push({ name, error: error instanceof Error ? error.message.slice(0, 200) : "동기화 실패" });
       }
     }
-    return { applied, failed };
+    // Department workspaces: every Hermes bot runs in its department's folder (default when unplaced).
+    let workspaces: WorkspaceState | null = null;
+    try {
+      workspaces = await readWorkspaces(bff);
+    } catch (error) {
+      failed.push({ name: "작업 폴더 목록", error: error instanceof Error ? error.message.slice(0, 200) : "조회 실패" });
+    }
+    let workspaceManaged: string[] | null = null;
+    if (workspaces) {
+      const byAgent = new Map<string, string | null>(rows.map((a) => [a.id, profileOfAgent(a)]));
+      const { items, desired } = workspacePlan(org, workspaces.bots, (id) => byAgent.get(id) ?? null, workspaces.default);
+      // A profile stays tracked until its restore succeeds, so a failed restore is retried on the next sync.
+      const keep = new Set(desired);
+      for (const item of items) {
+        try {
+          await bff.setWorkspace(item.profile, item.cwd);
+          applied += 1;
+        } catch (error) {
+          if (item.cwd === null) keep.add(item.profile);
+          const name = list.find((m) => (m.kind === "hermes" ? m.ref : byAgent.get(m.ref)) === item.profile)?.name ?? item.profile;
+          failed.push({ name: `${name} 작업 폴더`, error: error instanceof Error ? error.message.slice(0, 200) : "적용 실패" });
+        }
+      }
+      workspaceManaged = [...keep].sort();
+    }
+    return { applied, failed, workspaceManaged };
+  }
+
+  type WorkspaceState = { default: string; bots: BotRow[] };
+  async function readWorkspaces(bff: OrgBff): Promise<WorkspaceState> {
+    const raw = await bff.workspaces();
+    const bots: BotRow[] = [];
+    for (const b of Array.isArray(raw?.bots) ? raw.bots : []) {
+      const profile = String(b?.profile ?? "");
+      if (!BOT_PROFILE.test(profile)) continue;
+      bots.push({ profile, cwd: typeof b.cwd === "string" && b.cwd ? b.cwd : null });
+    }
+    const def = typeof raw?.default === "string" && raw.default ? raw.default : "";
+    if (!def) throw new Error("기본 작업 폴더를 알 수 없습니다.");
+    return { default: def, bots };
+  }
+
+  /** Per-member actual cwd + whether it matches the department folder (read-only evidence for the UI). */
+  async function workspaceView(companyId: string, org: Org, rows: any[]) {
+    try {
+      const bff = await bffFor(companyId);
+      const ws = await readWorkspaces(bff);
+      const byAgent = new Map<string, string | null>(rows.map((a) => [a.id, profileOfAgent(a)]));
+      const cwdOf = new Map(ws.bots.map((b) => [b.profile, b.cwd]));
+      const members: Record<string, { profile: string; cwd: string | null; expected: string; applied: boolean }> = {};
+      for (const p of Object.values(org.placements)) {
+        const profile = p.memberId.startsWith("hermes:") ? p.memberId.slice(7) : byAgent.get(p.memberId.slice(10)) ?? null;
+        if (!profile || !cwdOf.has(profile)) continue;
+        const d = org.departments.find((x) => x.id === p.departmentId);
+        const expected = d?.workspace ?? ws.default;
+        const cwd = cwdOf.get(profile) ?? null;
+        members[p.memberId] = { profile, cwd, expected, applied: samePath(cwd, expected) };
+      }
+      return { available: true as const, default: ws.default, members };
+    } catch {
+      return { available: false as const, default: null, members: {} };
+    }
   }
 
   async function view(params: Record<string, unknown>, context: ActionContext) {
     const companyId = companyOf(params ?? {}, context);
     const [org, m] = await Promise.all([load(companyId), members(companyId)]);
     const actor = actorOf(org, context, m.list);
-    return { ...viewOf(org, m.list, actor), viewer: actor.label, hermes: m.hermes, paperclip: m.paperclip, chiefCanConfigure: await chiefCanConfigure(companyId, org) };
+    return { ...viewOf(org, m.list, actor), viewer: actor.label, hermes: m.hermes, paperclip: m.paperclip, chiefCanConfigure: await chiefCanConfigure(companyId, org), workspaces: await workspaceView(companyId, org, m.rows) };
   }
 
   async function apply(params: Record<string, unknown>, context: ActionContext) {
@@ -230,15 +308,21 @@ export function createOrgService(ctx: PluginContext, deps: Deps = {}) {
       if (grant.error) result.failed.push({ name: "비서실장 설정 권한", error: grant.error });
       // Agents that are now back at top level no longer need tracking.
       const stillManaged = new Set(managedIds(next));
+      let dirty = false;
       if (next.managed.some((id) => !stillManaged.has(id)) && result.failed.length === 0) {
         next.managed = [...stillManaged].sort();
-        await ctx.state.set(STATE(companyId), next);
+        dirty = true;
       }
+      if (result.workspaceManaged && result.workspaceManaged.join("\n") !== next.workspaceManaged.join("\n")) {
+        next.workspaceManaged = result.workspaceManaged;
+        dirty = true;
+      }
+      if (dirty) await ctx.state.set(STATE(companyId), next);
       await ctx.activity.log({
         companyId, message: `조직도 변경 (${actor.label}): ${changed.slice(0, 5).join(", ")}${changed.length > 5 ? ` 외 ${changed.length - 5}건` : ""}`,
         entityType: "company", entityId: companyId, metadata: { version: next.version, synced: result.applied, failed: result.failed.length },
       }).catch(() => {});
-      return { view: { ...viewOf(next, m.list, actor), viewer: actor.label, hermes: m.hermes, paperclip: m.paperclip, chiefCanConfigure: await chiefCanConfigure(companyId, next) }, sync: result };
+      return { view: { ...viewOf(next, m.list, actor), viewer: actor.label, hermes: m.hermes, paperclip: m.paperclip, chiefCanConfigure: await chiefCanConfigure(companyId, next), workspaces: await workspaceView(companyId, next, m.rows) }, sync: { applied: result.applied, failed: result.failed } };
     });
   }
 
@@ -253,7 +337,9 @@ export function createOrgService(ctx: PluginContext, deps: Deps = {}) {
       if (grant.org.grantedConfigure !== org.grantedConfigure) await ctx.state.set(STATE(companyId), grant.org);
       const result = await sync(companyId, org, m.rows, m.list);
       if (grant.error) result.failed.push({ name: "비서실장 설정 권한", error: grant.error });
-      return { sync: result };
+      if (result.workspaceManaged && result.workspaceManaged.join("\n") !== org.workspaceManaged.join("\n"))
+        await ctx.state.set(STATE(companyId), { ...grant.org, workspaceManaged: result.workspaceManaged });
+      return { sync: { applied: result.applied, failed: result.failed } };
     });
   }
 

@@ -5,11 +5,13 @@ export const ICONS = ["team", "document", "chat", "brush", "code", "cart", "char
 export type Icon = (typeof ICONS)[number];
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MEMBER_ID = /^(paperclip:[0-9a-f-]{36}|hermes:[a-z0-9][a-z0-9_-]{0,63})$/i;
+const BOT_PROFILE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const MAX_DEPARTMENTS = 30;
 const MAX_OPS = 50;
 export const CHIEF_TITLE = "비서실장";
 
-export type Department = { id: string; name: string; icon: Icon; reportsTo: "ceo" | "chief" };
+/** `workspace`: absolute folder every Hermes bot placed in the department runs in (null = BFF default). */
+export type Department = { id: string; name: string; icon: Icon; reportsTo: "ceo" | "chief"; workspace: string | null };
 export type Placement = { memberId: string; departmentId: string; title: string | null; duty: string | null; lead: boolean };
 export type Org = {
   version: number;
@@ -20,6 +22,8 @@ export type Org = {
   managed: string[];
   /** Agent that received `agents:configure` from this plugin (so we only ever revoke what we granted). */
   grantedConfigure: string | null;
+  /** Hermes profiles whose terminal.cwd this plugin pointed at a department folder; only these are ever restored. */
+  workspaceManaged: string[];
   updatedAt: string | null;
   updatedBy: string | null;
 };
@@ -33,8 +37,8 @@ export type Member = {
 
 export type OrgOp =
   | { op: "setChief"; agentId: string | null }
-  | { op: "createDepartment"; name: string; icon?: Icon; reportsTo?: "ceo" | "chief" }
-  | { op: "updateDepartment"; id: string; name?: string; icon?: Icon; reportsTo?: "ceo" | "chief" }
+  | { op: "createDepartment"; name: string; icon?: Icon; reportsTo?: "ceo" | "chief"; workspace?: string | null }
+  | { op: "updateDepartment"; id: string; name?: string; icon?: Icon; reportsTo?: "ceo" | "chief"; workspace?: string | null }
   | { op: "deleteDepartment"; id: string }
   | { op: "moveDepartment"; id: string; index: number }
   | { op: "assign"; member: string; departmentId: string | null; title?: string | null; duty?: string | null; lead?: boolean }
@@ -47,7 +51,7 @@ export class OrgError extends Error {
 }
 
 export function emptyOrg(): Org {
-  return { version: 0, chiefAgentId: null, departments: [], placements: {}, managed: [], grantedConfigure: null, updatedAt: null, updatedBy: null };
+  return { version: 0, chiefAgentId: null, departments: [], placements: {}, managed: [], grantedConfigure: null, workspaceManaged: [], updatedAt: null, updatedBy: null };
 }
 
 /** Accept only the known shape from storage; anything malformed becomes an empty org rather than a crash. */
@@ -57,7 +61,7 @@ export function normalizeOrg(raw: unknown): Org {
   const r = raw as Record<string, unknown>;
   const departments = Array.isArray(r.departments)
     ? r.departments.filter((d): d is Department => !!d && typeof (d as Department).id === "string" && typeof (d as Department).name === "string")
-      .map((d) => ({ id: d.id, name: d.name, icon: iconOf(d.icon), reportsTo: d.reportsTo === "ceo" ? "ceo" as const : "chief" as const }))
+      .map((d) => ({ id: d.id, name: d.name, icon: iconOf(d.icon), reportsTo: d.reportsTo === "ceo" ? "ceo" as const : "chief" as const, workspace: storedWorkspace(d.workspace) }))
     : [];
   const depIds = new Set(departments.map((d) => d.id));
   const placements: Record<string, Placement> = {};
@@ -75,6 +79,7 @@ export function normalizeOrg(raw: unknown): Org {
     placements,
     managed: Array.isArray(r.managed) ? r.managed.filter((x): x is string => typeof x === "string" && UUID.test(x)) : [],
     grantedConfigure: typeof r.grantedConfigure === "string" && UUID.test(r.grantedConfigure) ? r.grantedConfigure : null,
+    workspaceManaged: Array.isArray(r.workspaceManaged) ? [...new Set(r.workspaceManaged.filter((x): x is string => typeof x === "string" && BOT_PROFILE.test(x)))].sort() : [],
     updatedAt: strOrNull(r.updatedAt),
     updatedBy: strOrNull(r.updatedBy),
   };
@@ -85,6 +90,28 @@ function strOrNull(v: unknown) {
 }
 function iconOf(v: unknown): Icon {
   return (ICONS as readonly string[]).includes(v as string) ? (v as Icon) : "team";
+}
+
+const WORKSPACE_MAX = 260;
+const ABSOLUTE = /^([A-Za-z]:[\\/]|\/)/;
+/** Shape-only check (absolute, no `..`, no control chars); existence is the BFF's call. */
+export function workspaceText(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") throw new OrgError("작업 폴더 형식이 올바르지 않습니다.");
+  const t = value.trim();
+  if (!t) return null;
+  if (t.length > WORKSPACE_MAX) throw new OrgError(`작업 폴더 경로는 ${WORKSPACE_MAX}자 이하여야 합니다.`);
+  if (/[\u0000-\u001f]/.test(t)) throw new OrgError("작업 폴더 경로에 제어 문자가 있습니다.");
+  if (!ABSOLUTE.test(t)) throw new OrgError("작업 폴더는 절대 경로여야 합니다 (예: C:\\Users\\me\\project).");
+  if (t.split(/[\\/]/).some((seg) => seg === "..")) throw new OrgError("작업 폴더 경로에 '..'을 쓸 수 없습니다.");
+  return t.replace(/[\\/]+$/, "") || t;
+}
+function storedWorkspace(v: unknown): string | null {
+  try {
+    return workspaceText(v);
+  } catch {
+    return null;
+  }
 }
 
 export function authorize(org: Org, actor: Actor) {
@@ -157,7 +184,7 @@ export function applyOps(org: Org, actor: Actor, ops: OrgOp[], options: ApplyOpt
         if (next.departments.length >= MAX_DEPARTMENTS) throw new OrgError(`부서는 ${MAX_DEPARTMENTS}개까지 만들 수 있습니다.`);
         const name = text(op.name, "부서 이름", 40, true)!;
         uniqueName(name);
-        next.departments.push({ id: options.newId(), name, icon: iconOf(op.icon), reportsTo: op.reportsTo === "ceo" ? "ceo" : "chief" });
+        next.departments.push({ id: options.newId(), name, icon: iconOf(op.icon), reportsTo: op.reportsTo === "ceo" ? "ceo" : "chief", workspace: workspaceText(op.workspace) });
         changed.push(`부서 생성: ${name}`);
         break;
       }
@@ -170,6 +197,7 @@ export function applyOps(org: Org, actor: Actor, ops: OrgOp[], options: ApplyOpt
         }
         if (op.icon !== undefined) d.icon = iconOf(op.icon);
         if (op.reportsTo !== undefined) d.reportsTo = op.reportsTo === "ceo" ? "ceo" : "chief";
+        if (op.workspace !== undefined) d.workspace = workspaceText(op.workspace);
         changed.push(`부서 수정: ${d.name}`);
         break;
       }
@@ -279,6 +307,48 @@ export function syncPlan(org: Org, agents: AgentRow[]): SyncItem[] {
     if (Object.keys(patch).length) plan.push({ agentId, patch });
   }
   return plan;
+}
+
+export type BotRow = { profile: string; cwd: string | null };
+export type WorkspaceItem = { profile: string; cwd: string | null; department: string | null };
+export type WorkspacePlan = {
+  /** BFF calls to make (cwd null = restore default). */
+  items: WorkspaceItem[];
+  /** Profiles that must be in `org.workspaceManaged` once every item succeeded (desired ∪ failed restores). */
+  desired: string[];
+};
+
+/**
+ * Hermes profiles whose terminal.cwd must change so bots run inside their department's workspace.
+ * A bot placed in a department that has a workspace → that folder. A profile this plugin previously
+ * pointed at a folder (`org.workspaceManaged`) and that is no longer placed there → `null` (default).
+ * Profiles the chart never touched are NEVER planned, whatever their cwd is; neither is the chief's.
+ * `profileOf` maps a paperclip agent id to its Hermes profile.
+ */
+export function workspacePlan(org: Org, bots: BotRow[], profileOf: (agentId: string) => string | null, defaultCwd: string): WorkspacePlan {
+  const current = new Map(bots.map((b) => [b.profile, b.cwd]));
+  const chiefProfile = org.chiefAgentId ? profileOf(org.chiefAgentId) : null;
+  const desired = new Map<string, { cwd: string; department: string }>();
+  for (const p of Object.values(org.placements)) {
+    const profile = p.memberId.startsWith("hermes:") ? p.memberId.slice(7) : profileOf(p.memberId.slice("paperclip:".length));
+    if (!profile || !current.has(profile) || profile === chiefProfile) continue;
+    const d = org.departments.find((x) => x.id === p.departmentId);
+    if (d?.workspace) desired.set(profile, { cwd: d.workspace, department: d.name });
+  }
+  const items: WorkspaceItem[] = [];
+  for (const [profile, want] of desired) {
+    if (!samePath(current.get(profile), want.cwd)) items.push({ profile, cwd: want.cwd, department: want.department });
+  }
+  for (const profile of org.workspaceManaged) {
+    if (desired.has(profile) || profile === chiefProfile || !current.has(profile)) continue;
+    if (!samePath(current.get(profile), defaultCwd)) items.push({ profile, cwd: null, department: null });
+  }
+  return { items: items.sort((a, b) => a.profile.localeCompare(b.profile)), desired: [...desired.keys()].sort() };
+}
+
+export function samePath(a: string | null | undefined, b: string | null | undefined): boolean {
+  const n = (s: string | null | undefined) => (s ?? "").replace(/[\\/]+/g, "/").replace(/\/+$/, "").toLowerCase();
+  return n(a) === n(b);
 }
 
 /** Paperclip agents whose reporting line the org chart now owns (chief + placed paperclip members). */
