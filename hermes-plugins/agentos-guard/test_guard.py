@@ -138,6 +138,55 @@ class ChiefRules(unittest.TestCase):
         self.assertIsNotNone(self.c.evaluate("terminal", {"command": 'echo x > "C:/Users/x/orca/agent os/docs/a.md"'}))
 
 
+class ChiefTitleRules(unittest.TestCase):
+    def setUp(self):
+        self.c = g("chief")
+        self.url = '"$PAPERCLIP_API_URL/api/companies/db6f5310/issues"'
+
+    def _create(self, title, extra=""):
+        return self.c.evaluate("terminal", {"command": f'curl -s -X POST {self.url} -H "Content-Type: application/json" -d \'{{"title":"{title}","assigneeAgentId":"x"{extra}}}\''})
+
+    def test_good_titles_pass(self):
+        for t in ("홈페이지 › 가을 발효 클래스 인스타 홍보문구 1개 작성", "AgentOS › 검수봇 도입 › 반려 시험 이슈로 실전 검증",
+                  "조직도 › 대시보드 개선팀 구성하기", "학원 › 10월 수강생 후기 3건 정리"):
+            self.assertIsNone(self._create(t), t)
+
+    def test_numbered_and_vague_titles_blocked(self):
+        for t in ("조직도 › 검수봇-1", "조직도 › 검수봇-1 › 반려시험-1", "요청: 인스타 문구", "AgentOS › 시험",
+                  "인스타 홍보문구 1개 작성", "A › B › C › D 를 정리", "홈페이지 › 아주아주아주아주아주아주아주아주아주아주아주아주아주아주아주아주아주아주 긴 제목 작성"):
+            r = self._create(t)
+            self.assertIsNotNone(r, t); self.assertIn("작업 제목 형식 위반", r)
+
+    def test_block_message_carries_fix_hint(self):
+        r = self._create("조직도 › 검수봇-1")
+        self.assertIn("예) 홈페이지 › 가을 발효 클래스", r)
+
+    def test_rename_via_patch_checked(self):
+        r = self.c.evaluate("terminal", {"command": 'curl -s -X PATCH "$PAPERCLIP_API_URL/api/issues/bb30b4d7-3a72-4d84-ba97-20dfe787725d" -d \'{"title":"조직도 › 검수봇-2"}\''})
+        self.assertIsNotNone(r)
+
+    def test_heredoc_body_checked(self):
+        cmd = 'curl -s -X POST "$PAPERCLIP_API_URL/api/companies/x/issues" -H "Content-Type: application/json" --data-binary @- <<\'EOF\'\n{"title":"조직도 › 검수봇-3","description":"npm 언급"}\nEOF'
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd}))
+
+    def test_json_body_file_checked_at_write_time(self):
+        r = self.c.evaluate("write_file", {"path": "C:/Users/x/AppData/Local/hermes/cache/scratch/issue.json", "content": '{"title":"조직도 › 검수봇-4","description":"x"}'})
+        self.assertIsNotNone(r)
+        self.assertIsNone(self.c.evaluate("write_file", {"path": "C:/Users/x/AppData/Local/hermes/cache/scratch/issue.json", "content": '{"title":"조직도 › 검수봇 역할 문서 작성"}'}))
+
+    def test_comment_and_document_titles_not_checked(self):
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'curl -s -X POST "$PAPERCLIP_API_URL/api/issues/x/comments" -d \'{"body":"제목 \\"검수봇-1\\" 참고"}\''}))
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'curl -s -X PUT "$PAPERCLIP_API_URL/api/issues/x/documents/review" -d \'{"title":"검수-1","body":"x"}\''}))
+        self.assertIsNone(self.c.evaluate("terminal", {"command": 'curl -s -X PATCH "$PAPERCLIP_API_URL/api/issues/x" -d \'{"status":"done"}\''}))
+
+    def test_archived_prefix_skipped(self):
+        self.assertIsNone(self._create("[보관] AgentOS › guard-시험-1"))
+
+    def test_reviewer_not_subject_to_title_rules(self):
+        r = g("reviewer")
+        self.assertIsNone(r.evaluate("terminal", {"command": 'curl -s -X PATCH "$PAPERCLIP_API_URL/api/issues/x" -d \'{"title":"검수봇-1"}\''}))
+
+
 class ReviewerRules(unittest.TestCase):
     def setUp(self):
         self.r = g("reviewer")

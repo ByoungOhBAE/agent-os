@@ -50,9 +50,10 @@ def _split_command_line(cmd: str) -> List[str]:
             # consume whole lines until the terminator line
             nl = cmd.find("\n", i)
             line = cmd[i:] if nl < 0 else cmd[i:nl]
-            buf.append(line)
+            buf.append(line + "\n")
             if line.strip() == heredoc_end:
                 heredoc_end = None
+                segs.append("".join(buf)); buf = []
             i = len(cmd) if nl < 0 else nl + 1
             continue
         if quote:
@@ -123,6 +124,85 @@ def _path_matches(norm: str, globs: List[str]) -> bool:
     return False
 
 
+class TitleRules:
+    """Human-readable issue title policy (rules.yaml `issue_title`). Checked when a bot creates/renames an
+    issue through the Paperclip API, so titles like `조직도 › 검수봇-1 › 반려시험-1` are refused with a fix hint."""
+
+    def __init__(self, cfg: Dict[str, Any]):
+        self.sep = str(cfg.get("separator") or "›")
+        self.min_parts = int(cfg.get("min_parts") or 2)
+        self.max_parts = int(cfg.get("max_parts") or 3)
+        self.leaf_min = int(cfg.get("leaf_min_chars") or 8)
+        self.leaf_max = int(cfg.get("leaf_max_chars") or 40)
+        self.action_words = [str(w) for w in (cfg.get("action_words") or [])]
+        self.action_suffixes = [str(w) for w in (cfg.get("action_suffixes") or ["하기"])]
+        self.forbidden = [re.compile(p) for p in (cfg.get("forbidden_patterns") or [])]
+        self.skip_prefixes = [str(p) for p in (cfg.get("skip_prefixes") or ["[보관]"])]
+        self.example = str(cfg.get("example") or "홈페이지 › 가을 발효 클래스 인스타 홍보문구 1개 작성")
+        self._action_re = re.compile(r"(" + "|".join(map(re.escape, self.action_words)) + r")\s*$") if self.action_words else None
+
+    def check(self, title: str) -> Optional[str]:
+        t = title.strip()
+        if not t or any(t.startswith(p) for p in self.skip_prefixes):
+            return None
+        parts = [p.strip() for p in t.split(self.sep)]
+        hint = f"규칙: <영역> {self.sep} <무엇을 어떻게 한다> (2~{self.max_parts}칸, 마지막 칸 {self.leaf_min}~{self.leaf_max}자, 끝이 동작어). 예) {self.example}"
+        if len(parts) < self.min_parts or len(parts) > self.max_parts or any(not p for p in parts):
+            return f"작업 제목 형식 위반(칸 수 {len(parts)}): `{t}` — {hint}"
+        leaf = parts[-1]
+        for pat in self.forbidden:
+            if pat.search(leaf):
+                return f"작업 제목 형식 위반(금지 표현 '{pat.pattern}'): `{t}` — {hint}"
+        n = len(leaf)
+        if n < self.leaf_min or n > self.leaf_max:
+            return f"작업 제목 형식 위반(마지막 칸 {n}자): `{t}` — {hint}"
+        if self._action_re and not (self._action_re.search(leaf) or any(leaf.endswith(s) for s in self.action_suffixes)):
+            return (f"작업 제목 형식 위반(마지막 칸이 동작어로 끝나지 않음): `{t}` — {hint} "
+                    f"(동작어: {', '.join(self.action_words[:12])}…)")
+        return None
+
+
+# Paperclip issue create/rename: a curl with a body (-d/--data*/heredoc) whose URL ends in /issues or /issues/<id>
+# (comments/documents/execution sub-paths are excluded by the URL regex).
+_ISSUE_CALL = re.compile(r"^curl\b.*(\s-d\b|\s--data(-binary|-raw)?\b|\s-X\s*(POST|PATCH)\b|<<)")
+_ISSUE_URL = re.compile(r"/api/(companies/[^/\s\"']+/)?issues(/[0-9a-f-]{36})?[\"']?(\s|$)")
+_TITLE_JSON = re.compile(r"\"title\"\s*:\s*\"((?:\\.|[^\"\\])*)\"")
+
+
+def _issue_titles_from_json(text: Any) -> List[str]:
+    if not isinstance(text, str) or "\"title\"" not in text:
+        return []
+    out = []
+    for m in _TITLE_JSON.finditer(text):
+        try:
+            out.append(json.loads(f'"{m.group(1)}"'))
+        except ValueError:
+            out.append(m.group(1))
+    return out
+
+
+def _issue_titles_from_curl(seg: str, shape: str, quoted: List[str]) -> List[str]:
+    """Titles from an inline JSON body (-d/--data*), a heredoc body, or an @file body in a curl to /issues."""
+    url_hit = any(_ISSUE_URL.search(q + " ") for q in quoted) or _ISSUE_URL.search(shape)
+    if not url_hit:
+        return []
+    titles: List[str] = []
+    for q in quoted:
+        titles += _issue_titles_from_json(q)
+    if m := _HEREDOC_BODY.search(seg):
+        titles += _issue_titles_from_json(m.group(3))
+    for fm in re.finditer(r"@([^\s\"']+)", shape):
+        p = fm.group(1)
+        if p.startswith("Q") and p[1:].isdigit():
+            p = quoted[int(p[1:])]
+        if p != "-":
+            try:
+                titles += _issue_titles_from_json(Path(p.replace("\\", "/")).read_text(encoding="utf-8"))
+            except OSError:
+                pass
+    return titles
+
+
 class Guard:
     """Pure rule evaluator — no Hermes imports, so it is unit-testable and reusable."""
 
@@ -133,6 +213,7 @@ class Guard:
             raise ValueError(f"agentos-guard: unknown mode {mode!r} (valid: {', '.join(_VALID_MODES)})")
         self.role, self.mode, self.log_path = role, mode, log_path
         r = (rules.get("roles") or {}).get(role) or {}
+        self.title_rules = TitleRules(rules.get("issue_title") or {}) if r.get("check_issue_title") else None
         self.deny_tools = set(((r.get("tools") or {}).get("deny")) or [])
         self.deny_skill_actions = set(((r.get("skill_manage") or {}).get("deny_actions")) or [])
         w = r.get("write") or {}
@@ -197,6 +278,10 @@ class Guard:
             return None
         for seg in _split_command_line(cmd):
             shape, quoted = _strip_data(seg)
+            if self.title_rules and _ISSUE_CALL.search(shape):
+                for title in _issue_titles_from_curl(seg, shape, quoted):
+                    if reason := self.title_rules.check(title):
+                        return reason
             if _SHELL_ESCAPE.search(shape):
                 return f"{self.role} 역할은 셸 인터프리터에 명령 문자열을 넘길 수 없습니다: `{seg[:120]}`"
             if self.redirect_guard:
@@ -233,6 +318,10 @@ class Guard:
             reason = self._check_skill_manage(args)
         if reason is None and tool_name in _WRITE_TOOLS:
             reason = self._check_write(tool_name, args)
+        if reason is None and self.title_rules and tool_name == "write_file":
+            for title in _issue_titles_from_json(args.get("content")):
+                if reason := self.title_rules.check(title):
+                    break
         if reason is None and tool_name in _TERMINAL_TOOLS:
             reason = self._check_terminal(args)
         return reason

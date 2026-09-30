@@ -18,10 +18,28 @@
 # mode (warn|block) and role come from config.yaml:
 #   plugins.entries.agentos-guard.settings: { role: chief, mode: warn }
 
-version: 2
+version: 3
+
+# Human-readable issue titles. Enforced for roles with `check_issue_title: true` whenever they create/rename an
+# issue via curl (inline -d, heredoc, @file body) or write a JSON body containing "title".
+issue_title:
+  separator: "›"
+  min_parts: 2
+  max_parts: 3
+  leaf_min_chars: 8
+  leaf_max_chars: 40
+  example: "홈페이지 › 가을 발효 클래스 인스타 홍보문구 1개 작성"
+  skip_prefixes: ["[보관]"]
+  action_words: [작성, 구현, 검증, 분석, 정리, 설계, 수정, 조사, 비교, 시험, 보고, 설정, 배포, 검수, 제작, 개선, 추가, 삭제, 이전, 교체, 점검, 확인, 통합, 분리, 준비, 생성, 정의, 계획, 리뷰, 평가, 측정, 번역, 요약, 문서화, 자동화, 복구]
+  action_suffixes: [하기, 만들기, 고치기, 옮기기, 찾기, 바꾸기]
+  forbidden_patterns:
+    - '-\d+\s*$'                                 # 순번 접미사 (검수봇-1)
+    - '^(요청|테스트|시험|작업|task|test)\s*[:：]?\s*$'
+    - '^\s*(요청|task)\s*[:：]'
 
 roles:
   chief:
+    check_issue_title: true
     tools:
       deny: [execute_code, code_execution]
     skill_manage:
