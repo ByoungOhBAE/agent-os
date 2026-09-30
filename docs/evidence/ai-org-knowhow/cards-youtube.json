@@ -1,0 +1,321 @@
+[
+ {
+  "url": "https://www.youtube.com/watch?v=EzQAgnjTq2k",
+  "title": "My top secrets to running an AI Agent Workforce (Allie K. Miller)",
+  "author": "Greg Isenberg 채널 / Allie K. Miller",
+  "date": "2026-08-12",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "AI 비서실장 'Simon' 1명 아래 6명의 디렉터(교육/클라이언트/운영/마케팅/제품 + 'Phoebe' 최고몽상책임자)가 있고, 그 아래 서브에이전트까지 총 34개 에이전트로 구성. 본인은 직접 관리자가 아니라 'SVP 3단계 위'에서 인프라를 세팅하고 에스컬레이션만 기다리는 역할. 특이 역할로 Simon의 보조 'Toby'는 워크포스가 일하는 것을 관찰해 마찰·접근권한 부족을 기록만 한다. 사람 팀원도 Slack 채널(Loop Allie)에서 워크포스에 직접 질문할 수 있다.",
+  "accuracy": "무엇: 위험 등급은 유지하고 폭만 확장 — 이메일은 전부 여전히 본인이 확인하며, 에이전트는 '결정과 에스컬레이션'을 가져온다. 왜: 초기에 'Greg가 인터뷰 확정했다'처럼 코드화되지 않은 맥락(문자로 진행 중)을 몰라서 틀린 판단이 반복됐고, 그걸 고치는 데 수개월이 걸렸기 때문. 어떻게: (1) 매일 저녁 AI가 프롬프트를 띄워 회의/이메일/Slack에 없는 암묵지를 4배 빠른 '받아쓰기'로 개인 위키에 축적(86건 이상), (2) 분기마다 목표 문서를 워크포스와 함께 리뷰해 데스크톱+드라이브에 복제, (3) Slack 중복작업 감시·캘린더 충돌 감시·회의 의견불일치 감시 등 'AI 와치독'을 별도로 둔다.",
+  "efficiency": "무엇: 목표 문서 + 전체 컨텍스트 접근(회의록, Gmail, 캘린더, Notion, Stripe, Supabase, GitHub)을 준 뒤 하루 여러 번 세 단어 프롬프트 'Do smart things'로 자율 실행. 왜: 모든 작업이 본인 프롬프트에서 시작되면 본인 상상력이 한계가 되므로. 어떻게: 트리거 기반 자동화(녹화 폴더에 영상 드롭→전사→9개 SNS 초안)는 '정의된 워크플로우', 하반기는 '정의되지 않은 워크플로우'의 선제 실행으로 확장. 서브에이전트는 Haiku/Sonnet 등 작은 모델로 돌리고 Opus는 필요한 곳만. 한 제품이 아닌 '제품을 만드는 공장(로그인/결제/공유/뉴스레터 프리미티브)'을 먼저 만드는 루프 구조.",
+  "tools": "Claude Code(모든 채팅 채널 상주), Claude Tag(Slack), Codex, iMessage MCP(고장 경험), Notion, Stripe, Supabase, GitHub, Gmail/Calendar, 자체 미션컨트롤 화면, 개인 위키(Brain Meets Diary)",
+  "evidence_level": "observed(워크포스 조직도·일기 화면·Slack 채널 공유 언급, 일부는 서술)",
+  "failures": "코드화되지 않은 맥락 때문에 에이전트가 틀린 전제로 행동(인터뷰 확정 오인), iMessage MCP 고장, Claude Tag 설정이 '지금은 엉망', 워크포스가 90%+ 수준에 도달하기까지 수개월의 반복 필요, 2015년식 직함(CMO 등)으로 조직을 짜면 구조가 구식이 됨.",
+  "quotes": [
+   "\"I feel like I'm moving from managing to like waiting for escalations.\"",
+   "\"The tier of risk has stayed the same, but the width has expanded.\"",
+   "\"AI as a watchdog is one of the best use cases that exist right now and almost no one is doing this.\""
+  ],
+  "agentos_fit": "바로 적용 — 비서실장 단일 창구 + 에스컬레이션 모델이 AgentOS와 동일. 'Toby(마찰 관찰자)'와 '일일 암묵지 받아쓰기→위키' 루프, Slack 와치독을 Hermes 크론으로 추가 가능."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=Voc6PsCq_OQ",
+  "title": "How I Run My Company with a Fleet of 30 AI Agents",
+  "author": "Eugene Vyborov (Ability AI / Trinity)",
+  "date": "2026-08-14",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "Chief of Staff(Corbin) 오케스트레이터 1명이 본인과 1:1로 소통하는 유일한 진입점. 아래에 부서 매니저(Tom marketing ops가 9개 마케팅 에이전트 관리, finance manager 등)와 워커가 계층을 이루며 '계층을 건너뛰지 않음'(작가→매니저→CoS). 별도로 helper군(OSINT, PR 전략가, 실험용 lab, 화재위험 감시)이 CoS와 직접 통신. 각 에이전트는 GitHub 저장소 하나=에이전트 하나, 자체 샌드박스, 사람 오너(부서장) 1명.",
+  "accuracy": "무엇: (1) 사실·가격·정책이 담긴 공유 진실 'Canon' 저장소는 정책 변경 시 사람 승인 게이트를 거쳐야 반영, (2) 중요한 스킬은 게이트 설계라 작업 중 승인 필요 시 작업을 멈추고 Telegram/Slack으로 승인 요청, (3) CoS 스케줄에 '플릿 프로파일링·리컨실리에이션' 스킬을 넣어 에이전트가 '했다고 말한 것을 실제로 했는지' 교차 검증, (4) 변조 불가 감사 로그로 모든 실행을 드릴다운. 왜: 다수 에이전트가 자율 실행되면 상태 불일치·허위 완료가 누적되기 때문. 어떻게: 새 에이전트는 auto 스위치 OFF 상태로 약 1주일 테스트 후 자율 전환; 권한 매트릭스는 기본 전부 차단 후 의식적으로 개방하고 미사용 채널은 다시 닫음.",
+  "efficiency": "무엇: 에이전트/채널/폴더 이름을 동일 슬러그(tom-marketing-ops)로 통일, 프로젝트는 GitHub Issues+라벨로 관리, 공유 스킬 라이브러리와 두 번째 뇌 'Cornelius'(지식 그래프 RAG)를 매니저급이 전략 자문에 사용. 왜: 파일 기반·버전관리된 공유 상태여야 롤백과 로컬 복제(로컬 Claude Code로 같은 에이전트 개발 후 배포)가 가능. 어떻게: 일일 'fleet sync to head', 주간 'fleet profiling', 'canon freshness' 크론; CoS가 스킬로 새 에이전트를 생성·퇴역(데이터룸 에이전트 폐기 사례).",
+  "tools": "Trinity(오픈소스, 자체 호스팅), Claude Code 기반 + Gemini CLI/Codex, GitHub(Canon/Issues), Telegram/Slack/Teams, Cornelius(second brain), MCP",
+  "evidence_level": "observed(플릿 대시보드·Canon 저장소·권한 매트릭스·운영 큐 실화면)",
+  "failures": "'내가 가장 큰 병목' — 3일치 운영 승인 큐를 비우지 못해 에이전트들이 블록됨, 팀원에게 승인 권한을 나눠야 함을 인정. 운영(DevOps) 승인과 비즈니스 승인 체인 구분이 아직 불명확. 실험 에이전트 퇴역 사례.",
+  "quotes": [
+   "\"This chief of staff agent over here is the orchestrator... this is the only agent that I work with one-to-one.\"",
+   "\"Everything is closed by default. We're opening that as a conscious step.\"",
+   "\"I am the biggest bottleneck in this whole setup.\""
+  ],
+  "agentos_fit": "바로 적용 — CoS 단일 창구·휴먼 게이트·감사 로그·Canon(정책 승인제)이 Paperclip 승인 보드+증거 게이트와 1:1 대응. '했다고 말한 것 검증' 리컨실리에이션 크론과 승인 권한 분산은 즉시 반영할 교훈."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=ieCje847TG0",
+  "title": "이 사람이 조율, 실행, 리뷰, 판단 에이전트들과 일하는 법 (강정구 라이너 AI전략 총괄)",
+  "author": "티타임즈TV / 강정구",
+  "date": "2026-08-12",
+  "lang": "ko",
+  "type": "youtube",
+  "structure": "약 80개 에이전트를 7단계 워크플로우로 운용. ①목표 설정(본인) ②'캐스팅' 스킬: 팀장 오케스트레이터가 사전 정의된 50명(전략기획·마케팅·디자인·인사·재무·법무 등 비즈니스 직군) 중 선별해 워크플로우 구성 ③실행 ④'파이브 컬러' 리뷰어 5명(블랙=작성자, 레드=비판, 블루=옹호, 실버=전문가, 골드=돈 내는 상사/고객) ⑤'코리안' 휴머나이징 스킬 ⑥검증 에이전트 ⑦판단(본인) + 25명 어드바이저 그룹(철학자/전략가/투자가/이순신). 자주 쓰는 상황 35개를 템플릿화.",
+  "accuracy": "무엇: 별도 리뷰 전담 5인 페르소나와 별도 '검증' 단계. 왜: 팩트 강박·할루시네이션이 심해서. 어떻게: 레드팀/블루팀/골드(평가자 관점) 등 서로 다른 시각의 리뷰어를 고정 페르소나로 두고, 검증 단계에서는 라이너 API 또는 토큰 여유 시 '검증 에이전트를 대량으로 붙여 모든 출처를 레이어별로 검증하라'고 지시. 최종 판단은 반드시 사람이 하되 어려운 주제는 25명 어드바이저 시스템 프롬프트에 자문.",
+  "efficiency": "무엇: 캐스팅(팀빌더) 스킬로 목표당 팀을 자동 편성, 35개 상황별 프롬프트 구조를 Claude/ChatGPT 프로젝트에 붙여 즉시 실행, 스킬·슬라이드 라이브러리를 GitHub에 공개. 왜: 80명을 직접 관리하기 어렵고 매번 팀을 새로 짜면 비효율. 어떻게: 하네스를 '느슨하게' 정의하니 Opus 5급 모델이 스스로 구조를 잘 짬(과도한 제약보다 역할·평가기준·컨텍스트·도구·순서·가드레일만 정의). 사내에서는 1인 1 Hermes 에이전트가 Slack 상주, 한 달 논의를 뉴스레터로 자동 정리.",
+  "tools": "Claude(Opus 5)/ChatGPT 프로젝트, 자체 스킬(캐스팅, 파이브컬러, 코리안), 라이너 API(검증), Hermes(사내 Slack 상주), GitHub 공개 스킬",
+  "evidence_level": "narrated(장표·스킬 구조 화면 공유, 실제 실행 로그는 미공개)",
+  "failures": "AI스러운 문체 → 휴머나이징 단계 필요; 할루시네이션 심함 → 별도 검증 단계 필수; 조직 도입 시 '두려움/저항감'이 최대 병목; 용어 혼란(에이전트/스킬/MCP/하네스/루프).",
+  "quotes": [
+   "\"작년에는 저 혼자 일했고요. 지금은 저는 이제 한 80명의 에이전트와 같이 일하고 있다\"",
+   "\"리뷰를 전담하는 다섯 명의 또 팀원을 가지고 있습니다... 레드 팀은 비판하는 사람, 블루 팀은 옹호해 주는 사람\"",
+   "\"검증하는 에이전트를 엄청나게 붙여서 모든 출처를 다 레이어로 검증해라\""
+  ],
+  "agentos_fit": "수정 필요 — 7단계(목표→캐스팅→실행→리뷰→검증→판단) 파이프라인과 다관점 리뷰어는 AgentOS 증거 게이트로 그대로 매핑 가능하나, 실제 자동화 인프라는 프로젝트 프롬프트 수준이라 Hermes 봇/칸반으로 재구현 필요."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=pGIzhiZww9Q",
+  "title": "I Built an AI Chief of Staff with Hermes Agent (Full Setup)",
+  "author": "Rakhul Karthick",
+  "date": "2026-08-04",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "Hermes 에이전트를 Chief of Staff(리더)로 두고 Multika '스쿼드(core team)'에 멤버 배치: 리서치·기획(Claude Opus), 디자인(Opus), 이미지 생성(Codex+GPT image 2), 코딩·영상(복잡=Opus, 단순=Sonnet). 사용자는 Telegram으로 CoS에게만 말하고 CoS가 누가 무엇을 할지 결정. 한 멤버가 리서치, 한 멤버가 작성, 한 멤버가 '검토 후 보고'를 담당.",
+  "accuracy": "무엇: 칸반 To-do→In progress→In review→Done에서 In review 컬럼은 사람이 승인해야 Done으로 이동; 작업 시작 전 CoS가 하위작업 분해·실행 순서를 먼저 보고하게 강제('I want the complete plan before it actually starts'); 멤버에 맞지 않는 작업은 본인에게 되돌리도록 규칙화. 왜: 자율 실행 전 계획 검토가 가장 싼 오류 방지. 어떻게: 세 가지 안전 스위치 — 파일 변경 전 체크포인트 스냅샷+/rollback, Docker 샌드박스, 돈·메시지 발송 권한은 1주일 관찰 후 단계적 부여. 권한 부여 시 '각 권한이 무엇을 허용하는지 하나씩 설명한 뒤 승인'.",
+  "efficiency": "무엇: 작업 완료마다 Hermes가 스킬(md)로 저장→다음 요청 시 재사용(예: 아침 브리핑 요청 후 'email briefing and triage' 스킬 자동 생성); Composio로 50개 도구 설명을 매번 로드하지 않고 필요한 것만 호출(비용·오탐 감소); 훅으로 작업 상태가 칸반 보드에 자동 반영되어 '채팅 로그 대신 종이 흔적'. 왜: 컨텍스트 비용과 잘못된 도구 선택을 줄이고 반복 작업을 축적. 어떻게: 크론(매일 8시 캘린더·긴급메일·팀 야간 메시지 브리핑)을 Telegram으로 수신, 작업별 모델 등급 분리.",
+  "tools": "Hermes Agent(로컬 Mac/클라우드), Telegram, Multika(스쿼드/칸반), Composio(도구 통합), Claude Opus/Sonnet, Codex GPT image 2, hermes doctor/gateway status",
+  "evidence_level": "observed(칸반 이동·크론 목록·자동 생성 스킬 화면)",
+  "failures": "'첫날부터 은행·이메일 발송 연결 금지' 원칙; 도구를 직접 50개 연결하면 비용 증가·속도 저하·유사 도구 오선택; 게이트웨이가 죽으면 크론이 안 돎(hermes doctor로 진단).",
+  "quotes": [
+   "\"One of them is doing the research, one is writing, one is checking the work before it comes back to me and I didn't tell any of them what to do.\"",
+   "\"Give it access to one thing, watch it for a week, and then give access to more.\"",
+   "\"I get a paper trail instead of a chat log.\""
+  ],
+  "agentos_fit": "바로 적용 — Hermes CoS + 칸반 In-review 인간 게이트 + 계획 선보고 규칙은 AgentOS 승인 보드 구조와 동일. 모델 등급 분리와 스킬 자동 축적을 봇 프로필별로 세팅하면 됨."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=3olRsWOgoLg",
+  "title": "I Finally Solved a Claude AI Agent Workforce",
+  "author": "Mansel Scheffel",
+  "date": "2026-08-19",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "AIOS(비즈니스 컨텍스트+스킬+도구+상태DB+스케줄+칸반 큐+하트비트) 위에 이름 붙은 에이전트(Harper=리서치/콘텐츠, Sloan=세일즈 파이프라인 등)가 각자 '레인(pod)'을 담당. 각 에이전트는 Claude agents 폴더의 md 파일(설명·모델·effort·최대 턴·금지 도구·스킬·훅)로 정의되고 Telegram/Slack에서 라우팅. 부모 에이전트가 원래 목표와 최종 답을 항상 소유하고 서브에이전트는 격리 컨테이너에서 일회성 작업.",
+  "accuracy": "무엇: 권한 게이트 '3M' — Money(고객 대면·비용), Megaphone(공개 게시), Meaning(시스템 스킬 변경)은 반드시 사람 승인. 왜: 에이전트가 '했다고 착각하는' 할루시네이션이 있고, 스킬 하나를 바꾸면 다른 모든 스킬의 정확성이 흔들리기 때문. 어떻게: pre-tool-use 훅으로 단계별 허용 도구를 프로그램적으로 제한, 재시도 횟수 상한, 실패 시 복구 정책(위임/중단/사용자 알림) 명시, 모든 실행에 영수증/로그를 남겨 관측·개선.",
+  "efficiency": "무엇: 서브에이전트로 컨텍스트 격리·모델 다운그레이드(비용)·도구 범위 축소; 스킬=도메인 지식 핸드북(ICP, 채널 전략)이라 에이전트가 더 정확; 칸반/JSON 큐 + 60초~2분 하트비트로 에이전트가 스스로 작업을 집어감(직접 서브에이전트 위임보다 효율적). 왜: 사람이 결정을 덜 하도록 각 레인 담당이 언제 넘길지 판단. 어떻게: Harper의 경쟁사 댓글 리서치 → 증거 브리프 → Sloan이 하트비트 때 픽업해 영업 연락.",
+  "tools": "Claude Code(agents/*.md, hooks, skills), SQLite 등 상태 DB, 칸반 보드(Hermes 유사), Telegram/Slack, 스케줄러",
+  "evidence_level": "observed(agents 폴더·md 설정·훅 코드 화면) + 개념도",
+  "failures": "에이전트가 완료를 착각하는 할루시네이션; 무한 루프 방지를 위한 재시도 상한 필요; 에이전트가 스킬을 임의 수정하면 시스템 전체가 부정확해질 위험.",
+  "quotes": [
+   "\"The three M's for me are money, megaphone and meaning. If any of those things come into play... they need to speak to a human.\"",
+   "\"I would never let any kind of AI workforce post something publicly without me seeing it.\"",
+   "\"The parent agent always owns the original goal and it will always own the final answer.\""
+  ],
+  "agentos_fit": "바로 적용 — 3M 승인 게이트 기준, pre-tool 훅, 재시도/복구/로그 규격은 AgentOS 증거 게이트 정책 문서에 그대로 쓸 수 있음. 칸반 큐+하트비트 픽업은 Hermes 칸반 디스패처와 동일."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=GlW4N7p5KS8",
+  "title": "Subagents vs Agent Teams? 🧠 Hermes Bots, Goal Loops & Kanban Graph",
+  "author": "Wanderloots (Callum)",
+  "date": "2026-09-19",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "4단계 비교: ①단일 에이전트+서브에이전트(fork-join, 요약만 반환) ②/goal 루프(메인 에이전트가 판사) ③봇 모드 전문가(오케스트레이터·리서처·라이브러리언 프로필, 각자 메모리/스킬/도구) ④칸반 그래프(오케스트레이터가 계획→디스패처→워커 실행→리뷰어→차단/해제). 결론: '책임 있는 리드 1명 + 범위 제한 위임'이 기본, 지속 팀은 측정상 병렬 독립 작업이 지속될 때만.",
+  "accuracy": "무엇: /goal에 '완료 기준'(예: 동료심사 출처 5개 이상)을 명시하면 에이전트가 기준 미달 시 스스로 재위임·교차검증; 칸반의 review 상태에 전용 리뷰어 에이전트 지정, blocked 상태로 인간 입력 대기; 코딩은 구현→테스트→수리 루프 후 독립 리뷰어→오케스트레이터가 원 목표 대조→PR. 왜: 서브에이전트는 부모 대화 이력을 모르므로 판단은 위임하지 않고 작업만 위임. 어떻게: 리뷰어를 '구현자의 두 번째 버전'으로 두되 QA 전용; 라이브러리언은 지식베이스 편입 전 초안을 사람 승인으로 통과.",
+  "efficiency": "무엇: 서브에이전트 위임으로 부모 컨텍스트 소모 감소, 작업 전 토큰 예측 후 제약(출처 5개·500단어)으로 45k→18k 토큰 절감; 칸반은 재개 가능(블록→해제→중단 지점부터), 자동 분해(auto-decompose) vs 오케스트레이터 soul.md 기반 수동 분해 선택. 왜: 프론티어 모델 goal 루프가 수 시간 돌면 쿼터를 순식간에 소진. 어떻게: 오케스트레이터의 task delegation 도구를 끄고 칸반 도구만 켜서 계획만 하게 함, 실행은 워커 프로필.",
+  "tools": "Hermes Agent(bot mode, /goal, kanban plugin, dispatcher), Obsidian LLM wiki, 다중 모델(Astra/Fable 등)",
+  "evidence_level": "observed(goal 루프 실행·칸반 카드 이동·토큰 추정 화면)",
+  "failures": "리서처 2개는 5출처 제한에 과잉(토큰 낭비); 오케스트레이터가 글쓰기까지 해버려 별도 writer 에이전트 필요; 그룹챗은 3회 왕복 후 정지; 자율 실행 시 에이전트에 필요 이상 주면 쿼터 폭발.",
+  "quotes": [
+   "\"We're delegating the work but not the judgment.\"",
+   "\"Have a single accountable lead agent with bounded delegation is the best default.\"",
+   "\"The real benefit is continuity. I can return tomorrow. I can see what's blocked."
+  ],
+  "agentos_fit": "바로 적용 — Hermes 칸반의 review/blocked 상태와 리뷰어 지정, 완료 기준 명시 goal 루프는 AgentOS 증거 게이트 구현 방법 그 자체. 오케스트레이터는 계획만, 실행은 워커 원칙 채택."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=Ytpp65paFpY",
+  "title": "I Built a PREMIUM Misson Control for My 16 Hermes Agents",
+  "author": "Komputer Mechanic (Larry)",
+  "date": "2026-09-28",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "보스 에이전트(Orchestrator/Executor) 아래 15~16개 전문 Hermes 에이전트(Research=경쟁 인텔리전스, Content writer, Travel planner, Email assistant, Project manager 등). 미션을 특정 에이전트에 직접 지정하거나 보스에게 넘겨 적임자 선택. 대시보드에서 에이전트 추가 시 다른 에이전트에게 자동 브리핑. 각 에이전트는 자체 DB에 활동 기록.",
+  "accuracy": "무엇: 미션 실행 전 보스가 계획을 세우고 사람이 'approve plan' 해야 시작; 완료물은 review 탭에서 사람이 승인해야 delivered로 이동; 리서치 에이전트 프롬프트에 '출처·숫자·인용을 절대 지어내지 않고 확인 불가 시 그렇다고 말한다' 명시. 왜: 블랙박스 방지 — 에이전트 간 메시지·타임스탬프를 실시간으로 볼 수 있어야 신뢰. 어떻게: 미션마다 시간 상한(예: 1시간)·단계 수(3단계)·완료 시 처리(즉시 배달 vs 검토 후 승인)를 설정.",
+  "efficiency": "무엇: 결과물을 채팅에 쏟지 않고 documents 탭/DB에 저장(컨텍스트·토큰 절약); 크론(아침 승인 대기 미션 다이제스트)을 보스에게 말로 생성하면 대시보드가 자동 인식; 에이전트 도시(파랑=작업중/주황=대기)로 가용성 한눈 파악. 왜: 16개 에이전트 운영 시 누가 바쁜지·토큰 소진을 못 보면 서버가 죽음. 어떻게: 시스템 자원 모니터를 여러 탭에 반복 배치, 미션 시간 제한으로 토큰 통제.",
+  "tools": "Hermes Agent ×16(VPS Ubuntu 26.04), 자체 제작 대시보드(Three.js 도시, 손 제스처, Piper TTS 음성), 크론, DB",
+  "evidence_level": "observed(라이브 미션 실행·에이전트 간 메시지·승인 화면) / 대시보드 템플릿은 유료(promotional 요소)",
+  "failures": "음성 응답 지연; 서버 자원 무시 시 크래시 위험; 대시보드 구축에 수 주+대량 토큰 소요(35개 프롬프트); 검토 영역 UI가 작아 읽기 불편.",
+  "quotes": [
+   "\"I never invent sources, numbers, or quotes. If I can't confirm something, I say so.\"",
+   "\"Do you want them to send you the results where you review first and only approve if you're happy about the results?\"",
+   "\"Nothing disappears into a black box.\""
+  ],
+  "agentos_fit": "수정 필요 — 계획 승인→실행→리뷰→딜리버 파이프라인과 미션 시간/단계 상한은 Paperclip 보드에 그대로 매핑되나, 자체 대시보드는 유료·중복이므로 Paperclip UI를 쓰고 '에이전트 간 메시지 가시화'만 차용."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=7RVf25Rg0Mc",
+  "title": "you need to try Paperclip RIGHT NOW!",
+  "author": "NetworkChuck",
+  "date": "2026-09-24",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "Paperclip에 '회사'를 만들고 이사회(본인) → CEO Dumbledore(Claude Code) → CTO Ron(Hermes) → 네트워크 Fred·스토리지 George(Hermes, 기존 VM의 사전 학습된 에이전트), 보안 Arthur(Codex), 보안 리뷰어 Mad-Eye Moody(Codex), 워치독·헬프데스크·스캐너(Pi, 로컬 모델). 서로 다른 하네스 8명이 하나의 조직도에 들어가고 대화는 '태스크를 통해서만' 이루어짐(에이전트 회의실 방식은 가치 낮다고 판단).",
+  "accuracy": "무엇: 에이전트가 막히면 본인에게 오지 않고 상위 매니저(Dumbledore)에게 올리고, 그가 못 풀면 이사회에 'decision'으로 에스컬레이션; 태스크에 reviewers/approvers/monitors/watchdogs를 붙일 수 있고 보안 리뷰어가 별도 존재; 채용도 승인 필요('board approval'). 왜: 8명이 제각각 보고하면 관리 불가. 어떻게: 사람은 decisions 인박스에서 질문에 답하거나 'defer', 위험 작업은 'pause subtree'로 정지; 루틴(매일 10시 스토리지 점검→낮으면 decision 생성).",
+  "efficiency": "무엇: 이미 스킬을 가진 Hermes 에이전트를 'LinkedIn에서 채용하듯' 그대로 편입; CEO가 스스로 추가 직원(Filch) 채용·비밀(API 키) 배정; 타임라인·아티팩트로 모든 작업 추적. 왜: 여러 하네스의 장점(Codex 보안, Pi 로컬)을 조합. 어떻게: Hermes에서 채팅으로 Paperclip 태스크를 할당(Paperclip 스킬), 에이전트 간 Q&A(백업 확인)를 태스크 스레드로 기록.",
+  "tools": "Paperclip(자체 서버/Proxmox VM/VPS), Hermes ×3, Claude Code(Opus 5), Codex, Pi(로컬 모델), Flare(보안, 스폰서)",
+  "evidence_level": "observed(라이브 채용·태스크 분배·decision 인박스·최종 보고서, 실제 네트워크 장애 원인 규명)",
+  "failures": "첫 실행 실패(Claude Code 미설치), 스캐너 에이전트 반복 타임아웃, 요청하지 않은 대규모 작업(강제 비밀번호 재설정) 자동 배정 → pause로 중단해야 했음, 비밀(tenant ID) 누락 등 설정 실수.",
+  "quotes": [
+   "\"They can talk to each other, but it's not what you think. It's through the task, intentional and focused.\"",
+   "\"If any of these agents have an issue... they're going to kick it back to Dumbledore... If he can't solve it, he's going to kick it back to me. Board member.\"",
+   "\"I haven't seen a lot of super value out of like agent conference room.\""
+  ],
+  "agentos_fit": "바로 적용 — AgentOS의 Paperclip 보드+Hermes 봇 조합 그대로. 계층 에스컬레이션(워커→매니저→이사회 decision), reviewers/approvers 필드, pause subtree, 루틴→decision 생성 패턴을 표준 운영 절차로 채택."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=2Q-xW88YARg",
+  "title": "Guide to Hermes Desktop Bot Mode: Real Multi-Agent Teams, Real Work",
+  "author": "Tonbi's AI Garage",
+  "date": "2026-08-20",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "'Bot HR'(다른 봇을 만드는 봇)에게 게임 스펙을 주면 렌더(WebGL lead)/게임플레이/테크아트/브라우저 QA 4개 전문 프로필을 soul.md와 함께 생성하고 역할별 모델(Qwen3/Grok 4.5/GLM 5.2/GPT 5.6)을 선택. 별도 'Boss bot'(프로젝트 리더, 작업 검토·지도)이 그룹에 합류해 지시. 그룹챗에서 계획 단계(코딩 금지)를 먼저 토론.",
+  "accuracy": "무엇: QA 전용 봇(Playwright로 게임 테스트)을 팀에 포함, Boss bot이 20분마다 진행 점검·독려, 계획을 먼저 합의('just plan it, no coding yet') 후 실행. 왜: 봇들이 툴콜 없이 조용히 일해 진행 여부가 불안하기 때문에 정기 체크인 필요. 어떻게: 스펙 md를 공유 작업 폴더에 두고 각 봇이 참조, 블로커 시 사람에게 보고하도록 지시.",
+  "efficiency": "무엇: 전문 봇이 프로젝트를 거치며 스킬을 축적해 다른 프로젝트에 재사용(게임플레이 엔지니어 스킬); Bot HR이 프로젝트마다 수동 생성을 대체하고 모델 선택 근거를 설명; 봇별로 프로바이더/모델을 달리 해 비용 최적화. 왜: 봇 모드는 워크플로우를 바꾸므로 팀 편성 자체를 자동화해야 함. 어떻게: 그룹 생성→@everyone 자기소개·역할분담→Boss 지시→사용자는 다른 일.",
+  "tools": "Hermes Agent Desktop bot mode(groups, soul.md, 프로필별 모델), Nous Portal, Grok/GLM/GPT/Qwen, Playwright, agentwikis.com(LLM 위키)",
+  "evidence_level": "observed(봇 생성·그룹챗·완성된 레이싱 게임 시연)",
+  "failures": "로컬 모델로는 스펙 실행 실패; 출시 다음 날 기능이라 버그 존재; 툴콜이 안 보여 작업 중인지 불안; 그래픽 에셋 없어 결과물 기본 수준.",
+  "quotes": [
+   "\"You are a bot who makes other bots based on project requirements and tells them their role.\"",
+   "\"I told boss bot to check in every 20 minutes to see progress and push any of the bots who need to work to get started.\"",
+   "\"This bot reviews work and guides other bots when needed.\""
+  ],
+  "agentos_fit": "수정 필요 — Bot HR(팀 편성 봇)과 Boss bot 정기 체크인은 Hermes 봇 모드에 바로 적용 가능하나, 증거 게이트가 QA 봇 하나뿐이라 AgentOS 승인 보드 연결이 추가로 필요."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=4NCXTWBxcN0",
+  "title": "나만의 AI 팀 만들기, 설치부터 회의·업무 실행까지 | Hermes × DeskRPG",
+  "author": "단테랩스 (단테)",
+  "date": "2026-09-22",
+  "lang": "ko",
+  "type": "youtube",
+  "structure": "Hermes 프로필=직원 단위(노아, 올리버 등)를 3D 가상 오피스에 배치, Hermes 칸반·크론을 오피스 안에 그대로 구현. 회의실에서 참여자·최대 턴수·발언 순서(수동/자동)를 정하고 일부 에이전트에 '반대 의견' 역할을 부여. 회의 결과(확정 주제·담당·순서)가 칸반 카드로 자동 생성되고 '수행자'와 '검증자'를 지정해 배치.",
+  "accuracy": "무엇: 리서치→작가→검수 프로필을 분리해 '깨끗한 맥락의 검토자'가 처음 보는 입장에서 점검, 회의에 비판자 역할 배치, 칸반 카드에 검증자 지정. 왜: 한 세션에서 다 시키면 '자기가 쓴 걸 자기가 검수'하게 되고, Cognition 사례처럼 검토자에게 앞선 맥락을 너무 주면 인지 동화가 생김; BCG 실험(AI '직원'이 썼다고 하면 오류 발견율 17% 감소)처럼 의인화가 검수를 느슨하게 함. 어떻게: 권한 범위·비용 상한·삭제/배포 시 사람 확인·최종 검토자 4가지 선을 미리 긋고, 회의 프롬프트에 산출 형식(확정 주제 한 줄+담당·순서 md)을 명시.",
+  "efficiency": "무엇: 읽기는 여러 에이전트가 나눠 하고 쓰기는 한 에이전트가 담당(충돌 방지), 병렬 가능 작업만 분할(Google 260개 구성 실험: 병렬 +81%, 순차 −70%), 회의 턴수 5로 제한. 왜: Anthropic 리서치 시스템은 토큰 15배 사용 — 멀티에이전트는 비용이 큼. 어떻게: VPS 24시간 서버(크론이 노트북 꺼지면 건너뜀), 프로필별 모델/추론 강도 설정, 결과물 탭에서 md·이미지 검색.",
+  "tools": "Hermes Agent(프로필, 칸반, 크론) + DeskRPG for Hermes(오픈소스, Three.js), Codex/GPT 5.6 OAuth, VPS",
+  "evidence_level": "observed(회의 실행·칸반 카드 생성·디스패치 화면)",
+  "failures": "로컬 실행 시 노트북 닫으면 크론 누락; 3D 캐릭터·모바일 미지원 등 한계; 인용한 사고 사례(Replit DB 삭제, Cursor 백업 삭제, AWS 900만원 과금)는 권한 범위 미설정이 원인.",
+  "quotes": [
+   "\"이걸 한 세션 안에서 전부 시키면 결국 자기가 쓴 거를 자기가 검수하는 그런 모양이 돼 버리죠.\"",
+   "\"어디까지 권한을 줄지 돈은 얼마까지 쓸 수 있게 할지 삭제나 배포처럼 위험한 작업은 언제 사람에게 물어보게 할지 그리고 마지막 결과를 누가 검토하게 할지\"",
+   "\"에이전트를 많이 불러 놓는 것보다는 어떤 구조로 서로 일하게 만들 것인지가 훨씬 중요하다\""
+  ],
+  "agentos_fit": "바로 적용 — '깨끗한 맥락의 검토자', 읽기 분산/쓰기 단일, 4가지 권한선, 칸반 수행자/검증자 지정은 AgentOS 증거 게이트 설계 원칙으로 채택. DeskRPG UI 자체는 선택."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=AewUCqOvdLk",
+  "title": "누적 가맹점 100개 외식업 대표가 헤르메스 에이전트 AI로 자동화 하는 방법 (박진환 대표)",
+  "author": "신영선의 AI탐구 / 박진환(청년꼬치·꼬치마켓·AX브릿지)",
+  "date": "2026-09-01",
+  "lang": "ko",
+  "type": "youtube",
+  "structure": "메인 AI 직원 'Elon'(Hermes, GPT 5.6 solver)이 Telegram 1:1·Slack 팀 채널에 상주, 그 아래 Jarvis·Superman·Deba·Coach·Johnny 등 AI 직원들과 반복업무 실행용 'AlphaGo'. Elon이 다른 AI 직원들에게 방법을 교육(Slack 리서치 복구법)하고 Jarvis가 태그로 후속 진행. 사람 직원(회계 등)도 Slack에서 같은 봇으로 출퇴근·휴가·회의실 예약 처리.",
+  "accuracy": "무엇: 반복 쇼핑몰 업무는 AlphaGo가 기본 처리하고 Elon이 더블체크하는 2단 구조; 로그인·발행 클릭 같은 권한 행동은 사람이 승인; 처음엔 절대 한 번에 성공하지 않으므로 실패→교정, 성공→'잘했다' 피드백을 반복 학습. 왜: 과거엔 자동화 오류 시 직원이 대표에게 전화했지만 지금은 Elon이 스스로 수정. 어떻게: 시행착오 후 반복 작업을 좌표 기반 Python 파일로 고정(레이아웃 변경에도 적응), 블로그는 기존 운영 블로그가 아닌 신규 블로그로 시작해 리스크 격리.",
+  "efficiency": "무엇: 음성/채팅 한 줄 지시로 블로그 주제선정→작성→이미지·해시태그→발행(computer-use로 Chrome 클릭)까지 매일 9시 자동, 인스타 캐러셀도 동일; 성공/실패 과정이 회사 자산으로 남아 유사 작업이 빨라짐. 왜: API 연동이 어려운 비개발자도 computer-use로 가능, 마케팅 대행 300만원 대비 자체 자동화로 검색 1위 달성. 어떻게: n8n/Make로 만든 쇼핑몰 자동화(주문·ERP·송장)를 Elon이 유지보수하도록 이관, Elon이 다른 AI 직원을 교육해 노하우 전파.",
+  "tools": "Hermes Agent(GPT 5.6/5.5), Telegram, Slack, computer-use(Chrome), Python 스크립트, Make/n8n(레거시 자동화), iCount ERP, AppSheet, Google Calendar OAuth",
+  "evidence_level": "observed(라이브 블로그·인스타 발행, Slack 화면, Make 워크플로우 공개)",
+  "failures": "'첫 시도엔 절대 안 됨' — 지속 교정 필요; 블로그 순위 변동(1→3→2위); n8n 한 달 밤샘 후 'Make가 더 쉬웠다'는 결론; Make 워크플로우에 빨간불(오류) 다수.",
+  "quotes": [
+   "\"AlphaGo handles the basics, and Elon double-checks them. The two of them. So now there are almost no errors.\"(자막 번역)",
+   "\"It will never work on the first try. You have to continuously train it.\"(자막 번역)",
+   "\"Whether we fail or succeed, this whole process remains as an asset to our company.\"(자막 번역)"
+  ],
+  "agentos_fit": "수정 필요 — 실행봇+더블체크봇 2단과 권한 행동 인간 승인은 AgentOS와 일치하나, 검증이 '대표의 눈'에 의존하고 증거 게이트가 형식화되지 않아 Paperclip 승인 보드로 구조화 필요."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=aaS2sVh-F10",
+  "title": "자율형 AI에이전트 너무 쉬워졌다. 설치파일 받고 바로 시작 (김민정 HRX랩 부대표)",
+  "author": "티타임즈TV / 김민정",
+  "date": "2026-09-12",
+  "lang": "ko",
+  "type": "youtube",
+  "structure": "메인 봇 'Hermes'=비서실장이 5월부터 모든 작업(뉴스, 강의안, 도서 기획)을 기억·수행하다가 안정화된 뒤 'AI 뉴스 치프' 봇을 독립시키고 그 아래 서브 에이전트 4명(수집/작성/검수 등)을 배치. 매일 10시 크론으로 치프가 서브들에게 지시해 LinkedIn 글·카드뉴스·블로그 HTML을 산출. 비서실장이 다른 봇에게 메시지를 보내면 'message from Hermes'로 출처가 표시됨.",
+  "accuracy": "무엇: 서브 에이전트 중 검수 역할이 'pass/revise' 기준으로 재검증, 발행은 Buffer에서 사람이 승인 후 게시. 왜: 완전 자동 발행(티스토리 API)도 가능하지만 '아직은 본인이 한 번 확인하는 게 좋다'. 어떻게: 결과가 마음에 안 들면 그룹챗을 열어 각 서브에게 '오늘 네 역할과 한 일'을 말하게 해 어느 역할이 구멍인지 점검; 기사마다 'AI/AX 관점에서 왜 중요한지'·FAQ를 필수 포함하도록 프롬프트 고정.",
+  "efficiency": "무엇: 봇을 독립시킬 시점을 비서실장에게 물어 판단('아직은 아닙니다 → 지금은 괜찮습니다'), 봇 남발 금지(관리 포인트 증가), 메인 봇이 폴더별 스킬 파일을 자동 생성해 작업이 꼬이지 않음. 왜: Claude Code/Codex는 폴더별 세션이 분리돼 맥락이 안 넘어가고 한 창에서 섞으면 품질 저하. 어떻게: 장애 시 터미널 대신 Codex에게 Hermes 상태 점검·재가동을 시킴, Telegram이 데스크톱보다 빨라 주 채널로 사용.",
+  "tools": "Hermes Agent(데스크톱+터미널, 봇 모드, 크론, 그룹챗), Telegram, Codex(설치·점검 보조), Buffer(승인 발행), NotebookLM/Gemini 병행",
+  "evidence_level": "observed(봇 목록·크론·그룹챗·산출물 화면)",
+  "failures": "노트북 껐다 켜면 재가동이 꼬임(Codex로 살림); 봇을 너무 많이 만들면 초반에 헷갈림; 기업들이 에이전트를 많이 만드는 것은 관리 포인트만 늘어 의미 없음; 초기 설치는 어려웠음.",
+  "quotes": [
+   "\"별도 봇을 만드는게 어때라고 물어봤더니 아직은 아닙니다라고 얘기를 했어요. 조금 더 많이 작업을 한 다음에 하십시오.\"",
+   "\"본인이 역할은 검수하는 역할이잖아요. 그래서 그 기준으로 패스나 리바이즈를 하겠다\"",
+   "\"에이전트를 많이 만들었다라는 것들은 관리 포인트가 많아지는 거잖아요.\""
+  ],
+  "agentos_fit": "바로 적용 — 비서실장 단일 창구 → 안정화 후 부서 봇 분리 → 서브 검수(pass/revise) → 인간 승인 발행 흐름이 AgentOS와 동일. '역할별 자기보고로 병목 진단'과 봇 독립 시점 판단 규칙 차용."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=pmLcB1S2YYE",
+  "title": "헤르메스 에이전트 봇 모드로 AI 직원을 고용해봤습니다 | 설치, 개념, 사용법 총정리",
+  "author": "Aiden의 친절한 AI",
+  "date": "2026-08-21",
+  "lang": "ko",
+  "type": "youtube",
+  "structure": "뉴스레터 팀 3봇: 리서처(매일 8시 크론으로 AI 뉴스 5건+출처 수집), 에디터(soul.md에 문체 가이드), 리뷰어(뉴스레터 검수자, 에디터와 정반대 성격). 리서처 대화방에서 @에디터 멘션으로 위임→에디터가 리뷰어에게 팩트체크 요청→'뉴스레터 팀' 그룹챗에서 @everyone 회의. 중요한 판단은 봇이 사용자를 멘션해 결재 요청.",
+  "accuracy": "무엇: 리뷰어 soul.md를 '칭찬에 인색하고 출처 없는 문장은 절대 넘어가지 않음'으로 설정; 리뷰어가 요약본만 받자 '검증이 어렵다'며 원문을 요청하고 에디터가 원문을 전달한 뒤 검수→반영. 왜: 작성자와 검수자의 성격·컨텍스트를 분리해야 실질 검수가 됨. 어떻게: 크론에 '지난 결과 기억' 옵션을 켜 중복 뉴스 방지, 헤드라인 확정처럼 결정이 필요한 순간엔 봇이 사람을 멘션해 최종 판단.",
+  "efficiency": "무엇: 봇별 모델 분리(리서처=가볍고 빠른 모델, 에디터=똑똑한 모델), 로그인 공유 체크로 10명을 만들어도 로그인 1회, soul.md 온보딩 문서로 문체 일관성. 왜: 사람이 결과를 복사해 다음 봇에 붙이는 수작업을 없애기 위해. 어떻게: 멘션 위임→그룹챗 회의로 팀장이 일일이 전달하지 않아도 되는 구조.",
+  "tools": "Hermes Desktop(bot mode, soul.md, cron, groups, 멘션), GPT 5.6 Tera 등",
+  "evidence_level": "observed(봇 생성·멘션 위임·리뷰어 원문 요청·그룹 회의 화면)",
+  "failures": "리뷰어가 요약본으로는 검증 불가(원문 필요) — 핸드오프 시 증거 원문 전달이 필수라는 교훈; 봇 모드는 신규 기능이라 구버전엔 미표시.",
+  "quotes": [
+   "\"칭찬에 인색하고 출처 없는 문장은 절대 그냥 넘어가지 않도록 설정하겠습니다.\"",
+   "\"리뷰어가 현재 받은 메시지는 요약분이라 검증이 어려워서 원문을 요청했네요.\"",
+   "\"알아서 다 정해 버리는게 아니라 진짜 결정의 순간에는 사람을 부릅니다. 마치 팀장의 결제를 받는 것처럼요.\""
+  ],
+  "agentos_fit": "바로 적용 — 리서처/에디터/리뷰어 3봇 + 사람 결재 멘션은 AgentOS 최소 단위 파이프라인. '리뷰어에게 요약이 아닌 원문 증거를 넘긴다'를 증거 게이트 규칙으로 명문화."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=blZuddQ196E",
+  "title": "Hermes Bot Mode 출시! AI 직원끼리 협업 더 쉬워졌습니다",
+  "author": "시민개발자 구씨",
+  "date": "2026-08-21",
+  "lang": "ko",
+  "type": "youtube",
+  "structure": "PM '자비스'(기본 비서·대표 모델) 한 명에게만 요청하고, 자비스가 @뉴턴(분석)에게 DM 작업지시서를 작성해 위임→결과를 PM 관점으로 요약→@해밍웨이(콘텐츠)에게 브리프로 핸드오프. '신제품 출시 검토' 그룹챗(2~6명, 3라운드·메시지 10개 제한)에서 @everyone으로 논의. 네 가지 창구: 일반 세션 / 봇 고정 세션 / 멘션 위임 / 그룹챗을 '맥락 공유 필요 여부'로 선택.",
+  "accuracy": "무엇: 그룹챗에서 자비스가 뉴턴에게 '문장을 원문과 일대일 대조', 해밍웨이에게 '통과된 문장만으로 고객용 흐름 작성'을 지시하고, 뉴턴이 '실제 파일 재검증 결과 근거 충돌 없음'을 보고. 왜: 확인된 사실만 카피에 쓰기 위해(클레임 바운더리 문서를 입력 폴더에 배치). 어떻게: 파일을 첨부하지 않고 경로를 주어 하위 봇들이 직접 원본을 확인하게 함; PM이 '공개 전 사람이 확인할 항목' 목록을 산출.",
+  "efficiency": "무엇: 매니저 1명과만 소통해 커뮤니케이션 라인 축소, 위임 작업은 백그라운드로 돌아 사용자는 다른 일 가능, 봇이 자기 차례가 아니면 답하지 않음. 왜: 봇 여러 개가 대화하면 모델 호출·토큰이 늘어 비용 증가. 어떻게: 담당자 중심 반복 업무=봇 모드, 프로젝트 중심 복잡 업무=프로젝트 폴더+세션, 위임=멘션, 아이디에이션=그룹챗으로 용도 구분; 클라이언트·백엔드(VPS Docker) 모두 최신 업데이트 유지.",
+  "tools": "Hermes Desktop bot mode(멘션 위임, 그룹챗), Hostinger VPS Docker, soul.md 편집 UI",
+  "evidence_level": "observed(멘션 위임·그룹챗 실행·산출 경로 화면)",
+  "failures": "봇 고정 세션 표시 오류·그룹챗 멘션 호출 실패 등 초기 버그; 그룹챗 3라운드/10메시지 제한으로 이어서 하려면 사람 피드백 필요; Grok Bot 벤치마크 급조로 완성도 아직 낮음.",
+  "quotes": [
+   "\"나는 그냥 자비스 매니저한테만 업무를 요청을 하면 이 매니저가 알아서 뉴턴이나 해밍웨이... 결과물을 만들고 최종 보고를 해 주는 거예요.\"",
+   "\"경로를 알려주면 그 직원들도 경로가 넘어가면 직접 자기가 들어가서 파일을 다 체크해 볼 수 있잖아요.\"",
+   "\"봇을 여러 개를 붙여 가지고 같이 대화를 나누게 시키면 모델 호출이 늘어나고 토큰수도 늘어나다 보니까 비용이 더 발생하게 됩니다.\""
+  ],
+  "agentos_fit": "바로 적용 — PM 단일 창구 + 멘션 위임 + '원문 경로 전달·통과 문장만 사용' 규칙이 AgentOS 비서실장/증거 게이트와 일치. 그룹챗은 비용 상 아이디에이션 한정으로 제한."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=2Paer0PoFzk",
+  "title": "Hermes Agent Tutorial: From Zero to a Team of AI Agents",
+  "author": "Zinho Automates",
+  "date": "2026-09-30",
+  "lang": "en",
+  "type": "youtube",
+  "structure": "VPS(Hostinger KVM2, Docker)에 Hermes를 24/7 운영. 메인 어시스턴트=매니저(칸반 도구 ON) + 워커 3명: 작가(내 문체), 리서처(업계 뉴스), 에디터('내게 오기 전 팩트체크'). WhatsApp에서 매니저에게 한 줄 지시하면 칸반 카드가 생성되고 에이전트들이 카드를 스스로 옮기며 리서치→작성→검수→WhatsApp 전달.",
+  "accuracy": "무엇: 에디터를 작가와 분리('didn't write the post, so it isn't grading its own homework'); 이메일은 초안만 작성하고 발송은 사람 허가 후; 아침 7시 크론이 인박스 요약+팀 게시물 작성. 왜: 작성자 자기검수 방지와 발송 리스크 통제. 어떻게: 프로필 설명을 구체적으로('helper'가 아니라 'fact checks content') 써야 매니저가 올바른 워커에 배정; 존재하지 않는 에이전트명에 배정되면 2회 재시도 후 blocked로 플래그.",
+  "efficiency": "무엇: 카드에 리서치 결과가 담긴 채로 다음 워커에게 자동 핸드오프('doesn't start from zero'); 팀 작업 후 Hermes가 스스로 '리서치·게시물 작성' 스킬을 생성해 재사용; 게이트웨이 상태가 곧 팀의 심장박동. 왜: 노트북 닫히면 크론·대기 작업이 멈추므로 서버 상주 필요. 어떻게: 크론을 매니저에게 자연어로 요청하면 스케줄 확정, 대시보드에서 편집/일시정지/즉시 실행.",
+  "tools": "Hermes Agent(VPS Docker, profiles, kanban plugin, cron, skills), WhatsApp, Claude API",
+  "evidence_level": "observed(칸반 카드 이동·WhatsApp 수신·자동 생성 스킬 화면)",
+  "failures": "게이트웨이가 running이 아니면 아무도 작업을 배분하지 않음; 프로필 설명이 모호하면 엉뚱한 에이전트가 배정; 오타 배정 시 즉시 blocked; 데스크톱 앱은 기기 켜짐에 종속.",
+  "quotes": [
+   "\"Because the editor didn't write the post, it isn't grading its own homework.\"",
+   "\"Nothing actually gets sent until I say so until I give it the permission.\"",
+   "\"If the wrong agent keeps getting the work, then your profile descriptions are too vague.\""
+  ],
+  "agentos_fit": "바로 적용 — 매니저(칸반 도구)+워커 3인, 에디터 분리, 발송 인간 승인, 카드 내 증거 핸드오프는 AgentOS 기본형. 흔한 실패 3가지는 운영 체크리스트로 채택."
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=af7FfTRwHyE",
+  "title": "AI 에이전트 팀을 만들어주는 Buzz AI 기초 가이드 | 클로드코드·코덱스 한 팀으로 씁니다",
+  "author": "진한별의 AI 연구소",
+  "date": "2026-09-09",
+  "lang": "ko",
+  "type": "youtube",
+  "structure": "Buzz(Block 오픈소스, 자체 서버) 채널에 편집장·리서처·작가·비평가 4 에이전트(각기 다른 모델, 각자 고유 키로 '정식 팀원')를 초대. 사용자가 @편집장 한 번 멘션하면 편집장이 리서처·작가에게 분배→작가 초안→비평가 반론→작가 수정→편집장이 사용자에게 승인 요청→저장. 사람 동료도 같은 채널에서 인수인계 가능.",
+  "accuracy": "무엇: 비평가 에이전트가 초안에 반론을 제시하고 작가가 반영한 뒤에만 편집장이 사용자 승인을 요청; 모든 발언·파일 생성 주체가 키로 기록. 왜: 여러 AI 창을 오가며 '지금까지 한 것 요약해서 붙여넣기'로 인계하는 문제와 책임 추적 문제를 해결. 어떻게: 파일을 채널에 첨부해 공용 컨텍스트로 두고, 최종 산출은 output 폴더에 저장 후 사람이 열어 확인.",
+  "efficiency": "무엇: Slack형 UI에서 멘션만으로 자동 위임(11개 댓글로 기획안 완성), 에이전트별 모델 선택, VPS 원클릭 설치로 24/7. 왜: 구독 한도 도달 시 다른 AI로 넘기는 수작업 제거. 어떻게: Claude Code·Codex를 로컬에서 자동 감지해 한 팀에 편입.",
+  "tools": "Buzz(berze.xyz, Block), Claude Code(Opus), Codex, Hostinger VPS(스폰서)",
+  "evidence_level": "observed(채널 대화 흐름·승인·저장 화면) / VPS 스폰서·교육 홍보 포함",
+  "failures": "실패 사례 언급 없음(미확인); 설치 시 키 변환·wss 주소 변경 등 수동 단계 필요.",
+  "quotes": [
+   "\"연구원이 자료를 모으고, 작가가 기획안 초안을 쓰고, 비평가가 약점을 지적하고, 편집장이 전체를 관리하며 최종 기획안을 폴더에 저장합니다\"(자막 번역)",
+   "\"Only after doing all of this on their own did they mention me. They asked if I wanted to approve the final result.\"(자막 번역)"
+  ],
+  "agentos_fit": "수정 필요 — 편집장(단일 창구)+비평가 반론+인간 승인 흐름은 AgentOS와 같지만 Buzz는 별도 플랫폼이므로 Hermes 봇 모드/Paperclip로 동일 구조를 재현하고 '비평가 반론 후 승인 요청' 순서만 차용."
+ }
+]

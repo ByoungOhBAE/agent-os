@@ -1,0 +1,607 @@
+https://www.youtube.com/watch?v=3olRsWOgoLg
+![Thumbnail (1920x1080)](https://i.ytimg.com/vi_webp/3olRsWOgoLg/maxresdefault.webp)
+# [I Finally Solved a Claude AI Agent Workforce](https://www.youtube.com/watch?v=3olRsWOgoLg)
+
+**Visibility**: Public
+**Uploaded by**: [Mansel Scheffel](https://www.youtube.com/@mansel.scheffel)
+**Uploaded at**: 2026-08-19
+**Published at**: 
+**Length**: 16:16
+**Views**: 1253
+**Likes**: 31
+**Category**: Education
+
+## Description
+
+```
+🔥 Build and sell the AI systems companies pay thousands for → https://skool.com/ainative
+
+What to watch next ⤵️
+- Build an AIOS Cowork: https://youtu.be/gEpsig46ZEI
+- Build an AIOS VScode: https://youtu.be/Qmu6r8Hr07U
+- Command Center: https://youtu.be/dITtLiC9FzM
+
+People slap the word agent on everything, which is why most of you are still running one and calling it a system. In this video we will explore every from a skill, to an AI OS and beyond with an AI Agent Workforce.
+
+Timestamps:
+00:00 The question everyone keeps asking
+00:21 Level 1 - What an AI agent actually is
+02:31 Level 2 - Subagents, same loop, different job
+03:33 Level 3 - Skills are just the handbook
+04:14 Level 4 - The four reasons to name an agent
+05:38 Level 5 - What an AI workforce actually buys you
+10:10 The runtime layer underneath it all
+13:31 Money, megaphone, meaning
+
+-- Work with me:
+
+🤝 Ready to transform your business? Let's talk: https://bit.ly/3TinLo5
+💡 Add me on LinkedIn - https://www.linkedin.com/in/mansel-scheffel/
+
+[ABOUT ME]
+
+If you're new here — I'm Mansel.
+
+In 2010, I left South Africa with nothing but a laptop and a digital piano.
+
+I taught myself IT, broke into cybersecurity in London, and built two consulting businesses - one in cyber, one in cloud - scaling solo to $52K+/month.
+
+Today, I run atomicOps, an AI consultancy based in New York where we help mid-market companies turn AI chaos into scalable systems as a transformation partner.
+
+I also help you build an AI-native business and sell the systems companies pay thousands for inside my community.
+
+#claudecode #aiagents #aiworkforce #agenticai #aios
+```
+
+## Transcript
+
+What is an AI agent and how is it
+different from a skill? And what's an AI
+workforce and how the hell do I know if
+I need any of this? I get asked this
+question every week. So, in this video,
+I'm going to demystify that by taking
+you on a journey from a single agent
+[music] to an agent workforce running in
+my AIOS. By the end of it, you'll know
+exactly what an agent is [music] and
+when you need to scale to a team of
+them. Let's get into it. So, people slap
+the words AI agent on literally
+everything nowadays. And I think that
+really confuses people because agentbot,
+you have Grock, you have Hermes and all
+of these other things that come into
+play. But at its simplest level, all an
+AI agent really is is programming. It's
+a piece of software that has a model
+attached to it. And that model runs
+through this little loop over here in
+order to give us our hopes and dreams as
+fast as possible. So let's say for our
+example over here, we were using a model
+of Opus. Everyone knows the models by
+now. There's Opus on it. Chat GPT has
+soul and all of those other things.
+Point is, our model gives us the
+capability that we have for the specific
+run that we're about to do. It will all
+start with a goal and a specific state
+and it needs to say to itself what needs
+to change over here as a part of this
+loop we're about to go through. So we
+would feed this thing a goal of write me
+a LinkedIn post. It would then say cool
+that is my goal. It moves on to the next
+step and the model proposes the next
+action that it should take. Then as a
+part of that it sees all the tools that
+it can use in order to take that action
+whether that's reading a file, writing a
+file, browsing the web, whatever that
+might be lives in step three over here.
+The fourth is where it returns the
+results and as a part of this it tries
+to understand what happened. Did I meet
+this goal that we're trying to achieve?
+If no, then it goes back to step two and
+the model will propose the next action
+that it needs to take in order to get
+there. It'll again use tools and
+continue on to step four until finally
+it gives us something that we wanted or
+it will tell us that we can't and
+sometimes it will hallucinate and think
+that it did but it actually didn't. And
+that's really all an AI agent is. It's a
+little prediction machine that runs
+through this loop, uses tools in order
+to get a job and then finally gives us a
+result once it thinks it has reached it.
+So its general capability comes from its
+training. But you can steer that
+capability and you absolutely should.
+And that's where this little blue circle
+around it called a harness comes into
+play. This is where we can take a model
+that has a base training in it and we
+can manipulate it in a way that suits
+us. I'm sure you've seen videos of
+people talking about a harness and all
+it really is is you providing the model
+extra context, maybe some permissions,
+maybe some rules of the things that it
+can and can't do. Essentially steering
+this model for specific work that you
+are currently working on at that time.
+And so at the end of the day, when you
+strip out all that fancy marketing, all
+an agent really is is that programming
+loop that gets put in front of us in
+this flashy little UI so that we can
+chat with it and get the things that we
+want. But then we got onto a sub aent
+because I'm sure you've heard that term
+as well. And how is that any different?
+And it's not about being different. It's
+still the exact same loop. It's the
+purpose that changes behind why we use
+this sort of thing. So let's say you had
+a parent agent, that little clawed box
+that we're talking to over here. Let's
+say we gave it a very specific goal.
+What we could do if we wanted to for a
+specific reason that we'll get into
+later on, we could get this thing to
+spawn a task inside a sub aent which is
+its own little container that's isolated
+from everyone else to do the work that
+it needs to do. There are several
+reasons why you might want to do that.
+One of them for context isolation so it
+has its own little workspace. But you
+also might want to do it to have it run
+a different model so that you have
+increased or decreased capability to
+save on cost or maybe tackle a much
+harder job with with something like
+Fable. You can also limit the tools and
+the boundaries and the scope that this
+thing is actually allowed to do inside
+this little sub aent context. Once that
+work is done, it can then push the
+result back to the parent agent. And the
+parent agent is the final judge on the
+work that's been done. And that's a very
+important thing to remember is that the
+parent agent, it always owns the
+original goal and it will always own the
+final answer for its specific thing that
+it's set up. Okay, so now you might be
+thinking, okay, but I could just use a
+skill, right? And that's where you need
+to remember that everything that we're
+doing in Cyclude is agentic. You're
+using this agentic loop even with a
+skill. There is no skill without an
+agent. An agent can run without a skill,
+but a skill can't run without an agent.
+So, the easiest thing to think of when
+you think of a skill is it's literally a
+saved way of doing a job. And most of
+its intelligence, if you're writing
+skills properly, comes from your domain
+expertise or your human expertise for
+the specific process that you've been
+working on. So, all we're doing here is
+giving the agent a little handbook and
+saying, "This is the right way to do the
+job that I want you to do for me." it
+carries most of the intelligence that
+the agent will be doing for that
+specific job. Okay, but then why are
+people naming agents? Why are they
+building profiles behind them? And we do
+that for one of four reasons. The first
+one being specialization. That's where
+we're taking the right amount of
+context, perhaps giving the agents some
+skills, maybe specific tools or a
+specific model, and we're saying, "Hey,
+you are now totally in charge of all of
+my marketing. This is your role." And as
+a part of that, we're going to give it
+all the skills that it needs in order to
+do its job properly. and we're going to
+give it all of the context that it needs
+in order to do that. And then probably
+give it a model like sonnet or opus. The
+second thing that you might want to do
+this for is for isolation. Like I said
+earlier, you can limit the tools that it
+has, the data that it has access to. You
+can also define its cost based on giving
+it a lower model. Perhaps you give it
+smaller tasks to take on. The point is
+here you get to isolate the way that it
+works. The third benefit over here is
+that you have continuity, meaning that
+this thing can pick up state from the
+last time that it stopped working. So
+that each time you're using it, you're
+not starting from scratch. The fourth
+reason over here is ownership where it
+can own an entire lane as with our
+example over here for content creation.
+So it would notice something needs to
+get done. It can then choose the actions
+that it needs to take based on how
+you've programmed it. It can then
+coordinate that with any other agents
+that it needs to. It can escalate it to
+someone if it needs to, but ideally it
+should just send you the final result
+whenever you need that result. So to
+recap at this point we understand what
+an agent is doing and how it's running
+in that goal loop. We understand why we
+have a named worker and how it can use
+skills in order to do whatever it needs
+to do and build a profile around it. But
+what the hell is an AI workforce and why
+would we even want to use one? And
+really that comes down to management. We
+want to get our business to a point
+where not only is everything automated,
+but we actually have to make less
+decisions because the AI agents that we
+put in charge of specific lanes know
+exactly what they need to do and when
+they need to speak to a human or bring
+something to our attention. And I get it
+at this point you might be thinking,
+"But can't my AI operating system
+already do that?" And the answer is yes.
+But there are some nuances and we'll get
+into that because the AI operating
+system is entirely fundamental to
+everything that's going on here. The
+first thing you'll notice is that I am
+at the top and it always needs to stay
+that way. The human is always in charge
+of this thing. Underneath that, you
+could have a layer where you have a
+chief of staff or something like that. I
+see that a lot. It all depends on how
+you're actually using your agent team.
+there's absolutely no reason for you to
+go and speak to a chief of staff who is
+then just going to go and speak to one
+of these agents. That makes absolutely
+no sense. So when you have this chief of
+staff in place there, it's usually if
+you're sending in messages from
+something like Telegram or Slack where
+you're just saying, "Hey, I need this
+thing done and then it sends it into the
+chief of staff who would then pass it on
+to these." But because for the most
+part, I'm always working inside my AIOS
+with these agents anyway, I just
+delegate directly to them when I need to
+or when they're not working
+autonomously. But you can see here how I
+group everything. So, if you've been
+watching my AIOS videos over the last
+few months, you can see I break
+everything down by four pods in a
+business. You have acquisition,
+delivery, support, and ops. We'll stick
+with acquisition for now. This is how
+you get your clients. And inside here,
+we have our agent called Harper. She is
+in charge of content and marketing. And
+you can see here I've defined her as the
+model of Sonnet and given her no
+capability to publish anything. Inside
+here, you will see all the skills that
+we're already built. And these just make
+her an expert in these specific things.
+Content radar is seeing what's really
+popular at the moment on Reddit or other
+forums that it gives me ideas to film
+new videos. YouTube prep puts a whole
+package together for me, including
+thumbnails and things like that. It also
+ties in with competitor analysis to see
+what the kitties are doing. And then all
+of these other skills also form a part
+of what she's capable of. But like I
+said, remember she absolutely doesn't
+need any of this in order to complete a
+job. If I had to say to Harper, "Hey, I
+want to go and make a video. Can you
+find out what would really good to
+film?" I'm pretty sure she would come up
+with some good ideas. But by having all
+of these skills, which are filled with
+all of the context for my business, who
+my ICP is, who I'm trying to reach on
+YouTube, she is much better at the job
+that she does because I've taken the
+time to fill out all of these and make
+her better. Remember, the skill is just
+the handbook. But then you might be
+asking yourself, can't I just run all of
+this stuff on a schedule anyway and I
+would still have the YouTube prep at 7
+a.m. or couldn't we just react to an
+event and get the same results anyway
+without having to have named agents or
+an AI agent workforce? And the answer is
+yes, of course you can. That's what the
+AI operating system has been doing this
+entire time. The difference is having
+this useful information in front of you
+is completely different to having
+delegated management. And that's where
+the real value of an AI agent workforce
+comes into play on top of this layer of
+the AI operating system. So if we look
+at our user-driven AIOS on the left over
+here, everything can be automated. We
+can have all of the useful work done for
+us and presented to us to then go and
+decide what to do next and then go and
+speak to another agent and say, "Okay,
+cool. This looks good. Now go and do
+this." But instead of doing all of that,
+we can set up our AI agent workforce to
+understand how we want to work and then
+it can consume the state that it needs
+to choose the next action, progress the
+work that we need to and push that
+package through every step of the way
+until the final point where we actually
+need to use it. The point being, it's
+not waiting there for every single one
+of our decisions through that skill
+chain that it would need to run. It is
+proactively taking on all of that,
+making all the decisions for us up to
+the point where we're going to film a
+video or do something that involves
+money or or something client-f facing
+that absolutely needs that human gate.
+So the workforce is really built on top
+of your AI operating system. It is
+foundational. You absolutely need to
+have an AIOS or at least most of the
+parts from it in order to build a
+functioning AI workforce. You cannot do
+it properly without one, at least from
+my perspective. So at the bottom in our
+AIOS lane, we have all of your business
+context. We have the skills that run all
+of the things already inside your
+business. The tools that are used to do
+that that ties in with the skills and
+MCP and things like that. We then have
+something to capture state. That could
+be SQL light, could be any database as a
+part of your SAS. We then also have
+schedules because some of these should
+still run on a schedule to then later
+have an agent come and pick it up and
+continue through the chain when it's
+done. And then finally, you bake in the
+gates at the bottom. These are the rules
+and the permissions and things that the
+rest of the system is allowed to do. And
+this is absolutely foundational for
+everything else. The next thing our AI
+workforce actually needs is this layer
+over here for runtime. And that's where
+we have our harness, which is that loop
+that we spoke about that that kind of
+governs the way everything works. We
+need a task cue because in order for
+this thing to understand what it needs
+to pick off next, we need to have some
+form of canban board like you see in
+Hermes or at least some simple database
+or JSON file where we can manage this
+task cube. The third thing is heartbeats
+which is where it just checks in every
+60 seconds or two minutes whatever the
+interval is that you might want to set
+so that it can go and pick these tasks
+or see if anything is outstanding. Is
+there anything it needs to attend to
+before it reports back to the user or
+takes on a different task. We need to
+make sure we bake in the number of
+retries that this thing is allowed to do
+so that it doesn't get stuck in some
+kind of loop forever. We also need to
+cater for recovery over here. What
+happens when something goes wrong? What
+should it do? even when it knows when to
+stop, what should it do as a result of
+that failure? Should it do anything?
+Should it delegate to someone else or
+should it just stop completely and alert
+the user? And then we want to make sure
+that we have some form of receipt or
+logs so that we know what has happened
+as a part of these runs. We can
+troubleshoot and evolve our system and
+also gives us observability. And then
+finally on top over here we have our
+named agents that are taking care of the
+specific pods inside our business. And
+we again do this to divide the
+responsibility. So, in practice, let's
+say that Harper over here was doing a
+whole bunch of research for a new video,
+checking out some competitor comments
+sections to see what people were asking
+for or complaining about, and she put
+together an evidence brief for something
+that might be useful for sales or
+perhaps something that Sloan over here,
+who's taking care of our sales pipeline,
+could then piggyback off to perhaps go
+and contact this person or this business
+that was asking that question. That
+might look something like this. Harper
+finds the demand within there and
+thinks, "hm, this would be really useful
+to hand off to Sloan, who I know is
+going to be looking for this kind of
+thing." So, Harper will build this
+little evidence card over here, which is
+just a structured Q card. The evidence
+of what was discovered as a part of the
+work Harper was doing. The outcome of
+what Harper wants Sloan to do or thinks
+Sloan should be able to do as a part of
+this, what Sloan is allowed to do, what
+is forbidden, and also what the
+definition of done looks like. This
+would then all get stored. And then
+there are two ways that you could do
+this. This could either be delegated to
+a queue and Sloan would pick this up
+when the heartbeat kicks in or this
+could be delegated directly to Sloan as
+a sub agent, though that would probably
+be less efficient than just having this
+whole taskboard thing and Sloan checking
+in every now and then. So, you can see
+here how we're bringing all the layers
+together because we have the AI
+judgment, which is what AI is used for,
+to make that judgment. That's why we use
+it. Otherwise, we would all just use
+programming. The agent knows when to
+hand something off, when something can
+belong to someone else, and when it
+should belong to someone else. And most
+certainly, you want to give it the
+intelligence to know when it needs to
+address you first instead of going out
+into the world. The intelligence though
+comes from our AI operating system. It
+is everything that we have programmed
+into this entire workspace over here
+with all of our skills, all of our
+business context, and everything that
+this little agent.md that we've got over
+here will use to actually run once it's
+invoked. The third part of this handoff
+process relies on that continuity queue
+that I spoke about where we have that
+cananban board or any form of state
+management where an agent can just come
+and pick things up. Typically then at
+runtime you would either have a
+dispatcher that calls Sloan or you would
+just get Sloan to call in as a part of
+her schedule or heartbeat whatever that
+might be. And finally like I said as a
+part of our system we need to have
+authority here. And the three M's for me
+are money, megaphone and meaning. If any
+of those things come into play for the
+work that they're doing, they need to
+speak to a human. Money being anything
+that's client-f facing. Megaphone being
+anything that they're going to publicly
+announce in a post or something like
+that. I would never let any kind of AI
+workforce post something publicly
+without me seeing it. And then finally,
+meaning. So, I wouldn't let this change
+anything meaningful inside my system.
+For instance, I wouldn't let Sloan come
+in here and update several of my skills
+because of some kind of context change
+she thinks would be meaningful for the
+system. I absolutely need to be involved
+in that because if she had to change one
+thing inside here, it could affect every
+other skill inside the system and
+therefore make the system inaccurate. So
+you have to have authority gates at
+specific points. In terms of what these
+magical agents look like when they're
+not on that pretty little front end,
+it's literally just a markdown file. You
+can see here we've got Harper.md and
+that lives inside your Claude agents
+folder right over here. We got a bunch
+of our workforce over here in my dev
+environment. And all it is is a name
+with a description of when this thing is
+going to be used, what it's invoked for,
+so that Claude knows when you're talking
+to it down here, or when you call it
+from something like Telegram or Slack,
+it knows exactly who to route from your
+workforce pool. We've given it a model.
+Like I said, you can choose the model,
+Sonnet, Opus, whatever works for you
+with an effort level, how many turns
+this thing can actually run. We then set
+some boundaries. So, we tell it what
+tools that it's not allowed to use. We
+give it some skills that it should be
+using as a part of the work that it's
+doing. It doesn't have to use them all
+the time and it is smart enough to know
+when it should use them as long as
+you've written your skill properly. I
+have an entirely separate video on
+skills for you to watch if you're not
+sure how to do those. We then have some
+hooks in place here again to set some
+more boundaries. We're giving some very
+strict programmatic rules perhaps around
+what it's allowed to use as a specific
+stage of the time that it's doing the
+work. In this case, we're using a
+pre-tool use hook which is before it
+uses any tool. We're setting some
+boundary guards over here. And then it's
+really just about writing a clear system
+prompt over here. It's nothing too long
+and nothing too special. You don't need
+to feed these things as much information
+as you used to. These new frontier
+models actually perform worse when you
+use too much pros inside skills or
+inside a system prompt for an agent. So,
+it's about finding the right balance of
+that. And really, at a high level, this
+is how it all comes together. We're not
+building these magical humans. We're
+just making markdown files that know
+exactly how to use your underlying
+infrastructure. which is why I've been
+saying since December to focus so much
+on the underlying foundations because
+they build every single part of your
+operating system and it makes everything
+way easier. But I think that's enough
+for one video. I will be putting out
+videos where I walk through this
+building from scratch. If you have any
+comments, leave them down below and I
+will get back to you. Otherwise, check
+out the videos on the screen now.
+They'll definitely help you in your
+journey. Or you can join my community
+where I'm helping AI builders and
+consultants every single day. See you
+guys later.

@@ -1,0 +1,1055 @@
+[
+ {
+  "url": "https://www.youtube.com/watch?v=pGIzhiZww9Q",
+  "title": "I Built an AI Chief of Staff with Hermes Agent (Full Setup)",
+  "channel": "Rakhul Karthick",
+  "date": "2026-08-04",
+  "lang": "en",
+  "included": true,
+  "reason": "Hermes 비서실장 + Multika 스쿼드(리서치/디자인/코딩) + 칸반 In-Review 게이트, 안전스위치"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=EzQAgnjTq2k",
+  "title": "My top secrets to running an AI Agent Workforce",
+  "channel": "Greg Isenberg",
+  "date": "2026-08-12",
+  "lang": "en",
+  "included": true,
+  "reason": "34개 에이전트·비서실장(Simon)·6명 디렉터 구조, 컨텍스트 공급·와치독·에스컬레이션 방식 상세"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=ieCje847TG0",
+  "title": "이 사람이 조율, 실행, 리뷰, 판단 에이전트들과 일하는 법 (강정구 라이너 AI전략 총괄)",
+  "channel": "티타임즈TV",
+  "date": "2026-08-12",
+  "lang": "ko",
+  "included": true,
+  "reason": "80개 에이전트: 오케스트레이터→50명 캐스팅→5색 리뷰어→검증 에이전트→25명 어드바이저 7단계"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=Voc6PsCq_OQ",
+  "title": "How I Run My Company with a Fleet of 30 AI Agents",
+  "channel": "Eugene Vyborov",
+  "date": "2026-08-14",
+  "lang": "en",
+  "included": true,
+  "reason": "30개 에이전트 플릿, Chief of Staff 오케스트레이터, Canon/권한매트릭스/휴먼게이트/감사로그 실화면"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=3olRsWOgoLg",
+  "title": "I Finally Solved a Claude AI Agent Workforce",
+  "channel": "Mansel Scheffel",
+  "date": "2026-08-19",
+  "lang": "en",
+  "included": true,
+  "reason": "AIOS 워크포스: 명명된 에이전트 md, pre-tool hook, 3M(Money/Megaphone/Meaning) 권한 게이트, 재시도/복구/로그"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=2Q-xW88YARg",
+  "title": "Guide to Hermes Desktop Bot Mode: Real Multi-Agent Teams, Real Work",
+  "channel": "Tonbi's AI Garage",
+  "date": "2026-08-20",
+  "lang": "en",
+  "included": true,
+  "reason": "Bot HR이 프로젝트 스펙 보고 4명 전문봇 생성·모델 선택, Boss bot 20분 체크인, QA봇 별도"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=pmLcB1S2YYE",
+  "title": "헤르메스 에이전트 봇 모드로 AI 직원을 고용해봤습니다 | 설치, 개념, 사용법 총정리 [Hermes Agent]",
+  "channel": "Aiden의 친절한 AI",
+  "date": "2026-08-21",
+  "lang": "ko",
+  "included": true,
+  "reason": "리서처/에디터/리뷰어 3봇 뉴스레터 팀, 검수자 soul.md 반대 성격, 멘션 위임·그룹챗 회의·인간 최종 결재"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=blZuddQ196E",
+  "title": "Hermes Bot Mode 출시! AI 직원끼리 협업 더 쉬워졌습니다",
+  "channel": "시민개발자 구씨",
+  "date": "2026-08-21",
+  "lang": "ko",
+  "included": true,
+  "reason": "Hermes 봇모드: PM(자비스)→뉴턴 분석→해밍웨이 카피, 멘션 위임·그룹챗 3라운드 제한, 비용 주의"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=AewUCqOvdLk",
+  "title": "누적 가맹점 100개 외식업 대표가 헤르메스 에이전트 AI로 자동화 하는 방법",
+  "channel": "신영선의 AI탐구",
+  "date": "2026-09-01",
+  "lang": "ko",
+  "included": true,
+  "reason": "외식 프랜차이즈 대표: Elon(메인)+Jarvis 등 다수 AI직원, 알파고 실행→Elon 더블체크, Slack 협업, 실패→교정 학습"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=af7FfTRwHyE",
+  "title": "AI 에이전트 팀을 만들어주는 Buzz AI 기초 가이드 | 클로드코드·코덱스 한 팀으로 씁니다",
+  "channel": "진한별의 AI 연구소",
+  "date": "2026-09-09",
+  "lang": "ko",
+  "included": true,
+  "reason": "Buzz: 편집장→리서처/작가/비평가 4명, 비평가 반론 후 편집장이 인간 승인 요청"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=aaS2sVh-F10",
+  "title": "자율형 AI에이전트 너무 쉬워졌다. 설치파일 받고 바로 시작 (김민정 HRX랩 부대표)",
+  "channel": "티타임즈TV",
+  "date": "2026-09-12",
+  "lang": "ko",
+  "included": true,
+  "reason": "비서실장 Hermes + AI뉴스 치프 봇(서브 4명) 크론 파이프라인, 검수 역할 pass/revise, 봇 독립 시점 판단"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=GlW4N7p5KS8",
+  "title": "Subagents vs Agent Teams? 🧠 Hermes Bots, Goal Loops & Kanban Graphs",
+  "channel": "Wanderloots",
+  "date": "2026-09-19",
+  "lang": "en",
+  "included": true,
+  "reason": "서브에이전트 vs 봇팀 vs 칸반 비교 실험, /goal 완료기준 루프, 오케스트레이터·리서처·리뷰어 카드 그래프"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=4NCXTWBxcN0",
+  "title": "나만의 AI 팀 만들기, 설치부터 회의·업무 실행까지 | Hermes × DeskRPG",
+  "channel": "단테랩스",
+  "date": "2026-09-22",
+  "lang": "ko",
+  "included": true,
+  "reason": "DeskRPG×Hermes: 리서처/작가/검수 프로필 분리(자기검수 금지), 회의 턴수·반대의견 역할, 칸반 수행자/검증자 지정"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=7RVf25Rg0Mc",
+  "title": "you need to try Paperclip RIGHT NOW!",
+  "channel": "NetworkChuck",
+  "date": "2026-09-24",
+  "lang": "en",
+  "included": true,
+  "reason": "Paperclip에 Hermes/Claude/Codex/Pi 8명 고용, CEO(Dumbledore)가 위임·에스컬레이션, 보안리뷰어·워치독·decision 게이트"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=Ytpp65paFpY",
+  "title": "I Built a PREMIUM Misson Control for My 16 Hermes Agents",
+  "channel": "Komputer Mechanic",
+  "date": "2026-09-28",
+  "lang": "en",
+  "included": true,
+  "reason": "16개 Hermes 에이전트 미션컨트롤: 보스(Executor) 플랜 승인→에이전트간 메시지 관찰→리뷰→딜리버 흐름"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=2Paer0PoFzk",
+  "title": "Hermes Agent Tutorial: From Zero to a Team of AI Agents",
+  "channel": "Zinho Automates",
+  "date": "2026-09-30",
+  "lang": "en",
+  "included": true,
+  "reason": "매니저+3워커(작가/리서처/에디터=팩트체크) 칸반 자동 핸드오프, 발송 전 인간 승인, 흔한 실패 3가지"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=vwG2gLoaPAc",
+  "title": "",
+  "channel": "",
+  "date": "",
+  "lang": "en",
+  "included": false,
+  "reason": "게시일 확인 불가"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=Z_iWe6dyGzs",
+  "title": "Full Tutorial: Build with Multiple AI Agents using Claude Code in 40 Minutes | Kieran Klaassen",
+  "channel": "Peter Yang",
+  "date": "2025-07-20",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2025-07-20)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=Pif98jOScYc",
+  "title": "Claude Code Subagents Tutorial: Build a Team of Specialized AI Agents",
+  "channel": "Leon van Zyl",
+  "date": "2025-08-05",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2025-08-05)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=FUAqVZAKFf4",
+  "title": "Claude Code’s Hidden Subagents: Plan + Explore → Team Mode",
+  "channel": "Matt Maher",
+  "date": "2025-11-05",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2025-11-05)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=o-rE93-nLpY",
+  "title": "Oh my open code.클로드 코드보다 강력한 자동화 에이전트.대한민국 최초 개발자 인터뷰.꿀팁 공개! l 울트라워크 엔지니어 김연규(AI 팟캐스트 #78)",
+  "channel": "평범한 사업가",
+  "date": "2026-01-21",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-01-21)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=S2WTTMXYcYY",
+  "title": "How to install and use Claude Code Agent Teams (Reverse-engineered)",
+  "channel": "AI Jason",
+  "date": "2026-02-07",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-07)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=1jlKUxqRQAw",
+  "title": "Claude Code Agent Teams Explained (Complete Guide)",
+  "channel": "Mark Kashef",
+  "date": "2026-02-08",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-08)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=-1K_ZWDKpU0",
+  "title": "Claude Code's Agent Teams Are Insane - Multiple AI Agents Coding Together in Real Time",
+  "channel": "Cole Medin",
+  "date": "2026-02-09",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-09)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=y9IYtWELMHw",
+  "title": "How to Use Claude Code Agent Teams in 13 Mins (Opus 4.6)",
+  "channel": "Simon Scrapes",
+  "date": "2026-02-11",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-11)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=poAovDRaBHk",
+  "title": "How to Build Your Own AI Chief of Staff with Claude Code",
+  "channel": "AI Security Podcast",
+  "date": "2026-02-11",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-11)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=3XhbI597gm8",
+  "title": "제 AI 비서 '클라라' 를 만들었습니다 (feat. OpenClaw)",
+  "channel": "디자인 엔지니어",
+  "date": "2026-02-12",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-12)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=EQ-Rnx-k-Ec",
+  "title": "EP 86. 진짜 내 일을 해결하는 Agentic Workflow (Lablup 신정규 대표)",
+  "channel": "AI Frontier Korea (노정석)",
+  "date": "2026-02-18",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-18)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=buhxLzC3Pe4",
+  "title": "클로드 이 세팅 하나로 10배 빨라집니다 (AI 에이전트 팀)",
+  "channel": "텐빌더",
+  "date": "2026-02-20",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-20)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=_4PmniVUKT8",
+  "title": "Agent Teams vs Sub Agents Which One Actually Works #aiagents #coding #tutorial",
+  "channel": "Alex Followell AI Shorts",
+  "date": "2026-02-26",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-26)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=oC3F2SFaF9w",
+  "title": "Claude Code's Agent Teams Are Insane (Build Your AI Workforce)",
+  "channel": "Turing College",
+  "date": "2026-02-26",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-26)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=qGm8odiBkBg",
+  "title": "클로드 코드 Agent Teams 완벽 정리 | Subagent와 차이점",
+  "channel": "짐코딩",
+  "date": "2026-02-27",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-02-27)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=jT1rg3TBf-I",
+  "title": "Claude Subagents vs Agent Teams: What’s the difference?",
+  "channel": "Shaw Talebi",
+  "date": "2026-03-01",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-03-01)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=exe9PM8l54o",
+  "title": "How to Build Multi-Agent Teams in Claude Code (Step by Step)",
+  "channel": "Lakshit Ukani | AI Automation",
+  "date": "2026-03-07",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-03-07)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=PmXWS97LuSA",
+  "title": "Codex Subagents Spawn Parallel AI Teams From One Prompt | OpenAI Developer Docs Breakdown",
+  "channel": "TechWealth Hub",
+  "date": "2026-03-16",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-03-16)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=5ldVMIcbytU",
+  "title": "Build a Claude Code AI Team with Custom Subagents",
+  "channel": "Pavan Adhav",
+  "date": "2026-03-18",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-03-18)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=hwx-VBtFkPw",
+  "title": "Paperclip AI Tutorial: Setup, Create Agents, and Build a Snake Game",
+  "channel": "SkillsHats",
+  "date": "2026-03-20",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-03-20)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=vatxcwaxuwg",
+  "title": "오픈클로를 통해 회사의 모든 워크플로우를 100% 바꿔버린 AI 네이티브 컴퍼니 (GPTers 김태현, 송다혜님)",
+  "channel": "빌더 조쉬 Builder Josh",
+  "date": "2026-03-25",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-03-25)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=C3-4llQYT8o",
+  "title": "Paperclip: Hire AI Agents Like Employees (Live Demo)",
+  "channel": "Greg Isenberg",
+  "date": "2026-03-26",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-03-26)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=6gvnDSAcZww",
+  "title": "프롬프트 엔지니어링은 끝났습니다: 이제 '하네스'의 시대입니다",
+  "channel": "실밸개발자",
+  "date": "2026-04-01",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-01)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=vPzM2ix4ApM",
+  "title": "오픈클로 200% 활용법 공개합니다",
+  "channel": "패스트캠퍼스",
+  "date": "2026-04-01",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-01)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=hLh5K0IWk5E",
+  "title": "OpenClaw 멀티에이전트 메타버스 오피스 만들기 | DeskRPG",
+  "channel": "단테랩스",
+  "date": "2026-04-02",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-02)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=RHZLJhp-JMM",
+  "title": "Paperclip Is Insane - Full Tutorial",
+  "channel": "Tech With Tim",
+  "date": "2026-04-04",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-04)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=EtSO9vU84ws",
+  "title": "Multi-Agent Orchestration Explained: From Patterns to Production",
+  "channel": "scrollypedia",
+  "date": "2026-04-05",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-05)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=B29HU6ThYYE",
+  "title": "Ep 105: How I built my AI “chief of staff” | Michael Leibovich (GM, Adobe Portfolio @ Adobe)",
+  "channel": "Supra Insider",
+  "date": "2026-04-06",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-06)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=J-SKI0vd50c",
+  "title": "이 기능 모르면 클로드코드 반만 쓰는 겁니다 | 에이전트 팀",
+  "channel": "태오의 실행 비즈니스 | AI 에이전트",
+  "date": "2026-04-08",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-08)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=-9C1vvu6HYg",
+  "title": "How to Build a Multi-Agent Team in Hermes",
+  "channel": "TechWealth Hub",
+  "date": "2026-04-12",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-12)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=mduLV-mWrNM",
+  "title": "You NEED to set up a multi agent team with OpenClaw and Hermes",
+  "channel": "Alex Finn",
+  "date": "2026-04-13",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-13)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=-vL8ivN-TV0",
+  "title": "Paperclip + Hermes + OpenClaw + Claude is INSANE!",
+  "channel": "Julian Goldie SEO",
+  "date": "2026-04-19",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-19)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=s7K0o7tWSJQ",
+  "title": "Your AI Agents Need a CEO (Here's Why)",
+  "channel": "Sharbel A.",
+  "date": "2026-04-22",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-04-22)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=ow1we5PzK-o",
+  "title": "The Multi-Agent Architecture That Actually Ships — Luke Alvoeiro, Factory",
+  "channel": "AI Engineer",
+  "date": "2026-05-06",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-06)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=XN6r4i8q-oM",
+  "title": "Hermes Agent Kanban Tutorial: Customize Your Own Multi Agent Architecture",
+  "channel": "Superbash (BoxminingAI)",
+  "date": "2026-05-06",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-06)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=VGpVzP163ZM",
+  "title": "Hermes Kanban Explained: From Shared Board to Multi-Agent Orchestration Runtime #hermesagent",
+  "channel": "AgenticEngineering",
+  "date": "2026-05-06",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-06)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=xvJ6ozd7hzk",
+  "title": "Hermes Agent Kanban v0.12.0",
+  "channel": "Didy “Tetto”",
+  "date": "2026-05-07",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-07)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=xZ7OmRz2i7o",
+  "title": "I Tried Running a Company Made of AI Agents",
+  "channel": "Better Stack",
+  "date": "2026-05-12",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-12)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=QyDZz2y0vc4",
+  "title": "Paperclip + Hermes Agent Changed Everything!",
+  "channel": "Julian Goldie SEO",
+  "date": "2026-05-13",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-13)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=iNCOuMCzzDg",
+  "title": "클로드 코드 + 코덱스 + 제미나이 동시에 굴리는 멀티 에이전트 시스템 (한 번 쓰면 못 돌아감)",
+  "channel": "AI 치트키",
+  "date": "2026-05-18",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-18)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=PIdETjcXNIk",
+  "title": "Pi to Pi: Two-Way Agent Orchestration with the Pi Coding Agent",
+  "channel": "IndyDevDan",
+  "date": "2026-05-18",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-18)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=hPrEcdfbZms",
+  "title": "하네스 101: AI 에이전트 팀 템플릿 100개 완전 입문",
+  "channel": "AlbaBot",
+  "date": "2026-05-21",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-21)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=FC9dB065lL8",
+  "title": "클로드 코드 에이전트 6개로 블로그 글쓰기 자동화 시스템 만들었어요. (노션 자동 발행까지)",
+  "channel": "엉클잡스",
+  "date": "2026-05-21",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-21)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=ItIU1YdcVQw",
+  "title": "AI 에이전트 이거쓰세요! 로 클로드 코드 + 헤르메스 에이전트 회사 자동화하는 법",
+  "channel": "QJC 퀀텀점프클럽",
+  "date": "2026-05-22",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-22)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=oNfhvDDWTA8",
+  "title": "AI 에이전트의 특징 클로드 코드 + 헤르메스 에이전트 회사 자동화하는 법",
+  "channel": "QJC 퀀텀점프클럽",
+  "date": "2026-05-23",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-23)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=taC1RJdO3QY",
+  "title": "클로드 코드 30분 실전 가이드ㅣ claude code 설치부터 서브에이전트까지 워크플로우 30개 꿀팁 대방출",
+  "channel": "잭피디의 바이브코딩 아카데미",
+  "date": "2026-05-27",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-27)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=dGa6of60Iow",
+  "title": "Claude Code 워크플로우 — AI에게 에이전트 100명을 지휘시키는 법",
+  "channel": "개발자 플레이북",
+  "date": "2026-05-29",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-29)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=jZgcWCzxh1I",
+  "title": "Claude Code Dynamic Workflows Clearly Explained",
+  "channel": "Nate Herk | AI Automation",
+  "date": "2026-05-30",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-05-30)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=7EfWMObf6Mo",
+  "title": "How to Build an AI Chief of Staff in Claude (Full Setup)",
+  "channel": "Darby Rollins",
+  "date": "2026-06-01",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-01)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=EKVRqcpTT6s",
+  "title": "I Built the Ultimate Multi-Agent Workflow w/ Hermes Agent Kanban Board",
+  "channel": "Tonbi's AI Garage",
+  "date": "2026-06-01",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-01)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=uMCx1XxHzHI",
+  "title": "하네스 엔지니어링: AI를 도구에서 조직으로 바꾸는 기술 | 황민호 카카오 수석 | 제343회 스마트포럼",
+  "channel": "도산아카데미",
+  "date": "2026-06-05",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-05)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=HbBiE5uZ3p4",
+  "title": "Claude Code Subagents for Code Review",
+  "channel": "ByteBuilder",
+  "date": "2026-06-07",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-07)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=EUdILv8yNwI",
+  "title": "클로드 코드 대량 업무 필수 기능 , 다이나믹 워크플로우 | Claude code Dynamic Workflow 개념부터 실행까지",
+  "channel": "AI싱크클럽",
+  "date": "2026-06-07",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-07)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=hbKvO5MWq08",
+  "title": "How to Build a Multi-Agent Workflow for LLM Wikis in Hermes Kanban",
+  "channel": "Tonbi's AI Garage",
+  "date": "2026-06-08",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-08)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=h19gDMGi7Xs",
+  "title": "Hermes + Paperclip Just Changed AI Agents Forever",
+  "channel": "Julian Goldie SEO",
+  "date": "2026-06-08",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-08)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=5V9k0vyYD4E",
+  "title": "Build a Multi-Agent Fleet with Hermes and Ghost Postgres",
+  "channel": "CodingEntrepreneurs",
+  "date": "2026-06-09",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-09)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=fCDsXrpdVLc",
+  "title": "How to Build Teams of Hermes Agents!",
+  "channel": "Julian Goldie SEO",
+  "date": "2026-06-13",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-13)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=9m8iMzEBuSU",
+  "title": "5인 회사 운영하며 직접 헤르메스 에이전트 720시간 돌려본 후기 (feat. Slack, Hostinger)",
+  "channel": "빌더 조쉬 Builder Josh",
+  "date": "2026-06-16",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-16)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=2ZacwCbiLjg",
+  "title": "Hermes Full Course: Build Your 24/7 AI Chief of Staff in 45 Minutes",
+  "channel": "Peter Yang",
+  "date": "2026-06-24",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-24)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=VXCsqkH4IAI",
+  "title": "I Turned Claude Code Into a 12-Agent Team With Paperclip (Full Tutorial)",
+  "channel": "The AI Architects | Tom Crawshaw",
+  "date": "2026-06-25",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-25)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=Axnt-ug7jhc",
+  "title": "How to Build an AI Agent Workforce with Allie K. Miller",
+  "channel": "The Information",
+  "date": "2026-06-28",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-06-28)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=KPsMThlFb8Y",
+  "title": "Hermes Agent Masterclass: 9. Profiles & Kanban",
+  "channel": "Tonbi's AI Garage",
+  "date": "2026-07-03",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-03)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=erMROJqU5t4",
+  "title": "Hermes Agent: Build Your Own Personal AI Assistant (Full Course)",
+  "channel": "Komputer Mechanic",
+  "date": "2026-07-06",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-06)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=FORj8GUInYI",
+  "title": "AI 에이전트 4천 개 만들면 누가 유지보수할 겁니까?",
+  "channel": "까칠한AI",
+  "date": "2026-07-06",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-06)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=2E9R_UdbLZo",
+  "title": "Claude Code 2026: The 7 Primitives Before You Build",
+  "channel": "DDSBoston — Free AI Coding Academy",
+  "date": "2026-07-07",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-07)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=EDvnavKiWwI",
+  "title": "클로드 직원 5명이 제 사이트로 알아서 돈 벌어줍니다 (ai 직원 세팅법 8가지)",
+  "channel": "혼잡스",
+  "date": "2026-07-08",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-08)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=ZVPlLaehjLk",
+  "title": "Agentic AI Frameworks Explained: Workflows, Multi-Agent, & Production",
+  "channel": "IBM Technology",
+  "date": "2026-07-09",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-09)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=8yE6G1Lup1s",
+  "title": "HERMES AGENT FULL COURSE 3 HOURS: Build & Sell (2026)",
+  "channel": "Samin Yasar",
+  "date": "2026-07-10",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-10)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=XdT7xzB8tW4",
+  "title": "Hermes Masterclass — Run multiple, coordinated agents simultaneously (July 2nd, 2026)",
+  "channel": "Remy",
+  "date": "2026-07-13",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-13)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=gbGAFfXUsGY",
+  "title": "헤르메스 에이전트 기초 가이드ㅣ나만의 AI 팀 쉽게 만들어보세요",
+  "channel": "AI디렉터 소미",
+  "date": "2026-07-18",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-18)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=MAZOd3XZ8cg",
+  "title": "Paperclip vs Multica: Stop Choosing the Wrong AI Agent Orchestrator!",
+  "channel": "Panda Making Money",
+  "date": "2026-07-19",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-19)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=7XW_O_lS6C4",
+  "title": "AI 직원, 이번엔 전문가로 다시 뽑았습니다 | Hermes 팀 빌딩 + 데스크톱 앱 연동",
+  "channel": "후츠릿 - AI 자동화로 삽질 줄여주는 개발자",
+  "date": "2026-07-19",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-19)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=WJ_-8CAeL00",
+  "title": "헤르메스 에이전트로 AI 팀원 5명 만들기｜실전 자동화 사례 4가지",
+  "channel": "진한별의 AI 연구소",
+  "date": "2026-07-20",
+  "lang": "ko",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-20)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=qiDalcMeBFk",
+  "title": "How to Use Multi-Agent Workflows in Claude Code: Skills, Subagents & Handoffs (2026)",
+  "channel": "The Code City",
+  "date": "2026-07-26",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-26)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=0JmZuBX0s9Y",
+  "title": "Claude Certified Developer: Ep 05 | Subagents & Multi-Agent Orchestration | Full Course",
+  "channel": "Peace Of Code",
+  "date": "2026-07-26",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-26)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=2994PE2rWt0",
+  "title": "Hermes Subagents: Parallel Work Without Context Leaks",
+  "channel": "Tertiary Courses",
+  "date": "2026-07-30",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-30)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=TL8V41Ea6oM",
+  "title": "4 AI Agents To Automate 99% Of Your Life",
+  "channel": "Sandeep Swadia",
+  "date": "2026-07-30",
+  "lang": "en",
+  "included": false,
+  "reason": "2026-08-01 이전 게시(2026-07-30)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=UWjh5Z4s8jY",
+  "title": "Hermes Co-Founder on Building an AI Agent That Improves Itself | Karan Malhotra",
+  "channel": "Peter Yang",
+  "date": "2026-08-02",
+  "lang": "en",
+  "included": false,
+  "reason": "Hermes 공동창업자 인터뷰(제품 철학) — 운영자 본인 조직 사례 아님"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=rIoJ-iHNIGY",
+  "title": "헤르메스 에이전트가 미쳤습니다... 역대급 업데이트 4가지",
+  "channel": "Jay Choi | 인디해커 라이프",
+  "date": "2026-08-04",
+  "lang": "ko",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=MgktwJXF450",
+  "title": "Fable Orchestrator + K3, Codex: 5X CHEAPER, 10X BETTER!",
+  "channel": "AICodeKing",
+  "date": "2026-08-05",
+  "lang": "en",
+  "included": false,
+  "reason": "모델/오케스트레이터 제품 리뷰 — 조직 운영 사례 아님"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=uuStx6kV5js",
+  "title": "How to Build an AI Chief of Staff That Keeps Your Million Dollar Goal on Track No Code",
+  "channel": "Ben Angel",
+  "date": "2026-08-07",
+  "lang": "en",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=-j7UPJ4cC1g",
+  "title": "Claude Code Sessions Can Now Message Each Other [v2.1.224]",
+  "channel": "Prism Labs",
+  "date": "2026-08-09",
+  "lang": "en",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=dJ41SuxMCS4",
+  "title": "헤르메스 에이전트 쓰면 쓸수록 똑똑해집니다! 스스로 진화하는 AI 비서 (설치, 사용법, Kanban 멀티에이전트)",
+  "channel": "레인 | AI 바이브코딩",
+  "date": "2026-08-12",
+  "lang": "ko",
+  "included": false,
+  "reason": "Hermes 설치+칸반 소개 중심, 역할 분담 에이전트 조직 운영 아님"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=9o16uyJB0os",
+  "title": "Paperclip — Manage AI Agents Like a Company (Full Deep Dive)",
+  "channel": "Full Stack",
+  "date": "2026-08-17",
+  "lang": "en",
+  "included": false,
+  "reason": "Paperclip 제품 소개(딥다이브)로 본인 운영 사례·실패 언급 없음 — promotional"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=go9J5na8fEc",
+  "title": "Build an AI Chief of Staff in Claude (Cowork Walkthrough)",
+  "channel": "Terez Rijkenberg | Executive Coach",
+  "date": "2026-08-17",
+  "lang": "en",
+  "included": false,
+  "reason": "Claude Cowork 비서실장 웨비나 — 단일 에이전트, 유료 챌린지 홍보 비중 큼"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=AD9NVllqOmw",
+  "title": "5.1 - Orchestrator & Worker Agents: Turn One AI Agent Into a Team",
+  "channel": "Cloud + AI Architect",
+  "date": "2026-08-21",
+  "lang": "en",
+  "included": false,
+  "reason": "강의형 개념 설명(orchestrator/worker 패턴) — 실제 운영 사례·실패 없음"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=RfB1ju3Wks4",
+  "title": "Coordinator Subagent Orchestration in Claude Agent SDK — How Multi-Agent Delegation Actually Works",
+  "channel": "AI and Beyond",
+  "date": "2026-08-26",
+  "lang": "en",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=MlMIkoKz4xw",
+  "title": "How to Set Up Agent Teams in Claude Code using Tmux",
+  "channel": "Rizwan Saleem",
+  "date": "2026-08-29",
+  "lang": "en",
+  "included": false,
+  "reason": "Claude Code agent teams 기능 튜토리얼(tmux) — 단일 프로젝트 데모, 조직 운영 노하우/실패 부족"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=S-sYlFiGFv8",
+  "title": "How the Claude Code team uses Claude Code",
+  "channel": "Claude",
+  "date": "2026-09-02",
+  "lang": "en",
+  "included": false,
+  "reason": "기업 공식 채널(Anthropic Claude Code 팀 좌담) — 개인 운영자 아님. 참고: fan-out→adversarial review, workflows(결정론 코드+에이전트) 언급"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=HzGOWq5UyjY",
+  "title": "How AI Agents Actually Work (Every Piece Explained & Built)",
+  "channel": "Tech With Tim",
+  "date": "2026-09-03",
+  "lang": "en",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=OMC7d4dNgcw",
+  "title": "'진짜' 클로드 코드 실무편ㅣ회사에서 바로 쓰는 AI 에이전트 5단계 완성",
+  "channel": "오늘 쓰는 AI",
+  "date": "2026-09-04",
+  "lang": "ko",
+  "included": false,
+  "reason": "트랜스크립트 추출 실패. 제목상 단일 사용자 Claude Code 실무 5단계 — 조직형 여부 미확인"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=L36JNpEHlc4",
+  "title": "New Hermes Kanban Agent Is CRAZY!",
+  "channel": "Julian Goldie SEO",
+  "date": "2026-09-09",
+  "lang": "en",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=sKI2x3WvBLA",
+  "title": "헤르메스 에이전트 봇 모드 출시! (Grok Bot과 비교)",
+  "channel": "Jay Choi | 인디해커 라이프",
+  "date": "2026-09-10",
+  "lang": "ko",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=YUXuBfjHMo8",
+  "title": "혼자서 20명 몫을 해내는 AI 에이전트 팀 구축 완벽 가이드 | 1인 유니콘 시대",
+  "channel": "Dream_Incubator",
+  "date": "2026-09-15",
+  "lang": "ko",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=yCT8G-iTtgA",
+  "title": "The Chatbot Era Is Ending. Your AI Team Is Next.",
+  "channel": "The AI Advantage",
+  "date": "2026-09-18",
+  "lang": "en",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=MFuPhznZRkk",
+  "title": "Build Your Own AI Chief of Staff",
+  "channel": "Jess's AI Agents Hub",
+  "date": "2026-09-19",
+  "lang": "en",
+  "included": false,
+  "reason": "GPT-6 단일 비서실장 세팅 — 단일 에이전트"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=IPe6xSr2Y38",
+  "title": "헤르메스 에이전트 800시간 이상 써보고 알려주는 설치 방법부터 활용 사례 총정리",
+  "channel": "신영선의 AI탐구",
+  "date": "2026-09-19",
+  "lang": "ko",
+  "included": false,
+  "reason": "Hermes 단일 에이전트 Slack 설치 가이드 — 복수 역할 분담 없음"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=6WZRba1Oxew",
+  "title": "NEW Hermes Kanban Agent is Absolutely INSANE!",
+  "channel": "Julian Goldie SEO",
+  "date": "2026-09-19",
+  "lang": "en",
+  "included": false,
+  "reason": "검토 결과 제외: 조직형 멀티에이전트 운영 사례 아님(단일 에이전트/제품소개/일반 튜토리얼)"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=YAdZ-_mDeoo",
+  "title": "AI 에이전트 10명에게 일을 맡겼더니… 회의부터 SNS 게시까지 알아서 합니다",
+  "channel": "생존AI",
+  "date": "2026-09-21",
+  "lang": "ko",
+  "included": false,
+  "reason": "자막/트랜스크립트 추출 실패(401). 챕터상 10명 AI직원·Claude/Codex 역할분리로 적합 가능성 높음 — 재시도 권장"
+ },
+ {
+  "url": "https://www.youtube.com/watch?v=A5XQTcdVWgU",
+  "title": "Build Your Own Chief of Staff AI Agent in Claude Cowork | Full Setup",
+  "channel": "Aidgentic - AI Automation",
+  "date": "2026-09-22",
+  "lang": "en",
+  "included": false,
+  "reason": "Claude Cowork 단일 비서실장 에이전트(플러그인) — 복수 에이전트 역할분담 아님"
+ }
+]

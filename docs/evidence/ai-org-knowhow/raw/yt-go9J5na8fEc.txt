@@ -1,0 +1,1520 @@
+https://www.youtube.com/watch?v=go9J5na8fEc
+![Thumbnail (1920x1080)](https://i.ytimg.com/vi_webp/go9J5na8fEc/maxresdefault.webp)
+# [Build an AI Chief of Staff in Claude (Cowork Walkthrough)](https://www.youtube.com/watch?v=go9J5na8fEc)
+
+**Visibility**: Public
+**Uploaded by**: [Terez Rijkenberg | Executive Coach](https://www.youtube.com/@Terezrijkenberg)
+**Uploaded at**: 2026-08-17
+**Published at**: 
+**Length**: 54:46
+**Views**: 288
+**Likes**: 1
+**Category**: Education
+
+## Description
+
+```
+Turn Claude from a chat window into something closer to a chief of staff: a tool that knows your role, your brand, your stakeholders and your standards, and produces real deliverables you can send the same day.
+
+In this 60-minute session I walk professionals through the exact five-layer setup I use in Claude Cowork, plus live demos of board packs, consultant-grade reports, HTML proposals and personal dashboards. No coding. No design background. Just an imagination and a conversation.
+
+I'm Terez Rijkenberg, an executive coach who has spent eight years working with C-suite leaders on productivity, confidence and building self-directed teams.
+
+WHAT YOU'LL LEARN
+
+The five layers that make AI actually useful for professional work:
+
+1. Context. Why the setup matters more than the prompt, and how to give Claude your role, brand, voice, objectives and stakeholder map once instead of re-explaining every session.
+2. Projects. Why one project per business beats a project per task, and how memory builds over time.
+3. Skills. What a skill is, how to build one, and the rule I use: never do the same thing twice.
+4. Automation. Turning weekly and monthly work into scheduled tasks.
+5. Dashboards. Making the invisible visible, for work and for life.
+
+DEMOS IN THIS SESSION
+
+- A branded board pack built from spreadsheet data
+- A consultant-grade strategy report, researched and written in about 15 minutes
+- An interactive HTML proposal that replaced my PDF and email version
+- A weekday morning brief built from calendar and email connectors
+- A transcript scrubber that strips client-identifying data before analysis
+- A coaching question bank a client uses before every one-to-one
+- A family dashboard, because summer holidays are their own project
+
+ALSO COVERED
+
+- Privacy and data settings you should check today, including the two toggles to turn off and why the thumbs-up button matters
+- The difference between context and skills, and when to use each
+- Working across multiple brands or clients without cross contamination
+- Whether any of this works in Copilot or ChatGPT (the principles do)
+
+CHAPTERS
+
+0:00 Welcome
+1:51 Who I am and why I moved to Claude
+3:52 What are you using AI for right now?
+7:00 From conversation to deliverable
+9:30 Why one tool instead of five
+12:00 The setup matters more than the prompt
+13:30 Layer 1: Context, your chief of staff foundation
+17:00 Layer 2: Projects and memory
+19:00 Do you trust them with your data?
+20:30 Layer 3: Skills, and the Sound Human demo
+26:00 Three ways to get skills
+27:30 Layer 4: Automation
+29:00 Layer 5: Dashboards
+32:30 The AI Amplified plugin, start to finish
+38:00 Folder structure and your brand style guide
+41:00 Board pack demo
+43:00 Working with several brands
+44:30 Privacy settings to change now
+47:00 Consultant-grade report demo
+50:00 HTML proposals
+53:00 Morning briefs and connectors
+55:00 Transcript scrubber and coaching question banks
+57:00 What to do next
+58:43 Questions
+
+RESOURCES
+
+Free AI Amplified Core plugin and training: https://ai-amplified.circle.so/c/ai-amplified-core-plugin-cbaf3c
+30-day Claude challenge, four weeks from foundation to automation: https://tuitiv.ai/challenge
+Free newsletter, practical prompts and tips: https://ai-amplified.circle.so/c/skill-and-prompt-of-the-week
+
+To use the plugin you'll need a paid Claude plan and Claude Cowork on your desktop. The principles work anywhere.
+
+Your executive coach,
+Terez
+
+#ClaudeAI #ClaudeCowork #AIProductivity #ExecutiveCoaching #AITools #AIForProfessionals #Anthropic #LeadershipDevelopment
+```
+
+## Transcript
+
+Hello everyone. Hello. I'm so glad to
+see you all today.
+So glad to have you all. Yay. Lots and
+lots of people in the room today, which
+is fabulous. All the women. Oh, yeah.
+Bringing it. I love it. Maybe there will
+be some men that will that will join us,
+which will be lovely, too. So glad to
+have you all here. Some of you know me.
+I have met uh quite a few of you before,
+but some I have not met before. And I'd
+love to introduce myself really quickly.
+I'm TZ. I'm an executive coach. I've
+been working as an executive coach with
+Tuite Leaders for about eight years. Um,
+before that I was working my way up the
+corporate ladder. So, I had a time in
+corporate. Uh, I've always enjoyed, you
+know, working in organizations, helping
+people to helping organizations build
+and grow and scale. And I've always
+loved leadership. And about two years
+ago when Chat GPT arrived, I I mean,
+I've always been somebody who's a bit of
+an early adopter with technology. So I
+was really interested in using it and I
+started to build it into the workflow
+into my own personal workflow of um
+executive coaching and really asking the
+question of how can I use this to
+actually increase the speed of results
+for my clients. And then I started to
+ask the question of how can I also help
+my clients to leverage these tools that
+they might be a bit reticent and
+resistant or maybe even resistant to
+start using. But how can I help them to
+use this for their personal
+productivity? Productivity has always
+been a an area of interest for me
+helping my clients to be more productive
+in their day-to-day to create more value
+to create more impact. that's always
+been uh one of the biggest challenges
+that they come to me with and I love to
+help them with it. So, if this is
+something that can help, I'm in it. I'm
+there for it. So, welcome. There are
+some more people joining which is
+fantastic. And before we get started, I
+want to ask you a question. So, I've got
+um some slides here today. This is what
+we're going to be focusing on is Claude
+Co-work for Professionals.
+And specifically, I'm going to show you
+how you can build a chief of staff
+within Claude. Now, if you aren't using
+Claude right now, that's not even a
+problem. You're going to get so much
+value from this session. It's going to
+open your mind to what's possible with
+AI tools. And that's that's the whole
+point. Uh you don't have to be using
+Claude. You may want to decide to use
+Claude after this, which will be
+brilliant. Uh and and there's loads that
+I can teach you on in this space. But
+even if you aren't, there are other
+tools that are quite similar and these
+same principles will apply into those
+tools to too. So you can take that
+forward. And before I get started, I
+want to hear a little bit about you. So
+I, you know, I'm I'm a coach, so of
+course I'm going to ask questions. I'd
+love to hear from you if you can open up
+your chat. What is your current usage of
+of AI tools? Are you getting started?
+Which tools do you use? What do you use
+it for? And also, you know, what do you
+wish you could do with some of these AI
+tools? What is it that you think might
+be possible, but maybe you just don't
+have the knowledge or uh the experience
+or know how to set it up yet or what
+have you seen that you'd love to do? So,
+I'd love to hear from you just in the
+chat. What do you currently use AI tools
+for? Which ones do you use? And then
+also, what do you wish you could do with
+it? What do you currently do with it
+with them? And what do you wish you
+could do with them? Let us There's a few
+more people. So, brilliant. Alan, you
+know very little. Oh, good. So, I'm
+going to blow your mind today. That's so
+good. Um, Jane, I use Copilot for report
+writing. Fantastic. Yes, a lot of my
+clients do have access to Copilot. A lot
+of organizations, co-pilot's like the
+the thing. Uh, and I think what I'll
+teach you here today, some of it will
+definitely be able to be applicable to
+to co-pilots. You might be able to go
+and find exactly um how to set it up for
+you. And you may even want to subscribe
+to Claude for your personal usage. It
+you don't have to put any company data
+into Claude. You can actually just set
+it up for your personal use. I'll share
+some personal use cases that I've saved
+loads of time and loads of frustration.
+Loads of frustration just because I've
+it's helped me in my personal capacity.
+All right, Maria chat GBT and Claude
+workshop ideas as well as mainly general
+chats. Yes, love a general chat. Also,
+Claude for presentations. Brilliant. I'm
+really keen to learn more about it for
+executive coaching and in reality have a
+low level of knowledge. Okay, fabulous.
+So, Maria, you're also an executive
+coaching. I have another uh webinar that
+I did recently which went specifically
+into how I use it for my coaching. So,
+I'll send that to you afterwards as
+well. It will be a great one for you to
+capture. uh Zena daily for the past 18
+months to two years mainly chat GBT use
+very much for asking questions writing
+reports emails developing training but
+keen to learn more how to use the
+functionality and new to claude
+everybody's um not everybody but so many
+people around the world are well at
+least in my circles are like Claude this
+claude that Claude Claude and that
+certainly might be your reality as well
+where people are are speaking so highly
+of Claude and then you're wondering why
+is it so different What's different
+about it to some of the others? I will
+share a bit more about that too. Uh
+Nash, so glad that you're here. I use AI
+quite a bit. Brilliant. Got basic access
+to Claude science recently. Oh,
+fantastic. That must be incredible. I'm
+very interested in this um AI and the
+tools that they're that they're creating
+for the medical space. I think it's
+brilliant. Brilliant. Nash. All right.
+So glad to have you all here. We're
+going to get started on um we're going
+to get started. If you have any
+questions along the way, please pop them
+in the chats. I've got my chats open.
+We'll have this we'll make it seem like
+a little bit more of a discussion as
+opposed to a one-sided conversation. You
+know, I'm a coach, so I I don't like to
+always be the one talking. I love to
+have a bit of engagement. So, please ask
+questions uh and I gladly stop and we
+we'll uh go from there. A lot of us are
+using uh all of these tools at the
+moment and we have these chats. We're
+having these great conversations with
+Claude Claude or Chat GBT or or
+whichever and um very often we might not
+um it becomes this like beautiful
+conversation and then we can't find it.
+It's it's down and you know we remember
+this conversation that we had with it
+and then suddenly we can't actually um
+access it anymore. Which is why one of
+the one of the reasons why I moved to
+Claude Co-work was for that very reason.
+Claude Co-work is this tool that allows
+you to set up a beautiful working space
+where it's almost like a it connects to
+your folder structure on your desktop or
+your one drive or wherever it is that
+you hold your folders and you're able to
+then start to do real work, create real
+outputs so that you can actually take
+that output and deliver it immediately.
+you have access to those folders, those
+outputs, the the documents that it
+creates, and you're able to then hold
+it, keep it, and save it in a very
+organized space, and also then be able
+to use it as you move forward. And it's
+no longer just a chat. It actually turns
+into a deliverable document. And that's
+the whole point. That's what we want to
+get to. We want to move away from from
+using these tools as just a conversation
+or a chat. And we want to move it we
+want to move more into what's the result
+that we want? What is the output? What
+is the deliverable? What is something we
+we can ship and put out there? One of
+the trends that I'm seeing in the world
+of entrepreneurship right now is that
+people are starting to put out more
+content, more offers,
+and being able to test those offers,
+test those those creations because the
+more we put out and if you're in the
+innovation space, I know some of you are
+in the innovation space with us today.
+If you're in the innovation space, we
+need to be putting out prototypes,
+getting that feedback, seeing what's
+working, what's not working. AI tools
+are really able to help us to do that
+really quickly.
+And Claude Co-work, one of the other
+reasons why I've been very drawn to
+Claude Co-work is because you can do so
+much with one single tool. For some
+time, you know, people have been using
+um chatbt for chat and then going to
+another place to get their images and
+then to Gamma for presentations and then
+claude for the copyrightiting and then
+uh this place for that and you have all
+of these 500 million tools. It's really
+bad for productivity because, you know,
+you've then got to try and find where
+you've put everything with within all of
+these tools. So, I've been quite drawn
+to using Claude Co-work only and trying
+to figure out how can I get everything
+that I need with one single tool. And
+it's brilliant because it can you can
+there are some tips and tricks on how to
+leverage it for images and and banners
+and those kinds of things. But even
+everything that you'll see now,
+everything that I this presentation that
+I'm showing you now was also created
+just with Claude Co.
+I'm also not a coder. So, I'm not
+somebody who knows. I'm not a graphic
+designer. I'm not somebody who knows all
+of these things. But I've been able to
+do it with an imagination and a
+conversation. Actually, that sounds
+really good. An imagination and a
+conversation. That should be something.
+Actually, I'm somebody write that down.
+This also shows you that AI is only as
+good as the human behind it. Right? So
+if you prompt it, if you give it your
+imagination, your ideas, your
+suggestions, you're going to get
+something brilliant out.
+And the difference isn't well in this
+side saying the difference isn't the
+prompt for sure. It's also the setup. It
+is the context layer. It is how you
+create the foundation of the tool that
+you want so that whenever you converse
+with it, whenever you speak to it, it is
+going to give you a more unique output.
+Uh so the setup of your tool, whichever
+one it is that you're using, is one of
+the most important parts.
+What we wanted to then be able to do,
+and the reason why I say the setup is
+the most important part is because you
+want to what system
+>> want to be able to get to is a um I'm
+just going to just mute here. Uh what we
+want to be able to get to is a chief of
+staff. We want to get to a tool that
+knows everything about us and also is
+able to learn everything about us so
+that when we're having a conversation
+with it, we don't have to repeat things
+over and over again and say, you know,
+that's uh thing that we're working on
+this project and uh the stakeholders,
+you know, the the ELT, they're quite uh
+finicky, uh this one needs more data and
+that one needs likes to have the story.
+You don't want to have to tell it that
+every single time. What we want to be
+able to do is set up our tool, our LLM
+of choice, if we're using it for our
+personal productivity, with as much
+context as we have as possible so that
+we don't have to say that every single
+time. It can actually connect to that
+context and give you relevant answers
+based off of that context. And what we
+wanted to be able to do is to also learn
+over time. So the more you converse with
+it, the more decisions you make, the
+more changes and updates. We actually
+want it to learn and create memory about
+that over time so that eventually you
+can have a oneliner conversation and it
+knows more about you and it gives you
+very accurate answers. And that's
+precisely what's happened with me. I now
+have very like tur conversations with
+with my claude and it suddenly gives me
+like really very onp point directives
+and results just because I've been able
+to set it up quite quite extensively
+with the context. So we want to make
+sure that it's got everything about us.
+Our brand, our voice, our role, what
+we're measured on, our objectives, our
+stakeholders, the people that we work
+with, the people that are important to
+us. We we want to give it all of that
+context. So this is how we build that
+chief of staff. We create this context
+layer. We tell it everything about us.
+We give it as much information as
+possible. Let me have a look here.
+There's a there's a question. Can you
+pull in what you have already done in
+chat GBT to build that knowledge
+quickly? Absolutely you can. You can
+take all of this context and you can ask
+Claude to create your context files with
+it. We've created I'm going to I'm going
+to share it with you in a minute, but
+we've created a plug-in that helps you
+to set up this context layer and you can
+give it any information and it will
+create all of these context documents
+for you automatically. And
+it's not ready yet, but we we're
+building the chat GPT version of this
+too. So, it's going to be ready in the
+next couple of weeks. But yes, the
+context layer is the most important
+part. Then we want to make sure that
+we're also working in projects. We want
+to keep our And the reason why we want
+to work in a project, I always recommend
+to my clients to make sure that you have
+a business project. One single project
+for your organization, for your work,
+for your business. And everything you
+ask it is contained in that folder and
+that project. And the reason for that is
+that it's going to start to build memory
+over time. it's going to start to
+collect everything that's happening
+there. I know a lot of people have now
+been creating projects for different
+parts of their business. My
+recommendation is instead to create a
+folder structure within one project. And
+I'll show you what a folder structure in
+one project looks like in a second. Let
+me answer some questions. Helen, I've
+heard that Claude can interview you to
+set the context. Absolutely. Yes, it can
+interview you to set the context. Our
+plug-in does that for you as well. Uh
+but you can I mean you don't even you
+don't have to use our plugin. I'm going
+to tell you about our plugin how you can
+get our plugin. Uh it's also for free.
+You can use it. You can play around with
+it. But I'm also you also don't have to
+use it. You can create your own context.
+Everything that you can that I'm sharing
+with you here you can go and do. And
+it's that's why this is a very valuable
+webinar. Whenever I do webinars I want
+to make sure I give amazing value. So I
+know you'll come back. Uh Ralph,
+interesting that we are so wary of
+sharing data on Facebook or LinkedIn,
+but we're quite happy to tell Anthropic
+way way more about us and our
+organizations.
+Yes, for sure. There is a conversation
+that we we could have about safety and
+there are certain safety protocols that
+that you can take. We have to make sure
+that whatever it is that we're feeding
+into uh Anthropic or um CHPT or any of
+these places that we're happy with them
+to have it.
+The question that we need to have is do
+we trust? Do we trust these
+organizations to hold our data safe? We
+have the same question to ask of
+Microsoft. All so many organizations
+around the world are using Microsoft
+spending loads of money with them. We're
+also happy to for them to hold our data.
+What's the difference between a
+Microsoft versus an anthropic? It is
+really just a trust factor and also the
+credibility of how long they've been
+around and those kinds of things. You
+got to do your your homework to make
+sure that you're happy with what you're
+going to give it.
+Great. So context is the first layer.
+Then we want to set our projects uh set
+up set up a project so that we're
+creating memory within that project.
+Then we want to start using skills.
+Skills are superpowers. If you don't
+know skills yet, if you haven't who has
+uh who has or hasn't learned skills,
+maybe just give me a thumbs up or a
+thumbs down or a give me a thumbs up in
+the reaction. No, you haven't heard
+heard of skills. We got a couple of of
+thumbs ups. Okay. No thumbs some thumbs
+downs. Okay, perfect. Wonderful. So, if
+you haven't heard of a skill, a skill is
+basically a master prompt. It is a huge
+description of exactly what you want it
+what you want the AI to do for you. So,
+an example of a skill would be um well,
+I'll I'll show you what it looks like in
+a moment. Actually, let me show you now
+because you know, why not? So this is my
+test account Claude and you can go into
+Claude to access skills either by going
+to customize in the in this section here
+or and if you click on it it'll take you
+straight away to skills or you can go
+into your settings just there and it'll
+take you into skills. When you click on
+skills I've got a few skills already
+here and some of these are um already
+created. If you click on a skill, now
+the sound human skill is one that I've
+created. You'll also get access to the
+skill. If you want it, I'll give you the
+link later on and you can go and
+download it. So, a sound human skill is
+basically a set of instructions that you
+give you when you're having a
+conversation with Claude or or wherever,
+it basically says turn this text or turn
+whatever it is that you're working into,
+make it sound more human based off of
+these rules. So this sound human skill
+has actually got 12 tells 12 rules 12 of
+the major things that are are coming up
+in AI sounding speech or text or content
+right now. These are the tw 12 tells. So
+instead of you having to say
+tell it it tell it this every single
+time all you need to do is use this
+skill and it will automatically take
+your text your content that you've
+created and it will remove all of these
+tails and it will rework that copy for
+you. And it's really so simple to use a
+skill. All you would do is in the
+conversation you would type forward
+slash and you would type sound human.
+You would then enter you would paste in
+your conver your your copy over here
+copywriting
+and then you would press go and it would
+automatically
+make that text that copy sound human. It
+would remove all those cells. So
+basically what a skill is is it's a it's
+a process a stepby-step process or
+framework or set of rules that allows
+you to to reuse it over and over again
+without you having to give it all of
+that information over and over again.
+It's different to context. Context is
+about you and your role, but the the
+skill would be used for things like
+copyright writing frameworks. Like there
+I've got a a pitch. Let's just see if
+it's in here. Uh there's an exec slide
+deck copywriter that we've created which
+has um let's just see if I can go in
+here and I can show you
+settings skills. So basically when to
+use this skill if you want to create
+copywriting for a slide deck and
+essentially it's got frameworks. So
+there's frameworks that that will then
+be used. So it's going to ask you it's
+going to say what is this pitch deck
+for? What I mean what is this slide deck
+for? And you will say well it's either
+for a pitch and if it's a pitch then it
+will go through it will create the
+slides based on this framework or if is
+it a consulting pitch deck then it will
+create the slides based on this
+framework or is it a consumer or
+external pitch it will create slides
+based on that framework. So if you have
+frameworks processes standard operating
+procedures
+you create a skill for it and you don't
+have to keep doing it over and over
+again. So, I think I've made a rule now
+for myself. Every time anytime I find
+myself doing something again for a
+second time, I'm just going to go and
+create a skill for it, which is why I
+have a lot of skills in my personal
+account. So, skills are amazing.
+Definitely go and find out more about
+skills. There are three ways that you
+can get skills. The first way is to find
+them online. get them from people who've
+created them before. In our AI
+membership and in our AI challenge and
+in even in our free space free
+membership community which you will be
+invited to after this we have got a
+number of skills that you can already
+use and and get going with. The second
+way to to have skills is to build them.
+So tell exactly what it is that you want
+it to create a skill for. And the third
+way, this is the way that I love the
+most is once you've created something
+that you you love the output of, you
+love what it's done for you, what it's
+created, ask your AI to turn this into a
+skill. I'm not sure if Copilot can do
+this just yet. I think they've got
+something called agents. And I think the
+it's quite tricky to set those up a
+little bit, but I'm not sure if you can
+just say to them, turn this into an
+agent. It may or may not do that and it
+may still be coming but principally
+we've got to think this is what's
+possible. So let me go and figure out
+how I can make this happen within the
+tools that I have.
+All right skills that's that one.
+Automation is the next piece. Next we
+want to be able to take those skills,
+those projects, that context, the things
+that we've created and we want to start
+actually automating them. Do we need
+them every single Monday based off of
+some data that we give it access to? Do
+we want it to, you know, give us an
+update on our on our week ahead or do a
+rundown with us at the end of the week?
+Do we want to start automating some of
+the things that we know that we're going
+to do weekly or monthly board packs?
+Does it need to uh access your Excel
+spreadsheet and then be able to run uh
+run this the board pack skill to build
+your board pack for you automatically so
+that you wake up on a Friday and you're
+able to submit it same day and then um
+instead of having to work two weeks on a
+board pack. Those are the things that we
+can start to think about. And then the
+next piece is dashboards. How can we
+start to visualize? You know, humans
+aren't really good at storing
+information. We're really good at
+processing information. And
+when we're when we're good at processing
+information, what that means is actually
+we need to be we need to have access to
+a more visual aspect to our data to
+what's happening for us. So now every
+anytime that I have a problem, I just
+think can I create a dashboard for it?
+Can I visualize this some way? Can I
+turn this into a document that
+visualizes this problem so that it's
+easy for me to understand and to work
+with? And I've built dashboards for so
+many things. I'll give you an example of
+what I mean by a dashboard. So I have
+here a holiday summer holiday dashboard.
+My son is on holiday for many many weeks
+in the summer. It's just too much. and
+um you know to keep them entertained and
+fed and activities and still be able to
+do work and have two businesses because
+that's how things are right now. I mean
+I don't know why I thought about
+launching another business in the summer
+holidays. How could one think of those
+things? He's got camps, all this stuff,
+you know, what am I going to do with
+him? So I created a dashboard and now
+you know my husband and I has access to
+this dashboard. We know what he's doing.
+We've planned a few things out. We we
+don't we haven't planned everything, but
+it's really just a visual way to see
+who's looking after him on which days.
+Uh when has he got a play date? And yes,
+we could use a calendar. It's not as
+visual as this dashboard. And also, it
+starts to see, oh, okay, actually,
+there's a little bit of inequality here.
+There's only 14 days with Paul and 16
+with me. Let's go and sort some things
+out. One of the other dashboards that I
+created with or helped to create for my
+client is she was she wanted to do the
+channel swim, but there was so many
+moving parts, you know, work and looking
+after the dog and walking the dog and
+steep and all of those things and kids.
+So, we created based off of a
+conversation that we had together. I
+said to her, "Can I use this information
+and build a dashboard and a training
+plan for you?" And we built her training
+plan. It had all of the things that she
+needed to do every day. She could edit
+it as well, so it didn't have to be
+standard. She could edit all of these
+pieces her when she wanted to sleep. And
+it showed her data, visual data of how
+much time she'd be swimming every single
+week, which obviously changed. There was
+um you know, different hours of swimming
+that she needed for each week. And now
+she's on track to be swimming the
+channel towards the end of this this uh
+month, which I am so proud of for her.
+So, dashboards, I mean, I could talk for
+hours on that. All right. So, we created
+an AI amplified plugin which will help
+your Claude set up your context so that
+you can have that foundation piece ready
+to rumble as quickly as possible.
+Because I think that setting up Claude
+shouldn't be hard. It should actually be
+easy. So many people have come to me and
+said, you know, I've watched all the
+YouTube videos and I've, you know, I'm
+trying to figure out how this thing
+works and how what I need to do to set
+it up. Like it's just seems so tricky
+and everybody tells me I need to have
+context documents and where do I put the
+context documents and I need to have
+project instructions and where do I put
+the project in like where do I put the
+instructions, global instructions or
+project instructions? All of that is so
+tricky to understand and nobody's really
+telling us exactly how. So I like to
+make things easy. Should I press this
+easy button? I mean, should we make
+things easy? Anybody? Yes. So, give me a
+thumbs up if you want the Who likes the
+easy way out? I love the easy way out.
+Let's go. For sure. We made the easy.
+Yay. All the easys. Okay. So, good. Yay.
+We We pressed the easy button again. I
+built that was with Claude. Claude did
+that. That's not me. I mean, it was my
+brain that came up with that the idea,
+but it could do that. Now, this is why
+I'm so passionate about it is because I
+think humans have got so much
+imagination and so much within them like
+thoughts and ideas that is sitting there
+and we we haven't been able to express
+them because there's been no way for us
+to showcase what's in our minds like
+showcase what what could be possible and
+now I think these these tools are a
+really powerful way for us to showcase
+that.
+So, we've built this AI amplified plugin
+and you absolutely get access to it. So,
+if you are able to where is it now? Let
+me go here. Not that one. You will be
+able to go to our um at the end of this
+I'm going to send this link around in
+the chat, but you'll be able to go to
+our website and download this free
+plugin. You get the free plugin in the
+training. All you'll need to do is sign
+up to join our community. And in our
+community, you'll get access to this
+amplified core plug-in.
+Uh you'll get the training on it. You'll
+get a step by step on it, exactly what
+it is that you need to do to set it up,
+and you'll be able to build your context
+from there. So, but I'll show you what
+what it actually is cuz that might be
+helpful. So, the plugin is it's almost
+like a it's like a collection of skills
+that we've created. So, this is the
+plugin. It's the AI Amplified program
+core. It's got 11 skills already built
+in. So, you don't have to set any of
+this this up. And all of these skills
+are basically when you upload the
+plugin, it's going to give you access to
+these skills. And then what you're going
+to do is you're going to open up a new
+project. You're going to call it your
+company name is probably the best one to
+to have. You're going to allocate it to
+a folder on wherever it is that you want
+your folder structure to be. This is my
+test version here. And we're going to so
+wherever you want your folders to be for
+Claude Co-work, you're going to give it
+access in your actual desktop or your
+one drive or wherever it is Google Drive
+and you're going to open up that folder.
+You're going to allow it to make changes
+in that folder and you're going to give
+it a name which it will be your company.
+Hold on. Let me just make sure this is
+in the right place. Uh let's see
+there.
+Okay. Yes. We're going to create a new
+folder called your company. I can't do
+two things at once. Oh, it's already got
+a your company. So, we're going to we're
+going to make it a new your company so I
+can show you properly. Your company,
+too.
+Obviously, I've been doing this too many
+times.
+Where's it gone now?
+There we go. So, now it's created this
+folder. We're going to open it up. And
+you're also going to give it access when
+when you get the plugin from when you
+download the plugin from us. You're
+going to get this AI amplified exec AI
+amplified program core plugin. You're
+going to get the plug-in which you'll
+upload. Obviously, the instructions will
+tell you exactly how to do it. And then
+you're going to give it a Claude MD file
+and a readme file. Claude MD file is for
+Claude. The readme file is for you. This
+is the part that people don't tell you.
+So yes, you want to have your context,
+but you also need to tell Claude that
+this context is important. This is the
+context. This is where it needs to find
+that context. If you add all of your
+documents inside of a folder, it's only
+going to look at the first few bits of
+it. It's not going to look at all of it
+because it's incredibly inefficient and
+it will use up so much of your usage. So
+this Claude MD file is probably one of
+the most important parts of this plug-in
+because it says exactly this is where
+you go to find that context and also
+this is where you go to update that
+context over time.
+So then you're going to create your
+project
+and then you're you can see it's already
+got those documents in there and then
+you're just going to say run my AI
+amplified program.
+And really what that's going to do, the
+easy button, it's just going to start
+you through a process. You're just going
+to have a conversation with it. Listen
+to what it's going to say and you're
+going to give it all of your context
+documents that you already have. You can
+give get that from Chat GBT or your
+business. Give it as much information as
+you want and it will write your context
+documents for you. This is the end
+result. This is the after. I'm just
+going to open up a project here that we
+already have created as a demo.
+Uh let's see demo demo de demo over here
+co-work this Northbridge company. So
+we've created this um Northbridge
+company already
+and it's already got its all of its
+context documents sorted out. So what
+what it will do is it's actually going
+to create this uh this uh folder
+structure for you. The plug-in will
+create this folder structure for you and
+it will organize everything into this
+folder structure for you. So there's an
+archive for archives, briefings for
+briefings, command center, I'll speak to
+you about context. It will interview
+you.
+It will gather all of that that
+information based on the questions it
+asks and then it will create these
+context documents for you. You don't
+have to do a thing. And some of them are
+MD files which are called markdown
+files. and markdown files are really
+just an efficient way for way for Claude
+to access that information.
+What it's also going to be able to do is
+if you are able to give it your brand,
+your your brand styles, your fonts, your
+colors, anything that you are able to
+give it snapshots, even your website
+link, anything that already has your
+brand, even templates that you've been
+using already, it will actually create a
+brand style guide for you, which is
+something that I used to pay for to to
+access, right? to get. It's It's a very
+expensive piece to go through,
+especially if you're an entrepreneur.
+Now, I'm not saying you mustn't use a
+graphic designer. Please definitely use
+a graphic designer when you when you
+can, but as a small business owner when
+you know when things are tight and you
+can't access or can't pay for all these
+things, this is incredibly helpful. But
+if you've already used a graphic
+designer and you've already got your
+brand and you've already got all of
+this, this actually just shows you what
+your brand can look like. And also, if
+you want to change something, you just
+ask it and you say, "Actually, I don't
+like that anymore. I don't like that
+part of my brand anymore. Let's change
+it. Let's tweak it. I don't like that
+color anymore. Let's make it a little
+bit darker, lighter, whatever the case
+is. I don't like the way that you you're
+displaying the text. Let's make it
+slightly different." But when it's got
+this, everything that you then create,
+every output is going to then be on your
+brand. You don't have to fuff around
+with moving things on a PowerPoint
+presentation anymore. You don't have to,
+you know, adjust a PDF. You don't have
+to do any of that. And an example that I
+can give you with that is we've created
+a, let's go here, a board pack as an
+example. So, I created a demo um company
+with this business context for this
+company. It just gives all is created
+all of this information about this
+company, this person, their voice, their
+brand. So, it's got all of everything
+that we need to know about this person
+and this this business.
+And I asked it, I said, um, create
+create the the board pack based off of
+some fictitious numbers, but based make
+it look realistic. So, what how would
+you create it? So, if you were to access
+or give it your Excel spreadsheets, your
+actual information, your actual details
+and um any information that you need
+every single month, it's going to be
+able to build you a document like this,
+which is absolutely incredible,
+beautifully presented, and um
+much better than I It would take us
+hours or we'd pay someone lots of money
+to be able to create this and already in
+your brand. So we don't need to to mess
+around anymore.
+Yes. If you're working with several
+brands, how does this work then? That's
+a brilliant question. What I would then
+recommend, especially if it's it just
+depends on on the context of how you
+work with several brands, you might
+create a folder structure for within
+within your project. So let's just say
+you're here already. You might add a a
+folder in here called for clients and
+then each one would have a brand and
+then would have their brand context. or
+it just depends on on the level of work
+that you're doing for them. You might
+then want to create a separate project
+for them. If you want to have absolutely
+new context that doesn't infiltrate your
+context, you would have a separate brand
+because I'm I've got two businesses
+right now. I've got my exec coaching
+business and I've gottive. I have two
+separate projects, two separate brands,
+two separate contexts. Some of it's
+borrowed from each but and you can copy
+and paste and you know it's easy to copy
+and paste into these channels.
+All right, let's see where are we at.
+Um, let's go back here. So, we we
+pressed the easy button. That is the
+plugin. You get access to that core
+plugin for free. One of the questions I
+think Ralph was asking is about yes, the
+safety and the data that we have access
+to. That is absolutely something that we
+need to to consider. One of the um
+things that I would always recommend
+this is a team account. So, I have a
+team account. when you are on a team or
+an enterprise account, I think with any
+of the um the chatb or claude, you do
+already get a data processing agreement
+with them. So, they are really making
+sure that they're looking after your
+data. Also, they don't train AI models
+based on any of your data as a default.
+You can obviously turn it on if you want
+to. I don't think you should, but they
+just don't do that. If you're on a pro
+account, you definitely do want to go in
+and um hold on. Where are we here? Not
+there. Let's go back here.
+You want to make sure that you've gone
+into the settings and then into privacy
+and oh, it's where is it opening?
+There it is.
+And you want to make sure that these two
+things are turned off. It doesn't give
+me that option in my cloud account
+because like I said, it's a team
+account, but you go into privacy and you
+turn off location metadata so it doesn't
+know where you are. And then also to
+help improve our AI models, turn that
+off. The other there's obviously more
+you need to go through the right
+protocols to make sure that you've done
+the right things for your your business
+and for your data. Uh but the other very
+small tip is some of these chats have
+got an a thumbs up and a thumbs down if
+you like or don't like the output. If
+you press a thumbs up or a thumbs down,
+it is going to send that conversation to
+Claude and they will have access to that
+data for a period of time. So I would
+recommend just don't use that. rather go
+back and improve your prompt or converse
+with with Claude to make it better in
+some way. Those are the two biggest
+pieces of biggest bits of advice that I
+would recommend.
+All right, let's have a look
+what is possible with just co-work. I'm
+going to show you a few more use cases
+now as well. I showed you a board pack.
+We can also look at a consultant grade
+report. So, one of the things that I
+created really quite early on is I asked
+it to um I asked it to go and I was
+trying to figure out like how do I how
+do I showcase this with a brand that I
+don't know and I don't have any
+information about like what can I create
+with um something that is real and true
+but I don't have any actual information
+about them. So, I built this um the
+strategy reports for Monzo, which is a a
+UK brand.
+They're a banking company. Now, their
+brand, it didn't come out too perfectly,
+but also just considering I don't have
+any of their brand guidelines or brand
+documents. It was really just based off
+of screenshots, etc., but it built this.
+I said, let's create a consultant grade
+report. I used a skill. We've built a
+skill called the It might not be on
+here.
+Consultant. Oh, no. The consultant
+spreadsheet. Uh the consultant, what is
+it called? The consulting,
+not spreadsheet, the consultant reports.
+Consultant reports comes in our AI pro
+plug-in.
+So I built it with that and it's a skill
+and it works through how to take
+information and sort it and to put it
+into a beautiful format and view. But
+also I said to it go and scrape the
+internet for Monzo's current company's
+house financials and go and look at what
+its competitors are doing in this space
+and answer this question is what should
+Monzo do when it comes to AI in the next
+12 months based off of what um you know
+what its competitors are doing but also
+based off of in the news what have they
+been told to have as part of their
+strategy. So it went and built this
+consultant grade report which would take
+somebody it would cost a load of money
+to build something like this. It was
+really looking it built it into an
+incredible format looking at executive
+summaries, recommendations
+where Monzo is um you know looking at
+actual uh financial data
+the three forces the forces that have
+have shifted in for Monzo in the past
+few months obviously the consultant
+question
+what the governing solution would be but
+it built all of this 27 pages right so
+I'm going to just scan through them in a
+matter of minutes.
+Okay, maybe not minutes. It was like 15
+minutes. It took a lot of time to go and
+scrape the internet, but to put all of
+this together was just incredible. And
+if you're a if you have the data, if you
+have the information, if you've got
+something, you can present it and make
+it look incredible really, really
+quickly, obviously with the pendes, etc.
+So, co-work can do that. Uh, let's see
+what else have we got here. proposals.
+So, one of the things that I've shifted
+to is I now, let me just redo this.
+I now
+do my proposals. I used to send
+proposals to my clients in email. I now
+create them as an HTML document. There's
+a trend that is shifting towards people
+using HTML documents instead of PDFs or
+PowerPoints because it can hold a lot
+more information and also it can be very
+interactive. It can be beautifully
+presented and also just stand out from
+the crowd. So I now send this and all
+they need to do is open it up in their
+browser and they're able to access that
+information just as uh as normal. It's
+still contained in their on their own in
+their own environment, their laptop.
+It's not actually live on a on a website
+at all. So, this is essentially an HTML
+document. Also, these links work. It's
+got reschedule links. It shows a little
+bit about me. It's interactive. So, it
+actually is personalized to the to the
+person and also where what we would
+focus on. uh it's already built in my
+how I work my four pillars of future
+ready executive leadership you know and
+it basically explains how we will get
+there together what we will work on
+together also we're able to like I said
+remember I said earlier on
+what's really helpful for us is to
+visually see things how do we visually
+showcase the ROI especially for things
+that are intangible and I'm now able to
+then show them like what does this mean
+to you when you have clarity or when you
+delegate. What does it actually mean for
+your leadership over time? It's really
+creates a massive gap if um obviously
+it's illustrative, but it's just showing
+it's giving something a bit more of a
+visual understanding.
+It goes through my program, everything,
+pricing, who I've worked with,
+testimonials, all of that all in one
+place. And also, you know, FAQs, all in
+one place. And then they can email me,
+reschedule our follow-up call, or
+download the PDF. Really, really
+beautiful. one of my one of the people
+that came to a webinar a couple weeks
+ago, she told me she shifted to a an
+HTML format proposal. She went and
+pitched to a massive client and it's
+likely that she's going to get that
+work. Maybe it's not because of the
+proposal, but I think when she went in,
+she felt proud of of what she was
+presenting and that makes all the
+difference.
+All right, let's see what else do I have
+to show you. Meeting briefs. I think a
+lot of what can also start to happen is
+we can start to schedule tasks. We can
+create a weekday morning brief. One of
+the things that Claude Co can do is it
+also gives you access to connectors. So
+if you're obviously make sure that
+you're able to do this at work or if you
+uh are comfortable with doing it, you
+can connect it to things like your
+Google calendar or your Gmail. Just
+remember that whenever you connect it to
+something, that data is then able to be
+passed over to the other software. So
+you need to be very trusting of that
+other software. Now, Gmail holds a lot
+of my information already. So those are
+actually the only things that I I
+currently I use Gmail, Google Calendar,
+and actually Notion because I use Notion
+as a database um holds a lot of my
+content and ideas. Those are the only
+connectors that I've actually connected
+to my claude right now. But you've got
+to feel safe in order to do that. So
+that's something that we've got to feel
+our way through and also create make
+sure that we trust the uh the provider.
+But then when you have those connectors,
+it can actually start to create a
+morning brief. It can check in with your
+calendar, see what's happening for you.
+It can tell you what you need to prepare
+for. It can even start to run skills on
+top of that to say, okay, you've had a
+conversation with this person based on
+our previous chats or this is a
+stakeholder that needs a lot of
+handholding based on the context that
+you've set up and you're having a
+conversation with them today. This is
+what I would recommend that you how you
+prepare for that. So, it can start to
+get really really intelligent and start
+to get incredibly helpful. All right,
+any questions so far? I want to make
+sure that I get through absolutely
+everything. Let's see. There's some
+personal use cases. Obviously, you can
+create a household center. You can
+There's so much. There really is so
+much. Let me just see if there's
+anything here. One of the things that I
+created in Claude, uh, I'm not going to
+go through it, but I speak I've spoken
+to my clients and I've said in order for
+me to help you get results even faster.
+One of the things that I'd like to be
+able to do is to be able to use our
+transcripts to offer you some session
+notes afterwards, but also maybe there
+are insights and things that I haven't
+picked up as a coach that that AI can
+pick up for you, some trends based on
+the history of our conversations. But I
+didn't ever want to put their
+identifying data into Claude. So I
+created a transcript scrubber which
+basically removes all of their
+identifying data and then I'm able to
+put in a very cleaned out transcript
+afterwards. So like it says, "Hi client
+2," instead of their name, it removes
+any of that identifying data. I was able
+to build this with Claude,
+which means now all I need to do is have
+this transcript scrubber. That's the
+only place that has client data. house
+it in a a folder that's password
+protected and then the only other place
+that has that information is fathom uh
+where I record
+I also now can create you can create
+vision boards for clients like these
+we've spoken about those let's have a
+look what else have we got here one of
+the other brilliant use cases is
+learning and development so if you're
+have frameworks or you want to help
+someone understand something or remember
+something. One of the things that I've
+I've done for my client I'm just going
+to clear that out so you can see what
+what's going on. One of the things that
+my client wanted to learn was to have
+more coaching questions for his his
+conversations. He wanted to coach more
+as opposed to tell more. And he couldn't
+think of questions instead of like how
+things going, which is it's nice, but
+it's not the best kind of question to
+ask every single time. So, I created
+this bank of questions for for them. And
+then what they were able to do is before
+they go into a conversation, they can
+decide what kind of conversation they're
+having. Is it a review or feedback, it
+will sort the questions based on that.
+He can then add all of the questions
+that he would like and then it's added
+to his session and he's got the
+questions ready to go for his Zoom
+conversation.
+Now that came up came from my mind. I
+thought of it. It was an imag imagined
+thing, but it was I was able to deliver
+it. Imagine what your mind can come up
+with.
+Uh let's see. Um
+the I mean it can also create beautiful
+slides. I think we've seen some of these
+already.
+Is there anything that I that you think
+uh you're asking like you're thinking
+can it create this? Ask me in the chat.
+Is there anything that you are wondering
+about now? Like what are the
+possibilities that this opens up for
+you? Put them in the chats if you have
+anything. I'm going to continue on
+though. So all right. Uh, where's my
+original piece? I can get quite carried
+away and just keep talking forever, but
+we don't want to have that happen. We're
+almost at time. Okay, so for this for
+the plug-in at the moment, you would
+need a paid Claude plan and you would
+need Claude Co-work downloaded onto your
+desktop. That is the prerequisite in
+order to use the plug-in. However, the
+principles still stand. Context is very
+important. And then you want to set up
+your projects. Then you want to start
+thinking about skills. How can I never
+do the same thing twice and then
+automation and then start building out
+some dashboards. But for the plug-in
+that I've shared in in the link, you
+will need a Plaude Pro account and you
+will need it to be on your dash
+dashboard. But if you think about the
+time saving, completely worth it. And
+then in order to continue working with
+me, because why not? I'm nice and I'm
+very passionate in this space. But there
+are many ways that we can for sure work
+together. So, you can get the free
+plugin that you've got the link already.
+And I'm also doing a 30-day challenge
+from next week. We're going to go all in
+on Claude. We're going to there's four
+weeks, so we're going to do the
+foundation. We're going to really make
+sure that you've well set up that Claude
+is beautiful set up, perfect. It's uh
+got the right right base in order for
+you to grow your business or wherever it
+is that you're working from. Then in the
+week two, we're going to start looking
+at multipliers. How do we use skills and
+how do we actually start to build on
+like use multi-step skills to create
+many agents to be able to to build out
+the things that you never want to do
+ever again? I specifically also focused
+on the things that I hated doing. I
+don't like admin. I don't like
+formatting slides. I don't like redoing
+stuff over and over again. Start. We
+start there. We get all of that out the
+way. So, that's week two. Then we're
+going to go to automations. So, how do
+we set up some automations that work for
+you, personalized to you? I also think
+Claude and these tools are one of the
+most personalized productivity tools
+ever that we've ever seen. Nothing has
+ever come close to how personalized you
+can make it. I've built myself a weekly
+dashboard, but it's how I work. It's
+built to I'm not going to share it with
+anybody because it's built to my
+process, how I like to work, what I want
+to do every single day, how I capture uh
+my tasks and how I want to gamify myself
+to to actually do them. But we're going
+to create that that for you too, your
+personalized version. And that's going
+to be also part of the program is doing
+those dashboards, making sure that
+you've got that visual information to
+keep you on track to really allow you to
+see the things that are important in
+your business, but also in your life.
+And that is um
+here I'm going to share this link in the
+comments as well. Come and join us in
+the challenge. It says get 500 hours
+back. I mean, if you This is it. This is
+crazy, right? So, if you saved 11 hours
+a week with the admin that you don't
+want, that's 500 hours a year, that's
+huge. Like, it's massive. Imagine what
+you could do. Imagine the impact that
+you would have. You might want to start
+a second business like I have. Crazy.
+But also, it might start to open up
+other things for you, other
+opportunities, things that you want to
+focus on.
+Let's see what else. Oh, there. This is
+also what you get. It's £197. It's a
+absolute steal. I mean to be fair,
+somebody came onto a second uh onto her
+webinar the other day. She came onto the
+claude for coaches one. She'd come to
+Claude for professional. She wanted to
+check the Claude for coaches one. And at
+the end of it, she was saying maybe it
+wasn't I I kind of I've done so many
+webinars right now. I'm a little bit
+crosseyed. But she said at the end of
+it, she said just the webinar alone was
+worth £197. So it made so much sense for
+her to join the challenge. And I that's
+what she said, not me. And I'll I'll
+give you proof if you need it. But it's
+you're going to get all of these things.
+I mean, there's going to be so much.
+You'll definitely get way more than that
+value. We'd love to have you there. If
+you have any questions, ask me. You can
+unmute yourself. Ask me any questions.
+Uh this is the end of our of our show.
+It was so lovely to have you all.
+Any thoughts? How does it feel? Like I
+mean, what are you feeling right now? I
+I can I know that I say a lot and I um I
+what's the word? I can I've covered a
+lot. There's lots. But my hope is that
+this opens up opportunity for you that
+you start to see, hang on, maybe some of
+these things could be possible for me to
+you. Some of these things could be um
+something I could do or it might open
+something up for you. But I'd love to
+hear. N I'm so glad that you are here.
+Thank you. If you need to run, please
+do. But if you would like to ask any
+questions, I can stay on for a few more
+minutes. You're welcome to it. Or if you
+want to tell me more about you and your
+business and what your aims are, Alan,
+your mind's blown away. I'm so glad. But
+I I mean, I I really honestly think this
+could be the opportunity for more
+creativity. So many people are saying,
+you know, it's it's going to remove our
+creativity and it's going to remove our
+connection. And I actually think, what
+if it's not? What if it's the opposite?
+What if this could be the tool that
+actually improves our creativity? It's
+I've definitely noticed it from me.
+Building a transcript scrubber.
+I would never have done that normally or
+even thought to have done that unless I
+had this challenge of what I needed to
+be able to work with and then I created
+it and it it was it blew my mind away.
+Uh blown away. Also quite excited.
+Maria, I'm so glad. Helen, pleasure. So
+glad to have you all. Yes, Jane, please
+ask your question. You're welcome.
+>> Thank you very much. was really
+interested in that. I've got a colleague
+who's working on Zena knows this on lots
+of different AI agents that she's
+creating for me to make my work easier.
+I was hoping she'll be able to join this
+today. So, I'm going to share this with
+her.
+>> Yeah, sure.
+>> And hopefully she'll be able to get onto
+another webinar because I think it's
+really good. And thank you very much. I
+thoroughly enjoyed it.
+>> No problem. I'm so glad. Thank you. I
+appreciate that feedback. Really
+appreciate it. So good. So good to have
+you all. I mean, everybody's still
+hanging around. If you have any more
+questions, please do. I will reach out
+as well. We're going to start a
+newsletter, a free newsletter, which
+will be like tips, but specific ones,
+not ones that are like what's happening
+in the world of Open AI, and you have no
+like it's no re have no relevance to us,
+but actual tips and prompts that you can
+use. We're going to start that as well.
+So, regardless of whether you join us
+for free or in the pay challenge, I'd
+love to keep you in our space. And I
+hope any if there's any more question no
+more questions. I'm going to say goodbye
+and hope you have an amazing rest of
+your week everyone and speak soon. Bye
+everyone. Have a great time. Speak soon.
+Bye.
