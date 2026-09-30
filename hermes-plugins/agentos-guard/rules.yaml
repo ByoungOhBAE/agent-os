@@ -151,6 +151,28 @@ roles:
 
   worker:
     check_done_comment: true
+    # Strict issue calls: issue keys (HER-38) and ?query tails count as issue URLs; a body the gate cannot read
+    # ($VAR, $(…), @file made earlier in the same command) is refused; non-curl HTTP clients to the API are refused;
+    # status transitions inside programs are refused (also unquoted JS keys, heredoc programs, script files).
+    strict_issue_calls: true
+    # Minimal hard stops — irreversible or outside the worker's own lane. Paths are regex on the lowercased,
+    # forward-slash, cd/$VAR-resolved path.
+    protect:
+      write_paths:
+        - '/hermes/profiles/[^/]+/(config\.yaml|soul\.md|\.env|auth\.json)$'
+        - '/hermes/(config\.yaml|soul\.md|\.env|auth\.json)$'
+        - '/plugins/agentos-guard(/|$)'
+        - '/hermes-plugins/agentos-guard(/|$)'
+        - '(^|/)\.git(/|$)'
+      read_basenames:
+        - '^\.env$'
+        - '^\.env\.(?!example$|sample$|template$)[\w.-]+$'
+        - '^auth\.json$'
+        - '^\.git-credentials$'
+        - '^credentials?(\.json)?$'
+        - '^id_(rsa|ed25519|ecdsa)$'
+      other_profiles: true        # no writes into another bot's profile folder
+      skills_own_only: true       # skill_manage only on skills under this bot's own profile
     tools:
       deny: []
     skill_manage:
@@ -162,6 +184,18 @@ roles:
     terminal:
       inline_python_guard: false
       allow: ['.*']
-      deny: []
+      deny:
+        - '\brm\s+(-\w+\s+)*-\w*[rR]'                  # rm -r / -rf / -fr …
+        - '\b(Remove-Item|ri|rd|rmdir)\b.*\s-(Recurse|r)\b'
+        - '\b(rmdir|rd)\s+/s\b'
+        - '\bdel\s+(/\w\s+)*/s\b'
+        - '\bgit\s+(-C\s+("[^"]*"|\S+)\s+)?push\b.*(\s--force(-with-lease)?\b|\s-f\b|\s\+\S)'
+        - '\bgit\s+(-C\s+("[^"]*"|\S+)\s+)?reset\s+.*--hard\b'
+        - '\bgit\s+(-C\s+("[^"]*"|\S+)\s+)?clean\s+(-\w*\s+)*-\w*f'
+        - '\bgit\s+(-C\s+("[^"]*"|\S+)\s+)?(checkout|restore)\s+(--\s+)?\.(\s|$)'
+        - '\bgit\s+(-C\s+("[^"]*"|\S+)\s+)?branch\s+(-\w+\s+)*-D\b'
+        - '\bhermes(\.exe)?\s+(-p\s+\S+\s+)?(config\s+(set|edit|reset)|plugins?\b|auth\s+(add|remove|reset|logout)|profile\s+(delete|create|rename)|gateway\s+(stop|restart|uninstall)|update\b)'
+        - '\bnode\s+.*hermes-bots\.mjs"?\s+(convert|archive|sync-soul|guard)\b'   # hire stays open: the code bot tests the hire gate
+        - '\b(drop\s+(table|database)|truncate\s+table)\b'
     budget:
       max_tool_calls: 400

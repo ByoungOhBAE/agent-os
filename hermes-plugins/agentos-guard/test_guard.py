@@ -329,5 +329,169 @@ class BudgetAndMode(unittest.TestCase):
         self.assertIsNone(w.evaluate("write_file", {"path": "src/x.ts"}))
 
 
+BAD_DONE = '{"status":"done","comment":"완료"}'
+GOOD_DONE_JSON = '{"status":"done","comment":"' + GOOD_DONE + '"}'
+UUID = "bb30b4d7-3a72-4d84-ba97-20dfe787725d"
+
+
+class WorkerHoles(unittest.TestCase):
+    """The four ways past the evidence gate found on 2026-10-01, plus the program-hidden transitions the replay
+    of real worker calls surfaced. Each hole has a passing counterpart so the fix cannot become a blanket ban."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self.tmp.name) / "hermes" / "profiles" / "pc-me"
+        (self.home / "cache" / "scratch").mkdir(parents=True)
+        self.w = mod.Guard(RULES, "worker", "block", None, self.home)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def t(self, cmd, workdir=None):
+        a = {"command": cmd}
+        if workdir:
+            a["workdir"] = workdir
+        return self.w.evaluate("terminal", a)
+
+    # hole 1: issue key instead of uuid
+    def test_issue_key_url_checked(self):
+        self.assertIn("완료 댓글 형식 위반", self.t(f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/HER-38\" -d '{BAD_DONE}'"))
+        self.assertIsNone(self.t(f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/HER-38\" -d '{GOOD_DONE_JSON}'"))
+
+    # hole 2: query / fragment tail
+    def test_query_tail_url_checked(self):
+        self.assertIsNotNone(self.t(f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}?x=1\" -d '{BAD_DONE}'"))
+        self.assertIsNotNone(self.t(f"curl -s -X PATCH '$PAPERCLIP_API_URL/api/issues/{UUID}#a' --data-raw '{BAD_DONE}'"))
+        self.assertIsNone(self.t(f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}?x=1\" -d '{GOOD_DONE_JSON}'"))
+
+    # hole 3: body the gate cannot read
+    def test_opaque_body_refused(self):
+        for body in ('"$B"', "$B", '"$(cat done.json)"', "@-", '@"$F"'):
+            r = self.t(f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" -d {body}")
+            self.assertIsNotNone(r, body)
+            self.assertIn("확인할 수 없습니다", r, body)
+
+    def test_heredoc_and_existing_file_bodies_pass(self):
+        self.assertIsNone(self.t(f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" --data-binary @- <<'EOF'\n{GOOD_DONE_JSON}\nEOF"))
+        f = self.home / "cache" / "scratch" / "done.json"
+        f.write_text(GOOD_DONE_JSON, encoding="utf-8")
+        # absolute, $TMPDIR-relative, and cd-relative @file all resolve to the same checked file
+        self.assertIsNone(self.t(f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" --data-binary @\"{f.as_posix()}\""))
+        self.assertIsNone(self.t(f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" --data-binary @\"$TMPDIR/done.json\""))
+        self.assertIsNone(self.t(f"cd \"$TMPDIR\" && curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" --data-binary @done.json"))
+        f.write_text(BAD_DONE, encoding="utf-8")
+        self.assertIn("완료 댓글 형식 위반", self.t(f"cd \"$TMPDIR\" && curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" -d @done.json"))
+
+    def test_file_made_in_same_command_refused(self):
+        f = self.home / "cache" / "scratch" / "p.json"
+        f.write_text(GOOD_DONE_JSON, encoding="utf-8")  # stale good copy on disk — the new one is written unseen
+        r = self.t(f"cd \"$TMPDIR\" && python mk.py && curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" -d @p.json")
+        self.assertIn("방금 만든 파일", r)
+        self.assertIsNone(self.t(f"cd \"$TMPDIR\" && ls && curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" -d @p.json"))
+
+    def test_url_hidden_in_variable_refused(self):
+        self.assertIsNotNone(self.t(f"U=$PAPERCLIP_API_URL/api/issues/{UUID}; curl -s -X PATCH \"$U\" -d '{BAD_DONE}'"))
+
+    # hole 4: non-curl HTTP clients
+    def test_other_http_clients_refused(self):
+        for c in (f"wget --method=PATCH --body-data='{BAD_DONE}' \"$PAPERCLIP_API_URL/api/issues/{UUID}\"",
+                  f"http PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" status=done",
+                  f"Invoke-RestMethod -Method Patch -Uri \"$env:PAPERCLIP_API_URL/api/issues/{UUID}\" -Body $b"):
+            self.assertIn("curl만", self.t(c), c)
+        self.assertIsNone(self.t("wget -q https://example.com/photo.jpg -O \"$TMPDIR/p.jpg\""))
+
+    # program-hidden transitions (real calls from 2026-10-01)
+    def test_program_transitions_refused(self):
+        js = "node -e 'const b={status:\"done\",comment:c};fetch(process.env.PAPERCLIP_API_URL+\"/api/issues/x\",{method:\"PATCH\",body:JSON.stringify(b)})'"
+        self.assertIsNotNone(self.t(js))
+        py = "python - <<'EOF'\nimport json,urllib.request,os\nd=json.dumps({\"status\":\"done\",\"comment\":c})\nurllib.request.urlopen(os.environ['PAPERCLIP_API_URL']+'/api/issues/x')\nEOF"
+        self.assertIn("heredoc 프로그램", self.t(py))
+        s = self.home / "cache" / "scratch" / "her30_done.py"
+        s.write_text("import requests\nrequests.patch(API+'/api/issues/x', json={'status': 'done', 'comment': c})\n", encoding="utf-8")
+        self.assertIn("스크립트 her30_done.py", self.t(f"python \"{s.as_posix()}\""))
+        self.assertIsNotNone(self.w.evaluate("execute_code", {"code": "requests.patch(os.environ['PAPERCLIP_API_URL']+'/api/issues/x', json={'status':'done','comment':'ok'})"}))
+
+    def test_programs_without_transition_pass(self):
+        self.assertIsNone(self.t("python - <<'EOF'\nprint(len(open('draft.md',encoding='utf-8').read()))\nEOF"))
+        self.assertIsNone(self.w.evaluate("execute_code", {"code": "import json\nprint(json.load(open('resp.json'))['status'])"}))
+        self.assertIsNone(self.t("node -e 'console.log(JSON.parse(require(\"fs\").readFileSync(0)).status)' < resp.json"))
+
+
+class WorkerHardStops(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name) / "hermes" / "profiles"
+        self.home = root / "pc-me"
+        (self.home / "skills" / "productivity" / "my-skill").mkdir(parents=True)
+        (self.home / "skills" / "productivity" / "my-skill" / "SKILL.md").write_text("x", encoding="utf-8")
+        self.other = (root / "pc-other").as_posix()
+        self.w = mod.Guard(RULES, "worker", "block", None, self.home)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def t(self, cmd):
+        return self.w.evaluate("terminal", {"command": cmd})
+
+    def test_destructive_commands_refused(self):
+        for c in ("rm -rf workspace/guard-drill/old", "rm -r old", "rm -fr ./x", "Remove-Item old -Recurse -Force",
+                  "rmdir /s /q old", "git push --force origin main", "git push -f", "git push origin +main",
+                  "git reset --hard HEAD~1", "git -C repo reset --hard", "git clean -fd", "git checkout -- .",
+                  "git branch -D feature", "rm guard-drill/test.sqlite", "del data\\db.sqlite3"):
+            self.assertIsNotNone(self.t(c), c)
+
+    def test_everyday_commands_pass(self):
+        for c in ("rm -f \"$TMPDIR/resp.json\"", "rm her34_r2_before.txt", "git status", "git commit -am 'x'",
+                  "git push origin team/x", "git checkout -b team/x", "git reset HEAD file.txt", "npm install",
+                  "npm test", "mkdir -p workspace/out", "cp a.md b.md", "hermes -p pc-me chat -q hi"):
+            self.assertIsNone(self.t(c), c)
+
+    def test_self_unlock_refused(self):
+        for c in ("hermes -p pc-me config set plugins.enabled []", "hermes plugins disable agentos-guard",
+                  "hermes gateway restart", "hermes auth reset openai-codex",
+                  "node scripts/hermes-bots.mjs guard --profile pc-me --role worker --mode warn",
+                  f"sed -i 's/block/warn/' \"{self.home.as_posix()}/config.yaml\"",
+                  "echo '' > hermes-plugins/agentos-guard/rules.yaml"):
+            self.assertIsNotNone(self.t(c), c)
+        for p in (f"{self.home.as_posix()}/config.yaml", f"{self.home.as_posix()}/SOUL.md",
+                  f"{self.home.as_posix()}/plugins/agentos-guard/rules.yaml",
+                  "C:/x/agent os/hermes-plugins/agentos-guard/__init__.py"):
+            self.assertIsNotNone(self.w.evaluate("write_file", {"path": p, "content": "x"}), p)
+            self.assertIsNotNone(self.w.evaluate("patch", {"path": p, "old_string": "a", "new_string": "b"}), p)
+
+    def test_other_bot_area_refused(self):
+        self.assertIsNotNone(self.w.evaluate("write_file", {"path": f"{self.other}/SOUL.md", "content": "x"}))
+        self.assertIsNotNone(self.w.evaluate("write_file", {"path": f"{self.other}/cache/scratch/a.md", "content": "x"}))
+        self.assertIsNotNone(self.t(f"cp a.md \"{self.other}/skills/x/SKILL.md\""))
+        self.assertIsNotNone(self.w.evaluate("skill_manage", {"operations": [{"action": "patch", "name": "kmastercook-blog-titles", "old_string": "a", "new_string": "b"}]}))
+        self.assertIsNotNone(self.w.evaluate("execute_code", {"code": f"open('{self.other}/SOUL.md','a').write('x')"}))
+
+    def test_own_area_passes(self):
+        me = self.home.as_posix()
+        self.assertIsNone(self.w.evaluate("write_file", {"path": f"{me}/cache/scratch/her40/done.json", "content": "{}"}))
+        self.assertIsNone(self.w.evaluate("skill_manage", {"operations": [{"action": "patch", "name": "my-skill", "old_string": "a", "new_string": "b"}]}))
+        self.assertIsNone(self.w.evaluate("skill_manage", {"action": "create", "name": "new-skill", "content": "x"}))
+        self.assertIsNone(self.w.evaluate("write_file", {"path": "C:/x/agent os/src/app.ts", "content": "x"}))
+
+    def test_secrets_refused(self):
+        for c in (f"cat \"{self.home.as_posix()}/.env\"", "type C:\\Users\\x\\AppData\\Local\\hermes\\auth.json",
+                  "grep KEY .env", "Get-Content .env.local", "cp .env backup.txt", "cat ~/.git-credentials"):
+            self.assertIsNotNone(self.t(c), c)
+        self.assertIsNotNone(self.w.evaluate("read_file", {"path": f"{self.home.as_posix()}/.env"}))
+        self.assertIsNotNone(self.w.evaluate("read_file", {"path": "C:/Users/x/AppData/Local/hermes/auth.json"}))
+        self.assertIsNotNone(self.w.evaluate("execute_code", {"code": "print(open('C:/x/hermes/auth.json').read())"}))
+
+    def test_secret_lookalikes_pass(self):
+        self.assertIsNone(self.t("cat .env.example"))
+        self.assertIsNone(self.w.evaluate("read_file", {"path": "docs/environment.md"}))
+        self.assertIsNone(self.w.evaluate("execute_code", {"code": "import os\nprint(os.environ['PAPERCLIP_API_URL'])"}))
+        self.assertIsNone(self.t("node -e 'console.log(process.env.PAPERCLIP_API_URL)'"))
+
+    def test_other_roles_unchanged(self):
+        # chief/reviewer keep their own rules — the worker hardening is opt-in per role
+        c = mod.Guard(RULES, "chief", "block", None, self.home)
+        self.assertIsNone(c.evaluate("terminal", {"command": f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/HER-38\" -d '{BAD_DONE}'"}))
+
+
 if __name__ == "__main__":
     unittest.main()

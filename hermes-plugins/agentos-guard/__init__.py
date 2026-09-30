@@ -241,9 +241,21 @@ class CommentRules:
 
 
 # Paperclip issue create/rename: a curl with a body (-d/--data*/heredoc) whose URL ends in /issues or /issues/<id>
-# (comments/documents/execution sub-paths are excluded by the URL regex).
-_ISSUE_CALL = re.compile(r"^curl\b.*(\s-d\b|\s--data(-binary|-raw)?\b|\s-X\s*(POST|PATCH)\b|<<)")
-_ISSUE_URL = re.compile(r"/api/(companies/[^/\s\"']+/)?issues(/[0-9a-f-]{36})?[\"']?(\s|$)")
+# (comments/documents/execution sub-paths are excluded by the URL regex). Legacy matchers — used by roles without
+# `strict_issue_calls`; kept byte-identical so chief/reviewer behaviour does not move.
+_ISSUE_CALL_LEGACY = re.compile(r"^curl\b.*(\s-d\b|\s--data(-binary|-raw)?\b|\s-X\s*(POST|PATCH)\b|<<)")
+_ISSUE_URL_LEGACY = re.compile(r"/api/(companies/[^/\s\"']+/)?issues(/[0-9a-f-]{36})?[\"']?(\s|$)")
+# Strict matchers (`strict_issue_calls: true`): also -d without a space, --json, PUT, and issue keys (HER-38) or
+# ?query/#fragment tails in the URL.
+_ISSUE_CALL = re.compile(r"^curl\b.*(\s-d|\s--data(-binary|-raw|-ascii|-urlencode)?\b|\s--json\b|\s-X\s*(POST|PATCH|PUT)\b|<<)")
+_ISSUE_URL = re.compile(r"/api/(companies/[^/\s\"']+/)?issues(/[^/\s\"'?#]+)?([?#][^\s\"']*)?[\"']?(\s|$)")
+# curl body arguments on the shape: -d X, -dX, --data=X, --json X …
+_BODY_FLAG = re.compile(r"(?:^|\s)(?:-d|--data(?:-binary|-raw|-ascii|-urlencode)?|--json)(?:\s+|=|(?=[\"'@$`]))(\S+)")
+_QTOK = re.compile(r"([\"'])Q(\d+)\1")
+# Non-curl HTTP clients. Roles with issue rules must use curl so the gate can read the body.
+_OTHER_HTTP = re.compile(r"^(wget|http|https|xh|httpie|aria2c|Invoke-WebRequest|Invoke-RestMethod|iwr|irm)(\.exe)?\b", re.I)
+_OPAQUE_HINT = ("guard가 본문을 확인할 수 없습니다 — curl -d '<JSON>'(작은따옴표) / heredoc(<<'EOF') / "
+                "이미 만들어 둔 파일(-d @절대경로) 중 하나로 보내세요.")
 _TITLE_JSON = re.compile(r"\"title\"\s*:\s*\"((?:\\.|[^\"\\])*)\"")
 
 
@@ -280,17 +292,61 @@ _PROGRAM_ISSUE_API = re.compile(r"/issues\b|/api/issues|issues/\{|issues/\$|PAPE
 _PROGRAM_EXT = (".py", ".mjs", ".cjs", ".js", ".ts", ".sh", ".ps1")
 
 
-def _hidden_transition(text: Any) -> bool:
+def _hidden_transition(text: Any, strict: bool = False) -> bool:
     if not isinstance(text, str) or not text.strip():
         return False
     if _issue_body_from_json(text) is not None:
         return False  # plain JSON body — the gate can read it
-    return bool(_PROGRAM_TRANSITION.search(text) and _PROGRAM_ISSUE_API.search(text))
+    pat = _PROGRAM_TRANSITION_STRICT if strict else _PROGRAM_TRANSITION
+    return bool(pat.search(text) and _PROGRAM_ISSUE_API.search(text))
 
 
-def _issue_payloads_from_curl(seg: str, shape: str, quoted: List[str]) -> List[str]:
+# Strict: also JS/Python unquoted keys ({status:"done"}, dict(status="done")).
+_PROGRAM_TRANSITION_STRICT = re.compile(r"(?:[\"']|\b)status[\"']?\s*[:=]\s*[\"'](done|in_progress)[\"']")
+# Programs that read their source from a heredoc (python - <<'PY', node <<'JS', pwsh <<…) or from a script file.
+_HEREDOC_PROGRAM = re.compile(r"^(python3?|py|node|deno|bun|pwsh|powershell|ruby|perl)(\.exe)?\b", re.I)
+_SCRIPT_RUN = re.compile(r"^(?:python3?|py|node|deno(?:\s+run)?|bun|bash|sh|pwsh|powershell)(?:\.exe)?\s+(?:-[-\w=]+\s+)*"
+                         r"(?:[\"']Q(\d+)[\"']|(\S+\.(?:py|mjs|cjs|js|ts|sh|ps1)))", re.I)
+# Segments that cannot create or change a file — an @file body is only trusted when every earlier segment of the
+# same command line is one of these (otherwise the file may have been produced moments before, unseen).
+_READONLY_SEG = re.compile(r"^(cd|pushd|ls|dir|cat|type|grep|rg|head|tail|wc|echo|printf|test|\[|jq|pwd|date|sleep|"
+                           r"true|false|export|which|where|stat|file|diff|sort|uniq|cut|tr|cygpath|realpath|basename|dirname)\b")
+_ASSIGN_SEG = re.compile(r"^(?:export\s+)?([A-Za-z_]\w*)=(?:[\"']Q(\d+)[\"']|(\S*))$")
+_CD_SEG = re.compile(r"^(?:cd|pushd)\s+(?:[\"']Q(\d+)[\"']|(\S+))$")
+_WRITE_VERB = re.compile(r"^(sudo\s+)?(rm|del|erase|rmdir|rd|mv|move|ren|rename|cp|copy|xcopy|robocopy|tee|truncate|shred|"
+                         r"unlink|ln|install|chmod|chown|touch|Remove-Item|ri|Set-Content|Add-Content|Out-File|Copy-Item|"
+                         r"Move-Item|Rename-Item|New-Item|Clear-Content)\b|\bsed\s+(-\w+\s+)*-i", re.I)
+_LAST_ARG_ONLY = re.compile(r"^(sudo\s+)?(cp|copy|xcopy|robocopy|ln|install|Copy-Item)\b", re.I)
+_OUTPUT_FLAG = re.compile(r"(?:^|\s)(?:-o|--output|-OutFile)(?:\s+|=)(?:[\"']Q(\d+)[\"']|(\S+))")
+_CODE_TOOLS = ("execute_code", "code_execution")
+_READ_TOOLS = {"read_file": "path", "search_files": "path"}
+
+
+def _ordered_tokens(shape: str, quoted: List[str]) -> List[str]:
+    """Shape tokens in order with quoted placeholders restored (``"Q2"`` → its text). ``--opt=value`` keeps the
+    value, a leading ``@`` (curl body file) and ``<``/``>`` redirect glyphs are dropped."""
+    out: List[str] = []
+    for tok in shape.split():
+        tok = tok.lstrip("<>0123456789&") if re.match(r"^\d?[<>]", tok) else tok
+        if tok.startswith("-") and "=" in tok:
+            tok = tok.split("=", 1)[1]
+        tok = tok.lstrip("@")
+        tok = _QTOK.sub(lambda m: quoted[int(m.group(2))], tok)
+        if tok:
+            out.append(tok.replace("\\", "/"))
+    return out
+
+
+# Secret files referenced inside program text; `process.env` / `os.environ` are not files and do not match.
+_SECRET_IN_CODE = re.compile(r"(?<![\w.$])\.env(?![\w-])(?!\.(example|sample|template)\b)|\bauth\.json\b|\.git-credentials\b|"
+                             r"\bcredentials?\.json\b|\bid_(rsa|ed25519|ecdsa)\b")
+_PY_OPEN_WRITE = re.compile(r"open\([^)]*,\s*(mode\s*=\s*)?['\"][wax]|\.write_text\(|\.write_bytes\(|\.unlink\(|rmtree\(")
+_DB_FILE = re.compile(r"\.(sqlite3?|db)(-wal|-shm|-journal)?$", re.I)
+
+
+def _issue_payloads_legacy(seg: str, shape: str, quoted: List[str]) -> List[str]:
     """Raw JSON texts from an inline body (-d/--data*), a heredoc body, or an @file body in a curl to /issues."""
-    url_hit = any(_ISSUE_URL.search(q + " ") for q in quoted) or _ISSUE_URL.search(shape)
+    url_hit = any(_ISSUE_URL_LEGACY.search(q + " ") for q in quoted) or _ISSUE_URL_LEGACY.search(shape)
     if not url_hit:
         return []
     texts: List[str] = list(quoted)
@@ -308,17 +364,88 @@ def _issue_payloads_from_curl(seg: str, shape: str, quoted: List[str]) -> List[s
     return texts
 
 
-def _issue_titles_from_curl(seg: str, shape: str, quoted: List[str]) -> List[str]:
-    titles: List[str] = []
-    for t in _issue_payloads_from_curl(seg, shape, quoted):
-        titles += _issue_titles_from_json(t)
-    return titles
+def _expand_path(p: str, cwd: Optional[str], env: Optional[Dict[str, str]] = None) -> Optional[Path]:
+    """Resolve a curl @file / command argument path the way the shell would: env vars, ~, and a preceding `cd`.
+    None when the path depends on something the gate cannot see (command substitution, unknown variable)."""
+    p = p.replace("\\", "/")
+    if re.search(r"\$\(|`", p):
+        return None
+    env = env or {}
+
+    def _var(m: "re.Match[str]") -> str:
+        name = m.group(1) or m.group(2)
+        return env.get(name) or os.environ.get(name) or m.group(0)
+
+    p = re.sub(r"\$\{(\w+)[^}]*\}|\$(\w+)", _var, p)
+    if "$" in p:
+        return None
+    p = os.path.expanduser(p)
+    if re.match(r"^/[a-zA-Z]/", p):  # MSYS /c/Users → C:/Users
+        p = p[1].upper() + ":" + p[2:]
+    path = Path(p)
+    if not path.is_absolute():
+        if not cwd:
+            return None
+        path = Path(cwd) / path
+    return path
+
+
+def _body_args(shape: str, quoted: List[str]) -> List["tuple[str, str]"]:
+    """(kind, value) for each curl body argument: kind is 'single' | 'double' | 'bare'."""
+    out = []
+    for m in _BODY_FLAG.finditer(shape):
+        tok = m.group(1)
+        prefix = "@" if tok.startswith("@") else ""
+        rest = tok[1:] if prefix else tok
+        if q := _QTOK.match(rest):
+            kind, val = ("single" if q.group(1) == "'" else "double"), quoted[int(q.group(2))]
+        else:
+            kind, val = "bare", rest
+        out.append((kind, prefix + val))
+    return out
+
+
+def _issue_payloads_strict(seg: str, shape: str, quoted: List[str], cwd: Optional[str] = None,
+                           env: Optional[Dict[str, str]] = None) -> "tuple[List[str], Optional[str]]":
+    """Strict variant: JSON texts from every body argument of a curl to /issues, plus the first body argument
+    the gate could NOT read (shell variable, command substitution, @- without heredoc, @file that does not exist
+    yet) — None when every body was readable."""
+    url_hit = any(_ISSUE_URL.search(q + " ") for q in quoted) or _ISSUE_URL.search(shape)
+    if not url_hit:
+        return [], None
+    texts: List[str] = []
+    opaque: Optional[str] = None
+    heredoc = _HEREDOC_BODY.search(seg)
+    if heredoc:
+        texts.append(heredoc.group(3))
+    for kind, val in _body_args(shape, quoted):
+        if val.startswith("@"):
+            p = val[1:]
+            if p == "-":
+                if not heredoc:
+                    opaque = opaque or val
+                continue
+            path = None if (kind == "single" and "$" in p) else _expand_path(p, cwd, env)
+            try:
+                if path is None:
+                    raise OSError
+                texts.append(path.read_text(encoding="utf-8"))
+            except OSError:
+                opaque = opaque or val
+        elif kind == "single":
+            texts.append(val)
+        elif "$" in val or "`" in val:
+            opaque = opaque or val  # "$B", $B, "$(cat x)" — the shell fills it in after the gate looked
+        else:
+            texts.append(val)
+    return texts, opaque
 
 
 class Guard:
     """Pure rule evaluator — no Hermes imports, so it is unit-testable and reusable."""
 
-    def __init__(self, rules: Dict[str, Any], role: str, mode: str, log_path: Optional[Path] = None):
+    def __init__(self, rules: Dict[str, Any], role: str, mode: str, log_path: Optional[Path] = None,
+                 home: Optional[Path] = None):
         if role not in _VALID_ROLES:
             raise ValueError(f"agentos-guard: unknown role {role!r} (valid: {', '.join(_VALID_ROLES)})")
         if mode not in _VALID_MODES:
@@ -328,6 +455,20 @@ class Guard:
         self.title_rules = TitleRules(rules.get("issue_title") or {}) if r.get("check_issue_title") else None
         self.comment_rules = (CommentRules(rules.get("issue_comment") or {}, bool(r.get("check_done_comment")), bool(r.get("check_reject_comment")))
                               if r.get("check_done_comment") or r.get("check_reject_comment") else None)
+        self.strict_issue = bool(r.get("strict_issue_calls"))
+        pr = r.get("protect") or {}
+        self.protect_write = [str(p) for p in (pr.get("write_paths") or [])]
+        self.protect_read = [re.compile(str(p), re.I) for p in (pr.get("read_basenames") or [])]
+        self.protect_other_profiles = bool(pr.get("other_profiles"))
+        self.skills_own_only = bool(pr.get("skills_own_only"))
+        self.home = Path(home) if home else None
+        self.own_profile = self.home.name.lower() if self.home and self.home.parent.name.lower() == "profiles" else None
+        # Variables a worker's terminal sees that the gateway process may not (Hermes points TMPDIR at the
+        # profile's own scratch dir), so `cd "$TMPDIR/x" && curl -d @done.json` resolves to the right file.
+        self._env: Dict[str, str] = {}
+        if self.home:
+            scratch = str(self.home / "cache" / "scratch").replace("\\", "/")
+            self._env = {"TMPDIR": scratch, "TMP": scratch, "TEMP": scratch, "HERMES_HOME": str(self.home).replace("\\", "/")}
         self.deny_tools = set(((r.get("tools") or {}).get("deny")) or [])
         self.deny_skill_actions = set(((r.get("skill_manage") or {}).get("deny_actions")) or [])
         w = r.get("write") or {}
@@ -390,10 +531,13 @@ class Guard:
         cmd = args.get("command")
         if not isinstance(cmd, str) or not cmd.strip():
             return None
+        if self.strict_issue or self.protect_write or self.protect_read or self.protect_other_profiles:
+            if reason := self._check_terminal_strict(cmd, args.get("workdir")):
+                return reason
         for seg in _split_command_line(cmd):
             shape, quoted = _strip_data(seg)
-            if (self.title_rules or self.comment_rules) and _ISSUE_CALL.search(shape):
-                for text in _issue_payloads_from_curl(seg, shape, quoted):
+            if (self.title_rules or self.comment_rules) and not self.strict_issue and _ISSUE_CALL_LEGACY.search(shape):
+                for text in _issue_payloads_legacy(seg, shape, quoted):
                     if self.title_rules:
                         for title in _issue_titles_from_json(text):
                             if reason := self.title_rules.check(title):
@@ -414,7 +558,7 @@ class Guard:
                     return f"{self.role} 역할에 금지된 명령입니다: '{m.group(0).strip()}' in `{seg[:120]}`"
             if self.comment_rules and not self.inline_python_guard:
                 for pat, idx in ((_PY_INLINE, 1), (_JS_INLINE, 2)):
-                    if (m := pat.match(shape)) and _hidden_transition(quoted[int(m.group(idx))]):
+                    if (m := pat.match(shape)) and _hidden_transition(quoted[int(m.group(idx))], self.strict_issue):
                         return "인라인 프로그램 안에서 작업 상태를 바꿀 수 없습니다 — curl -d '<JSON>' 처럼 본문이 보이는 형태로 보내세요."
             if self.inline_python_guard:
                 inline = None
@@ -433,12 +577,177 @@ class Guard:
                 return f"{self.role} 역할의 허용 명령 목록에 없습니다: `{seg[:120]}`"
         return None
 
+    # ---- worker hardening (strict_issue_calls / protect) ----
+
+    def _protected_write(self, raw: str, cwd: Optional[str] = None, env: Optional[Dict[str, str]] = None) -> Optional[str]:
+        """Reason when writing to *raw* would touch a protected file or another bot's profile, else None."""
+        if not raw or raw.startswith("-"):
+            return None
+        p = _expand_path(raw, cwd, env)
+        norm = (str(p) if p else raw).replace("\\", "/")
+        low = norm.lower()
+        if not low.startswith("/") and not re.match(r"^[a-z]:/", low):
+            low = "/" + low.lstrip("./")  # relative path: still match '/hermes-plugins/agentos-guard/…'
+        for pat in self.protect_write:
+            if re.search(pat, low, re.I):
+                return f"{self.role} 역할은 봇 설정·비밀·guard 파일을 바꿀 수 없습니다: {raw}"
+        if self.protect_other_profiles and self.own_profile and (m := re.search(r"/hermes/profiles/([^/]+)", low)):
+            if m.group(1) != self.own_profile:
+                return f"{self.role} 역할은 다른 봇의 폴더에 쓸 수 없습니다: {raw}"
+        return None
+
+    def _protected_read(self, raw: str) -> Optional[str]:
+        base = raw.replace("\\", "/").rstrip("/").rsplit("/", 1)[-1]
+        if any(p.search(base) for p in self.protect_read):
+            return f"{self.role} 역할은 비밀 파일(키·인증 정보)을 열 수 없습니다: {raw} — 필요한 값이 있으면 사장님께 요청하세요."
+        return None
+
+    def _code_violation(self, code: Any, label: str) -> Optional[str]:
+        """Checks for program text a worker is about to run (execute_code, python -c, heredoc, script file)."""
+        if not isinstance(code, str) or not code.strip():
+            return None
+        if self.comment_rules and self.strict_issue and _hidden_transition(code, True):
+            return (f"{label} 안에서 작업 상태(done/in_progress)를 바꿀 수 없습니다 — 완료 댓글 검사를 위해 "
+                    f"curl -d '<JSON>' / heredoc(@-) / 미리 만든 파일(-d @절대경로)로 보내세요.")
+        if self.protect_read and _SECRET_IN_CODE.search(code):
+            return f"{label} 안에서 비밀 파일(.env·auth.json 등)을 다룰 수 없습니다 — 필요한 값이 있으면 사장님께 요청하세요."
+        if (self.protect_write or self.protect_other_profiles) and (_PY_DANGER.search(code) or _JS_DANGER.search(code)
+                                                                     or _PY_OPEN_WRITE.search(code)):
+            for lit in re.findall(r"['\"]([^'\"\n]{4,300})['\"]", code):
+                if ("/" in lit or "\\" in lit) and (reason := self._protected_write(lit, None, self._env)):
+                    return f"{label}: {reason}"
+        return None
+
+    def _write_targets(self, head: str, shape: str, quoted: List[str]) -> List[str]:
+        targets: List[str] = []
+        if _WRITE_VERB.search(head):
+            toks = [t for t in _ordered_tokens(shape, quoted)[1:] if not t.startswith("-") and not re.fullmatch(r"/[a-zA-Z]+", t)]
+            targets += toks[-1:] if _LAST_ARG_ONLY.match(head) else toks
+        for m in _REDIRECT.finditer(shape):
+            targets.append(quoted[int(m.group(1))] if m.group(1) is not None else m.group(2))
+        for m in _OUTPUT_FLAG.finditer(shape):
+            targets.append(quoted[int(m.group(1))] if m.group(1) is not None else m.group(2))
+        return [t for t in targets if t not in ("/dev/null", "NUL", "nul")]
+
+    def _check_terminal_strict(self, cmd: str, workdir: Any) -> Optional[str]:
+        cwd: Optional[str] = workdir if isinstance(workdir, str) and workdir else None
+        env = dict(self._env)
+        mutated = False  # an earlier segment of this command line may have produced files
+        for seg in _split_command_line(cmd):
+            shape, quoted = _strip_data(seg)
+            head = shape.lstrip()
+            if m := _CD_SEG.match(head):
+                p = _expand_path(quoted[int(m.group(1))] if m.group(1) is not None else m.group(2), cwd, env)
+                cwd = str(p) if p else None
+                continue
+            if m := _ASSIGN_SEG.match(head):
+                val = quoted[int(m.group(2))] if m.group(2) is not None else (m.group(3) or "")
+                if "$(" in val or "`" in val:
+                    env.pop(m.group(1), None)
+                    env[m.group(1) + "__opaque"] = "1"
+                else:
+                    env[m.group(1)] = re.sub(r"\$\{(\w+)[^}]*\}|\$(\w+)",
+                                             lambda v: env.get(v.group(1) or v.group(2)) or os.environ.get(v.group(1) or v.group(2)) or v.group(0), val)
+                continue
+            if _HEREDOC_BODY.search(seg) is None:
+                tokens = _ordered_tokens(shape, quoted)
+            else:
+                tokens = _ordered_tokens(_HEREDOC_BODY.sub(lambda h: h.group(1) + h.group(4), shape), quoted)
+            if self.protect_read:
+                for t in tokens:
+                    if reason := self._protected_read(t):
+                        return reason
+            if head.lower().startswith(("rm ", "del ", "erase ", "remove-item", "ri ", "unlink ")):
+                for t in tokens[1:]:
+                    if _DB_FILE.search(t):
+                        return f"{self.role} 역할은 DB 파일을 지울 수 없습니다: {t} — 사장님께 보고하세요."
+            for t in self._write_targets(head, shape, quoted):
+                if reason := self._protected_write(t, cwd, env):
+                    return reason
+            if self.strict_issue and _OTHER_HTTP.match(head) and any(re.search(r"/api/|paperclip|:3100", t, re.I) for t in tokens):
+                return "Paperclip 작업 API에는 curl만 쓰세요(wget·Invoke-WebRequest·httpie 등은 guard가 본문을 확인할 수 없음)."
+            if self.strict_issue and self.comment_rules and head.startswith("curl") and _ISSUE_CALL.search(shape):
+                url_hit = any(_ISSUE_URL.search(q + " ") for q in quoted) or _ISSUE_URL.search(shape)
+                texts, opaque = _issue_payloads_strict(seg, shape, quoted, cwd, env)
+                if url_hit:
+                    has_file = any(v.startswith("@") and v != "@-" for _, v in _body_args(shape, quoted))
+                    if opaque is None and mutated and has_file:
+                        opaque = next(v for _, v in _body_args(shape, quoted) if v.startswith("@") and v != "@-")
+                        return (f"이 명령 안에서 방금 만든 파일(`{opaque}`)은 guard가 확인할 수 없습니다 — 파일을 먼저 만든 뒤 "
+                                f"curl은 별도 호출로 보내거나, curl에 heredoc(--data-binary @- <<'EOF')으로 직접 넣으세요.")
+                    if opaque is not None:
+                        return f"작업 API 요청 본문 `{opaque[:60]}`: " + _OPAQUE_HINT
+                    for text in texts:
+                        if self.title_rules:
+                            for title in _issue_titles_from_json(text):
+                                if reason := self.title_rules.check(title):
+                                    return reason
+                        if body := _issue_body_from_json(text):
+                            if reason := self.comment_rules.check_body(body):
+                                return reason
+                elif not any(re.search(r"/api/|://", t) for t in tokens):
+                    bodies = [v for _, v in _body_args(shape, quoted)] + ([h.group(3)] if (h := _HEREDOC_BODY.search(seg)) else [])
+                    if any(v.startswith("@") or "$" in v or _PROGRAM_TRANSITION_STRICT.search(v) or '"status"' in v for v in bodies):
+                        return "요청 주소가 변수에 숨어 있어 guard가 확인할 수 없습니다 — 작업 API 주소를 명령에 직접 쓰세요."
+            code: Optional["tuple[str, str]"] = None
+            if (h := _HEREDOC_BODY.search(seg)) and _HEREDOC_PROGRAM.match(head):
+                code = (h.group(3), "heredoc 프로그램")
+            elif m := _PY_INLINE.match(head):
+                code = (quoted[int(m.group(1))], "python -c")
+            elif m := _JS_INLINE.match(head):
+                code = (quoted[int(m.group(2))], "node -e")
+            elif m := _SCRIPT_RUN.match(head):
+                sp = _expand_path(quoted[int(m.group(1))] if m.group(1) is not None else m.group(2), cwd, env)
+                try:
+                    code = (sp.read_text(encoding="utf-8", errors="replace"), f"스크립트 {sp.name}") if sp else None
+                except OSError:
+                    code = None
+            if code and (reason := self._code_violation(code[0], code[1])):
+                return reason
+            if not _READONLY_SEG.match(head) or _REDIRECT.search(shape):
+                mutated = True
+        return None
+
+    def _check_skill_own(self, args: Dict[str, Any]) -> Optional[str]:
+        ops = args.get("operations") if isinstance(args.get("operations"), list) else [args]
+        for op in ops:
+            if not isinstance(op, dict):
+                continue
+            action, name = str(op.get("action") or ""), str(op.get("name") or args.get("name") or "")
+            if action == "create":
+                continue  # lands in this bot's own skills dir
+            own = bool(self.home and name and any((self.home / "skills").glob(f"**/{name}/SKILL.md")))
+            if not own:
+                return (f"{self.role} 역할은 자기 스킬만 고칠 수 있습니다('{name}'은 다른 봇·공용 스킬). "
+                        f"바꿔야 하면 사장님이나 비서실장에게 요청하세요.")
+        return None
+
+    def _check_strict_tool(self, tool_name: str, args: Dict[str, Any]) -> Optional[str]:
+        if tool_name in _READ_TOOLS and self.protect_read:
+            p = args.get(_READ_TOOLS[tool_name])
+            if isinstance(p, str) and p and (reason := self._protected_read(p)):
+                return reason
+        if tool_name in ("write_file", "patch"):
+            p = args.get("path")
+            if isinstance(p, str) and (reason := self._protected_write(p, None, self._env)):
+                return reason
+        if tool_name == "skill_manage" and self.skills_own_only:
+            if reason := self._check_skill_own(args):
+                return reason
+        if tool_name in _CODE_TOOLS:
+            if reason := self._code_violation(args.get("code"), tool_name):
+                return reason
+        return None
+
     # ---- public ----
 
     def evaluate(self, tool_name: str, args: Any, session_id: str = "") -> Optional[str]:
         """Return the violation reason, or None when the call is fine for this role."""
         args = args if isinstance(args, dict) else {}
         reason = self._check_budget(session_id) or self._check_tool(tool_name)
+        if reason is None and (self.strict_issue or self.protect_write or self.protect_read or self.protect_other_profiles
+                               or self.skills_own_only):
+            reason = self._check_strict_tool(tool_name, args)
         if reason is None and tool_name == "skill_manage":
             reason = self._check_skill_manage(args)
         if reason is None and tool_name in _WRITE_TOOLS:
@@ -451,7 +760,7 @@ class Guard:
             content = args.get("content") if tool_name == "write_file" else args.get("new_string")
             if body := _issue_body_from_json(content):
                 reason = self.comment_rules.check_body(body)
-            elif _hidden_transition(content):
+            elif _hidden_transition(content, self.strict_issue):
                 reason = ("작업 상태 변경(done/in_progress)은 스크립트 안에서 보내지 마세요 — 완료 댓글 검사를 위해 "
                           "curl -d '<JSON>' / heredoc / @file 처럼 본문이 보이는 형태로 보내야 합니다.")
         if reason is None and tool_name in _TERMINAL_TOOLS:
@@ -508,10 +817,11 @@ def register(ctx) -> None:
     mode = str(ctx.get_config("mode", "warn") or "warn").strip().lower()
     try:
         from hermes_constants import get_hermes_home
-        log_path = get_hermes_home() / "logs" / "guard.jsonl"
+        home = get_hermes_home()
+        log_path = home / "logs" / "guard.jsonl"
     except Exception:  # pragma: no cover - outside Hermes
-        log_path = None
-    guard = Guard(load_rules(), role, mode, log_path)
+        home, log_path = None, None
+    guard = Guard(load_rules(), role, mode, log_path, home)
     _guard = guard
     logger.info("agentos-guard registered: role=%s mode=%s max_tool_calls=%d", role, mode, guard.max_calls)
 
