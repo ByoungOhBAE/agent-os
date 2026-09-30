@@ -242,6 +242,63 @@ async function bindPaperclipKey(profile, agentId) {
 const newProfile = () => PREFIX + randomBytes(4).toString("hex");
 
 // ---------- commands ----------
+// ---- hire gate ----------------------------------------------------------------------------------------------
+// A hire is allowed only when (A) the boss accepted a plan confirmation on the source issue (resolvedByUserId set,
+// resolvedByAgentId empty) and (B) the role text equals the issue document `role-<name>` whose latest revision was
+// created before that approval and which passed the reviewer (issue execution lastDecisionOutcome=approved or a
+// reviewer comment "## 완료" on the issue). Everything is read from Paperclip, nothing is trusted from the CLI caller.
+async function hireGate(issueId, name, roleText) {
+  if (!issueId) fail("채용에는 --source-issue <사장님이 계획을 승인한 이슈 id> 가 필요합니다");
+  const iss = await pc("GET", `/issues/${issueId}`);
+  if (iss.status !== 200) fail(`--source-issue ${issueId}: HTTP ${iss.status}`);
+  const ints = await pc("GET", `/issues/${issueId}/interactions`);
+  const list = Array.isArray(ints.json) ? ints.json : (ints.json?.interactions ?? ints.json?.items ?? []);
+  const ok = list.filter((x) => x.kind === "request_confirmation" && x.status === "accepted" && x.resolvedByUserId && !x.resolvedByAgentId)
+    .sort((a, b) => String(b.resolvedAt).localeCompare(String(a.resolvedAt)));
+  if (!ok.length) fail(`채용 거부: 이슈 ${iss.json?.identifier ?? issueId} 에 사장님이 승인한(accepted, resolvedByUserId) 계획 카드가 없습니다`);
+  const approval = ok[0];
+  const docs = await pc("GET", `/issues/${issueId}/documents`);
+  const dl = Array.isArray(docs.json) ? docs.json : (docs.json?.documents ?? []);
+  const doc = dl.find((d) => d.key === `role-${name}`);
+  if (!doc) fail(`채용 거부: 이슈에 역할 문서 role-${name} 이 없습니다 (PUT /api/issues/${issueId}/documents/role-${name} 로 먼저 올리고 검수를 받으세요)`);
+  const norm = (t) => String(t ?? "").replace(/\r\n/g, "\n").trim();
+  if (norm(doc.body) !== norm(roleText)) fail(`채용 거부: --role-file 내용이 이슈 문서 role-${name} 과 다릅니다 (검수받은 문서를 그대로 쓰세요)`);
+  // reviewer pass: the issue's execution decision is approved, or a comment by an agent other than the assignee starts with "## 완료"
+  const ex = await pc("GET", `/issues/${issueId}/execution`);
+  const decided = ex.json?.lastDecisionOutcome === "approved" || ex.json?.execution?.lastDecisionOutcome === "approved";
+  let reviewed = decided;
+  if (!reviewed) {
+    const cm = await pc("GET", `/issues/${issueId}/comments`);
+    const cl = Array.isArray(cm.json) ? cm.json : (cm.json?.comments ?? []);
+    const reviewerIds = new Set((await agents()).filter((a) => /^검수/.test(a.name)).map((a) => a.id));
+    reviewed = cl.some((c) => reviewerIds.has(c.authorAgentId) && /^##\s*완료/.test(String(c.body ?? "").trim()) && String(c.body).includes(`role-${name}`));
+  }
+  if (!reviewed) fail(`채용 거부: 역할 문서 role-${name} 에 대한 검수 승인(검수 봇의 "## 완료" 댓글 또는 review stage approved)이 없습니다`);
+  return { issue: iss.json?.identifier ?? issueId, approval: approval.id, roleDoc: doc.id };
+}
+function installGuard(profile, role, mode) {
+  const src = path.join(REPO, "hermes-plugins", "agentos-guard");
+  const dst = path.join(profileHome(profile), "plugins", "agentos-guard");
+  mkdirSync(dst, { recursive: true });
+  for (const f of ["plugin.yaml", "__init__.py", "rules.yaml"]) cpSync(path.join(src, f), path.join(dst, f));
+  hermes(["-p", profile, "config", "set", "plugins.entries.agentos-guard.settings.role", role]);
+  hermes(["-p", profile, "config", "set", "plugins.entries.agentos-guard.settings.mode", mode]);
+  const names = hermes(["-p", profile, "config", "get", "plugins.enabled"]).split(/\r?\n/).map((l) => l.trim().replace(/^- /, "")).filter((l) => l && !/^(✓|✗|\[)/.test(l));
+  if (!names.includes("agentos-guard")) hermes(["-p", profile, "config", "set", "plugins.enabled", JSON.stringify([...names, "agentos-guard"])]);
+}
+// new workers inherit the mode the existing workers run in (warn while observing, block afterwards)
+function guardModeOfWorkers() {
+  const modes = [];
+  for (const p of readdirSync(path.join(HOME, "profiles"))) {
+    const cfg = path.join(HOME, "profiles", p, "config.yaml");
+    if (!existsSync(cfg)) continue;
+    const t = readFileSync(cfg, "utf8");
+    const m = t.match(/agentos-guard:[\s\S]*?role:\s*worker[\s\S]*?mode:\s*(\w+)/) || t.match(/agentos-guard:[\s\S]*?mode:\s*(\w+)[\s\S]*?role:\s*worker/);
+    if (m) modes.push(m[1]);
+  }
+  return modes.includes("block") ? "block" : "warn";
+}
+
 const cmd = process.argv[2];
 if (cmd === "baseline") {
   const snap = { at: new Date().toISOString(), gateway: gatewayStart(), memory: memoryHashes() };
@@ -271,6 +328,9 @@ if (cmd === "baseline") {
   if (projects.some((k) => !known.includes(k))) fail(`알 수 없는 프로젝트: ${projects.filter((k) => !known.includes(k)).join(",")} (있는 것: ${known.join(",")})`);
   if ((await agents()).some((a) => a.name === name)) fail(`같은 이름의 봇이 이미 있습니다: ${name}`);
   const role = readFileSync(roleFile, "utf8");
+  // ---- hire gate: the boss approved a plan on --source-issue, and the role text was reviewed as issue document role-<name>
+  const gate = await hireGate(arg("--source-issue"), name, role);
+  console.log(`HIRE_GATE_OK issue=${gate.issue} approval=${gate.approval} roleDoc=${gate.roleDoc}`);
   const profile = newProfile();
   createProfile(profile, `Paperclip 봇 ${name}`);
   const body = { name, role: "general", title, reportsTo, capabilities: title, adapterType: "hermes_gateway", adapterConfig: gatewayConfig(profile),
@@ -285,7 +345,9 @@ if (cmd === "baseline") {
   await loadCompanySkills();
   installSkills(profile, (arg("--skills") || "").split(",").map((s) => s.trim()).filter(Boolean));
   applyKnowledge(profile, created.id, name, projects);
-  console.log(`HIRED ${created.id} ${name} profile=${profile} projects=${projects.join(",")}`);
+  await pc("PATCH", `/agents/${created.id}`, { metadata: { ...(created.metadata ?? {}), hermesProfile: profile, agentosHireIssue: gate.issue, agentosHireApproval: gate.approval } });
+  installGuard(profile, "worker", guardModeOfWorkers());
+  console.log(`HIRED ${created.id} ${name} profile=${profile} projects=${projects.join(",")} guard=worker/${guardModeOfWorkers()} — 게이트웨이 재시작 후 guard 적용`);
 } else if (cmd === "convert") {
   const id = arg("--agent");
   const projects = projectsArg();
@@ -364,6 +426,11 @@ if (cmd === "baseline") {
       if (!existsSync(home)) probs.push("profile missing");
       else {
         if (!/memory_enabled:\s*true/.test(readFileSync(path.join(home, "config.yaml"), "utf8"))) probs.push("memory off");
+        if (a.status !== "paused") {
+          const cfgTxt = readFileSync(path.join(home, "config.yaml"), "utf8");
+          if (!existsSync(path.join(home, "plugins", "agentos-guard", "__init__.py")) || !/agentos-guard/.test(cfgTxt)) probs.push("guard not installed");
+          if (!/^(비서실장|검수)/.test(a.name) && !a.metadata?.agentosHireIssue && new Date(a.createdAt ?? 0) > new Date("2026-10-01T00:00:00Z")) probs.push("hired without approval record (metadata.agentosHireIssue)");
+        }
         const eff = readEffort(readFileSync(path.join(home, "config.yaml"), "utf8"));
         if (eff === "max") probs.push("reasoning_effort=max (느림·사용량 큼: 의도했다면 무시)");
         for (const f of ["MEMORY.md", "USER.md"]) {

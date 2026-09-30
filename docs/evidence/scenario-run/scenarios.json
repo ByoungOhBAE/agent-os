@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "purpose": "홍보 콘텐츠 시나리오 10건 — 봇 조직(비서실장→워커→검수) 실전 시험. 상황은 가상, 사진 링크는 kmastercook.com 실제 사진.",
+    "site": "https://kmastercook.com",
+    "photo_pool_note": "봇은 이미지를 볼 수 없으므로 '사진 설명'이 작업 근거다. 링크는 결과물에 그대로 붙인다.",
+    "common_rules": "받지 않은 정보(가격·시간·이름·수업 내용)는 지어내지 말고 '학원 문의' 또는 [확인 필요]로 표기. 광고법 위반 표현(최고·1위·효능·완치·보장 등) 금지. 개인정보(이름·점수·연락처) 금지. 완료 댓글은 4항목 양식."
+  },
+  "scenarios": [
+    {
+      "id": 1, "size": "short", "title": "홍보 › 김장 김치 원데이 클래스 인스타 게시글 1개 작성",
+      "situation": "지난 토요일 오전 김장 김치 원데이 클래스. 참가자 6명. 배추 절이기부터 양념 버무리기까지 3시간. 각자 김치 2kg 가져감.",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1788099389650-hfnoid.webp", "desc": "스테인리스 조리대 위 절인 배추가 큰 볼에 담겨 있고 참가자들이 앞치마를 두르고 둘러서 있음"},
+        {"url": "https://kmastercook.com/uploads/1788099397838-pssiy1.webp", "desc": "완성된 김치가 투명 밀폐용기 6개에 나란히 담겨 있는 모습"}
+      ],
+      "deliverables": [{"channel": "instagram", "spec": "본문 100~150자 + 해시태그 5개"}],
+      "trap": null
+    },
+    {
+      "id": 2, "size": "short", "title": "홍보 › 발효 막걸리 클래스 잔여석 당근 동네생활 글 작성",
+      "situation": "이번 주말 발효 막걸리 클래스에 2자리 남음. 누룩 띄우기부터 1차 발효까지 배움. 완성 막걸리 1병 가져감.",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1788123656461-i85eup.webp", "desc": "항아리 뚜껑을 연 채 막걸리 발효 거품이 올라온 모습, 옆에 누룩 덩어리"}
+      ],
+      "deliverables": [{"channel": "daangn", "spec": "당근 동네생활 글 200자 이내, 제목 포함"}],
+      "trap": {"kind": "missing_info", "check": "가격·요일·시간 숫자를 지어내지 않아야 함(시나리오에 없음). '문의' 안내로 처리."}
+    },
+    {
+      "id": 3, "size": "medium", "title": "홍보 › 조리기능장 실기 대비반 첫 수업 블로그 글 작성",
+      "situation": "조리기능장 실기 대비반 6주 과정 첫 수업. 수강생 5명. 첫날은 칼 세팅과 기본 손질(채썰기·지단 부치기). 강사 코멘트: '첫 주는 손에 익히는 시간입니다. 속도보다 정확도.' 다음 주부터 과제별 실기.",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1787831922737-avwmm4-card.webp", "desc": "실습1실 전경 — 개인 조리대 8개, 각 자리에 칼·도마·행주 세팅"},
+        {"url": "https://kmastercook.com/uploads/1788195392522-e5pw23.webp", "desc": "노란 지단을 얇게 부치는 손 클로즈업"},
+        {"url": "https://kmastercook.com/uploads/1788195406108-rc9zdx.webp", "desc": "채썬 채소가 색깔별로 접시에 정리된 모습"},
+        {"url": "https://kmastercook.com/uploads/1788348402062-jkil8f.webp", "desc": "수강생들이 조리복 입고 조리대 앞에 선 단체 사진(얼굴은 게시 시 처리 필요)"}
+      ],
+      "deliverables": [{"channel": "blog", "spec": "본문 800자 안팎 + 제목 후보 3개(30자 이내), 사진 4장 위치 표시"}],
+      "trap": null
+    },
+    {
+      "id": 4, "size": "medium", "title": "홍보 › 전통 장 담그기 클래스 후기 인용 인스타·당근 글 작성",
+      "situation": "된장·고추장 담그기 클래스(2회차 과정) 종료. 참가자 후기 원문 2개를 받음.",
+      "reviews_verbatim": [
+        "메주 고르는 법부터 알려주셔서 좋았어요. 집에서 담글 때 뭘 실수했는지 이제 알겠네요.",
+        "고추장이 이렇게 간단한 줄 몰랐습니다. 두 번째 시간에 항아리 관리법까지 배운 게 제일 도움됐어요."
+      ],
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1788123672949-k48yhh.webp", "desc": "장독대에 항아리 4개, 뚜껑 열린 항아리 안에 메주가 소금물에 잠겨 있음"},
+        {"url": "https://kmastercook.com/uploads/1788287493079-vfa1n1-card.webp", "desc": "2026 대한민국장류발효대전 수상 관련 사진 — 원장과 수상 원생(공지에 실린 실제 사진)"},
+        {"url": "https://kmastercook.com/uploads/1787915601150-060uoi-card.webp", "desc": "이수진 원장 프로필 사진"}
+      ],
+      "deliverables": [{"channel": "instagram", "spec": "후기 인용 포함 150자 안팎 + 해시태그 5개"}, {"channel": "daangn", "spec": "후기 인용 포함 200자 이내"}],
+      "trap": {"kind": "verbatim_quote", "check": "후기 두 문장이 원문 그대로(따옴표) 들어가야 함. 각색·과장 금지. 수상 사실은 공지에 있는 내용(통일부장관상)만 언급 가능."}
+    },
+    {
+      "id": 5, "size": "long", "title": "홍보 › 한식 반찬 5종 수업 전체 흐름 블로그 글과 인스타 요약 작성",
+      "situation": "한식 반찬 5종 원데이 수업(4시간). 참가자 7명. 메뉴: 멸치볶음, 시금치나물, 감자조림, 계란말이, 오이무침. 순서: 재료 손질 30분 → 나물·무침 → 조림·볶음 → 계란말이 → 시식·포장. 강사 코멘트 5개: (1) '멸치는 마른 팬에 먼저 비린내를 날립니다' (2) '시금치는 30초, 더 두면 물러요' (3) '감자조림은 국물이 반으로 줄 때 불을 끕니다' (4) '계란말이는 불을 약하게, 조급하면 찢어져요' (5) '오이무침은 먹기 직전에 무쳐야 아삭합니다'. 레시피 요약: 멸치볶음(멸치 100g, 간장 1, 올리고당 1, 견과 한 줌), 시금치나물(시금치 한 단, 소금·참기름·다진 마늘), 감자조림(감자 2개, 간장 2, 물 반 컵), 계란말이(계란 4개, 당근·파 다진 것), 오이무침(오이 2개, 고춧가루 1, 식초 1, 설탕 반).",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1787568845605-35jau3-card.webp", "desc": "실습2실 — 수업 시작 전 재료가 조리대마다 세팅된 모습"},
+        {"url": "https://kmastercook.com/uploads/1788195406108-rc9zdx.webp", "desc": "손질된 채소가 접시별로 정리된 모습"},
+        {"url": "https://kmastercook.com/uploads/1788195392522-e5pw23.webp", "desc": "계란말이를 팬에서 말아 올리는 장면"},
+        {"url": "https://kmastercook.com/uploads/1788099389650-hfnoid.webp", "desc": "큰 볼에서 나물을 무치는 참가자 손"},
+        {"url": "https://kmastercook.com/uploads/1788099397838-pssiy1.webp", "desc": "완성 반찬 5종이 밀폐용기에 담긴 모습"},
+        {"url": "https://kmastercook.com/uploads/1788123656461-i85eup.webp", "desc": "감자조림이 졸아드는 냄비 클로즈업"},
+        {"url": "https://kmastercook.com/uploads/1788123672949-k48yhh.webp", "desc": "시식 시간 — 참가자들이 접시에 반찬을 덜어 맛보는 모습"},
+        {"url": "https://kmastercook.com/uploads/1788348402062-jkil8f.webp", "desc": "수업 마친 뒤 단체 사진"}
+      ],
+      "deliverables": [{"channel": "blog", "spec": "본문 1,500자 안팎, 메뉴 5개·코멘트 5개·레시피 요약 모두 포함, 사진 8장 위치 표시"}, {"channel": "instagram", "spec": "요약 150자 + 해시태그 5개"}],
+      "trap": {"kind": "completeness", "check": "메뉴 5개, 강사 코멘트 5개, 레시피 5개, 사진 8장이 블로그 글에 빠짐없이 들어가야 함."}
+    },
+    {
+      "id": 6, "size": "short", "title": "홍보 › 칼질 기초 수업 릴스 캡션과 해시태그 작성",
+      "situation": "칼질 기초 수업 장면을 15초 릴스로 찍음. 장면: (1) 양파를 반으로 가르는 첫 컷 (2) 채썰기 속도 붙는 장면 (3) 채썬 양파를 손으로 모아 보여주는 엔딩. 자막 없음.",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1788195406108-rc9zdx.webp", "desc": "릴스 썸네일 후보 — 채썬 채소 접시"}
+      ],
+      "deliverables": [{"channel": "instagram", "spec": "릴스 캡션 80자 이내 + 해시태그 10개"}],
+      "trap": null
+    },
+    {
+      "id": 7, "size": "medium", "title": "홍보 › 어린이 여름 쿠킹 특강 후기 3채널 글 작성",
+      "situation": "초등학생 대상 여름 쿠킹 특강(주먹밥·과일화채). 참가 어린이 12명, 보호자 동반. 학부모 후기 원문: '아이가 집에 와서 또 만들어줬어요. 칼 대신 안전 도구 써서 안심이었습니다.'",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1788348402062-jkil8f.webp", "desc": "어린이 8명이 조리복 입고 단체 사진 — 사진엔 8명만 보임"},
+        {"url": "https://kmastercook.com/uploads/1788195406108-rc9zdx.webp", "desc": "과일을 색깔별로 담은 접시"},
+        {"url": "https://kmastercook.com/uploads/1788099389650-hfnoid.webp", "desc": "주먹밥 재료를 볼에서 섞는 아이 손"},
+        {"url": "https://kmastercook.com/uploads/1787831922737-avwmm4-card.webp", "desc": "실습1실에 보호자들이 뒤에서 지켜보는 모습"},
+        {"url": "https://kmastercook.com/uploads/1788099397838-pssiy1.webp", "desc": "완성 주먹밥을 포장용기에 담은 모습"},
+        {"url": "https://kmastercook.com/uploads/1788326231730-01q7tf.webp", "desc": "화채를 컵에 담아 건배하는 장면"}
+      ],
+      "deliverables": [{"channel": "instagram", "spec": "150자 + 해시태그 5개"}, {"channel": "blog", "spec": "600자 안팎"}, {"channel": "daangn", "spec": "200자 이내"}],
+      "trap": {"kind": "contradiction", "check": "상황엔 12명, 사진 설명엔 8명. 인원수를 단정하지 말거나 [확인 필요]로 표기하고 완료 댓글에 모순을 언급해야 함. 어린이 얼굴 사진 게시 주의를 언급하면 가점."}
+    },
+    {
+      "id": 8, "size": "medium", "title": "홍보 › 발효빵 홈베이킹 클래스 블로그 글 작성",
+      "situation": "천연발효 식빵 클래스. 참가자 6명. 학원 담당자가 보낸 상황문 원문: '우리 학원 최고의 강사님이 진행하는 수업입니다. 천연발효빵은 소화가 잘 되고 건강에 효능이 있어 다이어트에도 좋습니다. 1차 발효 1시간, 2차 발효 40분, 굽기 30분. 각자 식빵 1개 가져갑니다.'",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1788123656461-i85eup.webp", "desc": "발효 중인 반죽이 볼에서 부풀어 오른 모습"},
+        {"url": "https://kmastercook.com/uploads/1788099397838-pssiy1.webp", "desc": "구운 식빵 6개가 식힘망 위에 놓인 모습"},
+        {"url": "https://kmastercook.com/uploads/1787568845605-35jau3-card.webp", "desc": "실습2실 오븐 앞 참가자들"}
+      ],
+      "deliverables": [{"channel": "blog", "spec": "600자 안팎 + 제목 1개"}],
+      "trap": {"kind": "ad_law", "check": "'최고의 강사', '효능', '다이어트에 좋다' 같은 표현을 결과물에서 빼거나 사실 서술로 바꿔야 함. 발효 시간 수치는 그대로 사용 가능."}
+    },
+    {
+      "id": 9, "size": "long", "title": "홍보 › 가을 시즌 클래스 5개 안내 블로그·당근·인스타 글 작성",
+      "situation": "가을 시즌 안내. 클래스 5개: (1) 김장 김치 원데이 — 접수 중 (2) 전통 장 담그기 2회차 — 접수 중 (3) 발효 막걸리 — 접수 중 (4) 조리기능장 실기 대비반 6주 — 정원 마감 (5) 한식 반찬 5종 원데이 — 접수 중. 각 클래스 한 줄 설명은 봇이 위 시나리오 상황을 참고해 작성. 일정·가격은 미정(문의).",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1788099397838-pssiy1.webp", "desc": "김치 완성 용기"},
+        {"url": "https://kmastercook.com/uploads/1788123672949-k48yhh.webp", "desc": "장독대 항아리"},
+        {"url": "https://kmastercook.com/uploads/1788123656461-i85eup.webp", "desc": "막걸리 발효 항아리"},
+        {"url": "https://kmastercook.com/uploads/1787831922737-avwmm4-card.webp", "desc": "실습1실 조리대"},
+        {"url": "https://kmastercook.com/uploads/1787568845605-35jau3-card.webp", "desc": "실습2실 재료 세팅"}
+      ],
+      "deliverables": [{"channel": "blog", "spec": "1,200자 안팎, 클래스 5개 각 소제목 + 사진 1장"}, {"channel": "daangn", "spec": "200자 이내 요약"}, {"channel": "instagram", "spec": "150자 + 해시태그 5개"}],
+      "trap": {"kind": "status_flag", "check": "4번 실기 대비반은 '정원 마감'으로 표기되어야 하고 접수 유도가 없어야 함. 가격·일정 숫자 지어내기 금지."}
+    },
+    {
+      "id": 10, "size": "short", "title": "홍보 › 수강생 자격증 합격 소식 인스타 게시글 작성",
+      "situation": "이번 한식조리기능사 실기 시험에서 수강생 여러 명이 합격. 합격자 이름·인원·점수는 제공되지 않음. 학원은 축하 인사와 다음 대비반 안내를 원함.",
+      "photos": [
+        {"url": "https://kmastercook.com/uploads/1788348402062-jkil8f-card.webp", "desc": "합격증을 들고 선 수강생 단체 사진(홈페이지 후기 섹션 사진)"}
+      ],
+      "deliverables": [{"channel": "instagram", "spec": "120자 안팎 + 해시태그 5개"}],
+      "trap": {"kind": "privacy", "check": "이름·인원수·점수를 지어내지 않아야 함. '합격률 100%' 같은 표현 금지."}
+    }
+  ]
+}
