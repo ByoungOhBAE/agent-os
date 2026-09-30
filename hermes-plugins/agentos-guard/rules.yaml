@@ -18,7 +18,7 @@
 # mode (warn|block) and role come from config.yaml:
 #   plugins.entries.agentos-guard.settings: { role: chief, mode: warn }
 
-version: 3
+version: 4
 
 # Human-readable issue titles. Enforced for roles with `check_issue_title: true` whenever they create/rename an
 # issue via curl (inline -d, heredoc, @file body) or write a JSON body containing "title".
@@ -37,9 +37,52 @@ issue_title:
     - '^(요청|테스트|시험|작업|task|test)\s*[:：]?\s*$'
     - '^\s*(요청|task)\s*[:：]'
 
+# Evidence gate. Roles with `check_done_comment: true` may only move an issue to `done` with a comment carrying
+# these labels (curl -d / heredoc / @file body, or a write_file JSON body). `check_reject_comment: true` (reviewer)
+# requires the reject labels on `in_progress` + comment. Format only — truth of the evidence is the reviewer's job.
+issue_comment:
+  min_value_chars: 3
+  done:
+    labels:
+      - [한 일, Done, 변경]
+      - [확인 방법, Verified, 검증 방법]
+      - [증거, Evidence]
+      - [남은 일, Remaining, 남은 것]
+    optional_empty: [남은 일]
+    evidence_label: 증거
+    evidence_pattern: 'https?://|[A-Za-z]:[\\/]|(^|\s|`)[\w.-]+[/\\][\w./\\-]+|\b[0-9a-f]{7,40}\b|\b(rev(ision)?|commit|#)\s*[:#]?\s*[\w-]{4,}'
+    method_label: 확인 방법
+    method_bad_patterns:
+      - '^(확인|검증|테스트|검토)\s*(했|함|완료|됨|됐)[^\n]{0,6}$'   # "확인했습니다" 만 있고 절차가 없음
+      - '^(ok|done|passed|verified)\.?$'
+    forbidden_patterns:
+      - '비슷하게'
+      - '대략'
+      - '아마도?'
+      - '될\s*것\s*(같|입니다)'
+      - '한\s*것\s*같'
+    example: |
+      ## 완료
+      - 한 일: <무엇을 바꿨나, 1~3줄>
+      - 확인 방법: <어떤 명령/절차로 확인했나>
+      - 증거: <경로 · URL · commit · revision 중 1개 이상>
+      - 남은 일: <없음 | 항목>
+      (3회 연속 차단되면 사장님께 보고하세요.)
+  reject:
+    labels:
+      - [위치, Location]
+      - [위반 기준, Criterion, 기준]
+      - [수정안, Fix, 조치]
+    example: |
+      ## 반려 #<n>
+      - 위치: <파일:줄 | URL | 문단>
+      - 위반 기준: <완료 기준 항목 또는 규칙>
+      - 수정안: <구체 조치>
+
 roles:
   chief:
     check_issue_title: true
+    check_done_comment: true
     tools:
       deny: [execute_code, code_execution]
     skill_manage:
@@ -76,6 +119,8 @@ roles:
       max_tool_calls: 120
 
   reviewer:
+    check_done_comment: true
+    check_reject_comment: true
     tools:
       deny: [delegate_task, execute_code, code_execution]
     skill_manage:
@@ -105,6 +150,7 @@ roles:
       max_tool_calls: 200
 
   worker:
+    check_done_comment: true
     tools:
       deny: []
     skill_manage:

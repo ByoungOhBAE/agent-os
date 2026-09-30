@@ -187,6 +187,86 @@ class ChiefTitleRules(unittest.TestCase):
         self.assertIsNone(r.evaluate("terminal", {"command": 'curl -s -X PATCH "$PAPERCLIP_API_URL/api/issues/x" -d \'{"title":"검수봇-1"}\''}))
 
 
+GOOD_DONE = ("## 완료\\n- 한 일: 인스타 문구 1개 작성\\n- 확인 방법: 글자수 카운트 스크립트로 120자 확인, 해시태그 5개 육안 확인\\n"
+             "- 증거: workspace/sns/autumn-ferment.md\\n- 남은 일: 없음")
+
+
+class EvidenceGate(unittest.TestCase):
+    URL = '"$PAPERCLIP_API_URL/api/companies/db6f5310/issues/bb30b4d7-3a72-4d84-ba97-20dfe787725d"'
+
+    def _patch(self, role, body):
+        return g(role).evaluate("terminal", {"command": f"curl -s -X PATCH -H \"Authorization: Bearer $K\" -H \"Content-Type: application/json\" {self.URL} -d '{body}'"})
+
+    def test_done_with_full_comment_passes(self):
+        for role in ("worker", "chief", "reviewer"):
+            self.assertIsNone(self._patch(role, '{"status":"done","comment":"' + GOOD_DONE + '"}'), role)
+
+    def test_done_without_comment_blocked_with_template(self):
+        r = self._patch("worker", '{"status":"done","comment":"다 했습니다"}')
+        self.assertIsNotNone(r); self.assertIn("누락", r); self.assertIn("- 증거:", r)
+
+    def test_done_missing_evidence_pointer(self):
+        bad = GOOD_DONE.replace("workspace/sns/autumn-ferment.md", "잘 됨")
+        r = self._patch("worker", '{"status":"done","comment":"' + bad + '"}')
+        self.assertIsNotNone(r); self.assertIn("증거", r)
+
+    def test_done_method_is_only_a_claim(self):
+        bad = GOOD_DONE.replace("글자수 카운트 스크립트로 120자 확인, 해시태그 5개 육안 확인", "확인했습니다")
+        r = self._patch("worker", '{"status":"done","comment":"' + bad + '"}')
+        self.assertIsNotNone(r); self.assertIn("결과만 주장", r)
+
+    def test_done_vague_word_blocked(self):
+        bad = GOOD_DONE.replace("인스타 문구 1개 작성", "비슷하게 작성")
+        r = self._patch("worker", '{"status":"done","comment":"' + bad + '"}')
+        self.assertIsNotNone(r); self.assertIn("비슷하게", r)
+
+    def test_remaining_may_be_short(self):
+        ok = GOOD_DONE.replace("남은 일: 없음", "남은 일: -")
+        self.assertIsNone(self._patch("worker", '{"status":"done","comment":"' + ok + '"}'))
+
+    def test_english_aliases_accepted(self):
+        c = "- Done: wrote 1 caption\\n- Verified: ran wc -m, 118 chars\\n- Evidence: workspace/sns/a.md\\n- Remaining: none"
+        self.assertIsNone(self._patch("worker", '{"status":"done","comment":"' + c + '"}'))
+
+    def test_non_done_status_not_checked_for_worker(self):
+        self.assertIsNone(self._patch("worker", '{"status":"in_progress","comment":"시작합니다"}'))
+        self.assertIsNone(self._patch("worker", '{"status":"blocked"}'))
+
+    def test_reviewer_reject_requires_labels(self):
+        r = self._patch("reviewer", '{"status":"in_progress","comment":"다시 해주세요"}')
+        self.assertIsNotNone(r); self.assertIn("반려", r); self.assertIn("- 위치:", r)
+        ok = "## 반려 #1\\n- 위치: autumn-ferment.md 3행\\n- 위반 기준: 해시태그 5개 이상\\n- 수정안: #발효 #가을 추가"
+        self.assertIsNone(self._patch("reviewer", '{"status":"in_progress","comment":"' + ok + '"}'))
+
+    def test_heredoc_and_write_file_bodies_checked(self):
+        cmd = f"curl -s -X PATCH {self.URL} -d @- <<'EOF'\n{{\"status\":\"done\",\"comment\":\"끝\"}}\nEOF"
+        self.assertIsNotNone(g("worker").evaluate("terminal", {"command": cmd}))
+        self.assertIsNotNone(g("worker").evaluate("write_file", {"path": "C:/Users/x/AppData/Local/hermes/cache/scratch/b.json", "content": '{"status":"done","comment":"끝"}'}))
+        self.assertIsNone(g("worker").evaluate("write_file", {"path": "C:/Users/x/AppData/Local/hermes/cache/scratch/b.json", "content": '{"status":"done","comment":"' + GOOD_DONE + '"}'}))
+
+    def test_heading_style_labels_accepted(self):
+        c = ("### 한 일\\n- 문구 1개를 copy 문서에 올렸습니다.\\n\\n### 확인 방법\\n- API로 다시 읽어 len()으로 138자 확인\\n\\n"
+             "### 증거\\n- [copy 문서](/HER/issues/HER-30#document-copy) revision 2\\n\\n### 남은 일\\n- 없음")
+        self.assertIsNone(self._patch("worker", '{"status":"done","comment":"' + c + '"}'))
+
+    def test_program_that_hides_transition_is_refused(self):
+        script = ('import json, urllib.request\\nAPI = "http://127.0.0.1:3100/api"\\n'
+                  'data = json.dumps({"status": "done", "comment": comment}).encode()\\n'
+                  'urllib.request.urlopen(urllib.request.Request(API + "/issues/" + ISSUE, data=data, method="PATCH"))')
+        script = script.replace("\\n", "\n")
+        r = g("worker").evaluate("write_file", {"path": "C:/Users/x/AppData/Local/hermes/profiles/p/cache/scratch/her30_done.py", "content": script})
+        self.assertIsNotNone(r); self.assertIn("본문이 보이는", r)
+        r = g("worker").evaluate("terminal", {"command": "python -c '" + script.replace("\n", ";") + "'"})
+        self.assertIsNotNone(r)
+        # a script that only READS issues is fine
+        ok = 'import urllib.request\nprint(urllib.request.urlopen("http://127.0.0.1:3100/api/issues/x").read())'
+        self.assertIsNone(g("worker").evaluate("write_file", {"path": "C:/x/cache/scratch/read.py", "content": ok}))
+
+    def test_comment_text_never_triggers_shape_rules(self):
+        c = GOOD_DONE.replace("글자수 카운트 스크립트로", "npm test 와 git push 로")
+        self.assertIsNone(self._patch("chief", '{"status":"done","comment":"' + c + '"}'))
+
+
 class ReviewerRules(unittest.TestCase):
     def setUp(self):
         self.r = g("reviewer")

@@ -120,6 +120,10 @@ function soulFor(name, agentId, role) {
   기억은 **영어로, 항목 하나에 사실 하나**로 저장합니다(대시보드가 한국어로 번역해 보여 줍니다).
   공통·프로젝트 지식은 \`agentos-*\` 스킬로 자동으로 들어옵니다. 그 스킬 파일은 직접 고치지 않습니다.
 - 사장님은 초보입니다. 모든 글은 쉬운 한국어로 씁니다.
+- 작업을 \`done\`으로 바꾸는 댓글은 반드시 4항목 양식입니다 — \`## 완료\` 아래 \`- 한 일:\` / \`- 확인 방법:\`(어떤 명령·절차로 확인했는지. "확인했습니다"만은 불가) /
+  \`- 증거:\`(경로·URL·commit·revision 중 1개 이상) / \`- 남은 일:\`(없음 가능). 비슷하게·대략·아마 같은 모호한 말 금지.
+  상태 변경은 스크립트 안에 숨기지 말고 \`curl -d '<JSON>'\`(또는 heredoc·@file)처럼 본문이 보이게 보냅니다. 양식이 없으면 [agentos-guard]가 막고 양식을 알려 줍니다.
+  3회 연속 막히면 우회하지 말고 \`blocked\` + 이유 댓글로 비서실장에게 알립니다.
 
 ---
 아래는 Paperclip에 저장된 이 봇의 지시문입니다(원본은 Paperclip, AgentOS가 동기화).
@@ -334,7 +338,9 @@ if (cmd === "baseline") {
     if (a.adapterType !== "hermes_gateway" || (which !== "all" && a.id !== which)) continue;
     const profile = profileOf(await agent(a.id));
     if (!profile) continue;
-    writeFileSync(path.join(profileHome(profile), "SOUL.md"), soulFor(a.name, a.id, agentsMd(a.id)));
+    const md = agentsMd(a.id);
+    if (!md.trim()) { console.log(`skipped ${a.name} -> ${profile} (AGENTS.md 없음 — SOUL.md는 손으로 관리)`); continue; }
+    writeFileSync(path.join(profileHome(profile), "SOUL.md"), soulFor(a.name, a.id, md));
     console.log(`synced ${a.name} -> ${profile}`);
   }
 } else if (cmd === "archive") {
@@ -411,7 +417,7 @@ if (cmd === "baseline") {
   console.log(probs.length ? `problems: ${probs.join("; ")}` : "CHIEF_HERMES_DEFAULT_OK");
   if (probs.length) process.exitCode = 1;
 } else if (cmd === "guard") {
-  // guard --agent <agentId>|--profile <p> --role chief|reviewer|worker [--mode warn|block]   install/update agentos-guard
+  // guard --agent <agentId>|--profile <p>|--all-workers --role chief|reviewer|worker [--mode warn|block]   install/update agentos-guard
   // guard --status                                                                         list which profiles carry it
   const role = arg("--role"), mode = arg("--mode") || "warn";
   const src = path.join(REPO, "hermes-plugins", "agentos-guard");
@@ -428,8 +434,19 @@ if (cmd === "baseline") {
   } else {
     if (!["chief", "reviewer", "worker"].includes(role)) fail("--role chief|reviewer|worker 필요");
     if (!["warn", "block"].includes(mode)) fail("--mode warn|block");
-    const profile = arg("--profile") || (arg("--agent") ? profileOf(await agent(arg("--agent"))) : null);
-    if (!profile || !existsSync(profileHome(profile))) fail(`프로필을 찾을 수 없습니다: ${profile}`);
+    let targets;
+    if (process.argv.includes("--all-workers")) {
+      // every active hermes_gateway agent with a profile, except the chief and the reviewer (org is a tree, so do not filter on reportsTo)
+      const all = await agents();
+      targets = all.filter((a) => a.adapterType === "hermes_gateway" && a.name !== "비서실장" && !/^검수/.test(a.name) && a.status !== "paused")
+        .map((a) => ({ name: a.name, profile: profileOf(a) })).filter((t) => t.profile && existsSync(profileHome(t.profile)));
+      if (!targets.length) fail("워커 프로필을 찾지 못했습니다");
+    } else {
+      const profile = arg("--profile") || (arg("--agent") ? profileOf(await agent(arg("--agent"))) : null);
+      if (!profile || !existsSync(profileHome(profile))) fail(`프로필을 찾을 수 없습니다: ${profile}`);
+      targets = [{ name: arg("--agent") || profile, profile }];
+    }
+    for (const { name, profile } of targets) {
     const dst = path.join(profileHome(profile), "plugins", "agentos-guard");
     mkdirSync(dst, { recursive: true });
     for (const f of files) cpSync(path.join(src, f), path.join(dst, f));
@@ -442,7 +459,8 @@ if (cmd === "baseline") {
     const after = readFileSync(path.join(profileHome(profile), "config.yaml"), "utf8");
     const enabledAfter = hermes(["-p", profile, "config", "get", "plugins.enabled"]);
     if (!/- agentos-guard/.test(enabledAfter) || names.some((n) => !enabledAfter.includes(`- ${n}`)) || !new RegExp(`role: ${role}`).test(after)) fail("config.yaml 반영 실패(기존 plugins.enabled 항목 보존 확인)");
-    console.log(`GUARD_INSTALLED profile=${profile} role=${role} mode=${mode} hash=${hashOf(dst)} — 게이트웨이 재시작 후 적용`);
+    console.log(`GUARD_INSTALLED agent=${name} profile=${profile} role=${role} mode=${mode} hash=${hashOf(dst)} — 게이트웨이 재시작 후 적용`);
+    }
   }
 } else {
   console.error("usage: baseline|compare|probe|hire|convert|sync-soul|archive|verify|leak-scan|check-chief|guard");

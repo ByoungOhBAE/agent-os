@@ -162,6 +162,84 @@ class TitleRules:
         return None
 
 
+class CommentRules:
+    """Evidence gate (rules.yaml `issue_comment`). A `status: done` transition must carry a completion comment with
+    the required labels and a real evidence pointer; a reviewer's `status: in_progress` (reject) must carry the
+    reject labels. Format only — whether the evidence is true is the reviewer's job."""
+
+    def __init__(self, cfg: Dict[str, Any], check_done: bool, check_reject: bool):
+        self.on_done, self.on_reject = check_done, check_reject
+        d = cfg.get("done") or {}
+        self.done_labels = [[str(a) for a in (x if isinstance(x, list) else [x])] for x in (d.get("labels") or [])]
+        self.done_optional_empty = set(str(x) for x in (d.get("optional_empty") or []))
+        self.evidence_label = str(d.get("evidence_label") or "증거")
+        self.evidence_re = re.compile(str(d.get("evidence_pattern") or r"https?://|[/\\]|\b[0-9a-f]{7,40}\b"))
+        self.method_label = str(d.get("method_label") or "확인 방법")
+        self.method_bad = [re.compile(p) for p in (d.get("method_bad_patterns") or [])]
+        self.forbidden = [re.compile(p) for p in (d.get("forbidden_patterns") or [])]
+        self.done_example = str(d.get("example") or "")
+        rj = cfg.get("reject") or {}
+        self.reject_labels = [[str(a) for a in (x if isinstance(x, list) else [x])] for x in (rj.get("labels") or [])]
+        self.reject_example = str(rj.get("example") or "")
+        self.min_value = int(cfg.get("min_value_chars") or 3)
+
+    @staticmethod
+    def _values(comment: str, aliases: List[str]) -> Optional[str]:
+        """Value after `- <label>:` (any alias) on its line, or None when the label is absent."""
+        for a in aliases:
+            m = re.search(r"^\s*[-*•]?\s*(?:\*\*)?" + re.escape(a) + r"(?:\*\*)?\s*[:：]\s*(.*)$", comment, re.M)
+            if m:
+                return m.group(1).strip()
+            # heading form: "### 한 일" followed by its section (until the next heading)
+            m = re.search(r"^\s{0,3}#{1,6}\s*" + re.escape(a) + r"\s*$\n((?:(?!^\s{0,3}#{1,6}\s).*\n?)*)", comment, re.M)
+            if m:
+                return m.group(1).strip()
+        return None
+
+    def _check_labels(self, comment: str, labels: List[List[str]], optional_empty: set, kind: str, example: str) -> Optional[str]:
+        missing, empty = [], []
+        for aliases in labels:
+            v = self._values(comment, aliases)
+            if v is None:
+                missing.append(aliases[0])
+            elif len(v) < self.min_value and aliases[0] not in optional_empty:
+                empty.append(aliases[0])
+        if missing or empty:
+            what = (f"누락 {', '.join(missing)}" if missing else "") + (" / " if missing and empty else "") + (f"비어 있음 {', '.join(empty)}" if empty else "")
+            return f"{kind} 댓글 형식 위반({what}). 필수 양식:\n{example}"
+        return None
+
+    def check_done(self, comment: str) -> Optional[str]:
+        if r := self._check_labels(comment, self.done_labels, self.done_optional_empty, "완료", self.done_example):
+            return r
+        ev = self._values(comment, next((a for a in self.done_labels if a[0] == self.evidence_label), [self.evidence_label])) or ""
+        if not self.evidence_re.search(ev):
+            return f"완료 댓글 형식 위반(증거에 경로·URL·commit·revision 중 하나가 없음: `{ev[:60]}`). 필수 양식:\n{self.done_example}"
+        method = self._values(comment, next((a for a in self.done_labels if a[0] == self.method_label), [self.method_label])) or ""
+        for p in self.method_bad:
+            if p.search(method):
+                return f"완료 댓글 형식 위반(확인 방법이 '{method[:40]}'처럼 결과만 주장함 — 어떤 명령/절차로 확인했는지 적을 것). 필수 양식:\n{self.done_example}"
+        for p in self.forbidden:
+            if m := p.search(comment):
+                return f"완료 댓글 형식 위반(모호한 표현 '{m.group(0)}' — 정확히 무엇을 했는지 적을 것). 필수 양식:\n{self.done_example}"
+        return None
+
+    def check_reject(self, comment: str) -> Optional[str]:
+        return self._check_labels(comment, self.reject_labels, set(), "반려", self.reject_example)
+
+    def check_body(self, body: Dict[str, Any]) -> Optional[str]:
+        """Apply to a parsed Paperclip issue PATCH/POST body."""
+        status = body.get("status")
+        comment = body.get("comment")
+        if not isinstance(status, str):
+            return None
+        if status == "done" and self.on_done:
+            return self.check_done(comment if isinstance(comment, str) else "")
+        if status == "in_progress" and self.on_reject and isinstance(comment, str):
+            return self.check_reject(comment)
+        return None
+
+
 # Paperclip issue create/rename: a curl with a body (-d/--data*/heredoc) whose URL ends in /issues or /issues/<id>
 # (comments/documents/execution sub-paths are excluded by the URL regex).
 _ISSUE_CALL = re.compile(r"^curl\b.*(\s-d\b|\s--data(-binary|-raw)?\b|\s-X\s*(POST|PATCH)\b|<<)")
@@ -181,25 +259,59 @@ def _issue_titles_from_json(text: Any) -> List[str]:
     return out
 
 
-def _issue_titles_from_curl(seg: str, shape: str, quoted: List[str]) -> List[str]:
-    """Titles from an inline JSON body (-d/--data*), a heredoc body, or an @file body in a curl to /issues."""
+def _issue_body_from_json(text: Any) -> Optional[Dict[str, Any]]:
+    """Whole-object parse of a Paperclip issue body (for status/comment). Tolerates `$VAR` shell text around it."""
+    if not isinstance(text, str) or "\"status\"" not in text:
+        return None
+    s, e = text.find("{"), text.rfind("}")
+    if s < 0 or e <= s:
+        return None
+    try:
+        obj = json.loads(text[s:e + 1])
+    except ValueError:
+        return None
+    return obj if isinstance(obj, dict) else None
+
+
+# A program (script file, python -c, node -e) that itself sends an issue status transition hides the comment from
+# the gate. Roles with comment rules must do status transitions with a visible JSON body (curl -d / heredoc / @file).
+_PROGRAM_TRANSITION = re.compile(r"[\"']status[\"']\s*[:=]\s*[\"'](done|in_progress)[\"']")
+_PROGRAM_ISSUE_API = re.compile(r"/issues\b|/api/issues|issues/\{|issues/\$|PAPERCLIP_API_URL|paperclip", re.I)
+_PROGRAM_EXT = (".py", ".mjs", ".cjs", ".js", ".ts", ".sh", ".ps1")
+
+
+def _hidden_transition(text: Any) -> bool:
+    if not isinstance(text, str) or not text.strip():
+        return False
+    if _issue_body_from_json(text) is not None:
+        return False  # plain JSON body — the gate can read it
+    return bool(_PROGRAM_TRANSITION.search(text) and _PROGRAM_ISSUE_API.search(text))
+
+
+def _issue_payloads_from_curl(seg: str, shape: str, quoted: List[str]) -> List[str]:
+    """Raw JSON texts from an inline body (-d/--data*), a heredoc body, or an @file body in a curl to /issues."""
     url_hit = any(_ISSUE_URL.search(q + " ") for q in quoted) or _ISSUE_URL.search(shape)
     if not url_hit:
         return []
-    titles: List[str] = []
-    for q in quoted:
-        titles += _issue_titles_from_json(q)
+    texts: List[str] = list(quoted)
     if m := _HEREDOC_BODY.search(seg):
-        titles += _issue_titles_from_json(m.group(3))
+        texts.append(m.group(3))
     for fm in re.finditer(r"@([^\s\"']+)", shape):
         p = fm.group(1)
         if p.startswith("Q") and p[1:].isdigit():
             p = quoted[int(p[1:])]
         if p != "-":
             try:
-                titles += _issue_titles_from_json(Path(p.replace("\\", "/")).read_text(encoding="utf-8"))
+                texts.append(Path(p.replace("\\", "/")).read_text(encoding="utf-8"))
             except OSError:
                 pass
+    return texts
+
+
+def _issue_titles_from_curl(seg: str, shape: str, quoted: List[str]) -> List[str]:
+    titles: List[str] = []
+    for t in _issue_payloads_from_curl(seg, shape, quoted):
+        titles += _issue_titles_from_json(t)
     return titles
 
 
@@ -214,6 +326,8 @@ class Guard:
         self.role, self.mode, self.log_path = role, mode, log_path
         r = (rules.get("roles") or {}).get(role) or {}
         self.title_rules = TitleRules(rules.get("issue_title") or {}) if r.get("check_issue_title") else None
+        self.comment_rules = (CommentRules(rules.get("issue_comment") or {}, bool(r.get("check_done_comment")), bool(r.get("check_reject_comment")))
+                              if r.get("check_done_comment") or r.get("check_reject_comment") else None)
         self.deny_tools = set(((r.get("tools") or {}).get("deny")) or [])
         self.deny_skill_actions = set(((r.get("skill_manage") or {}).get("deny_actions")) or [])
         w = r.get("write") or {}
@@ -278,10 +392,15 @@ class Guard:
             return None
         for seg in _split_command_line(cmd):
             shape, quoted = _strip_data(seg)
-            if self.title_rules and _ISSUE_CALL.search(shape):
-                for title in _issue_titles_from_curl(seg, shape, quoted):
-                    if reason := self.title_rules.check(title):
-                        return reason
+            if (self.title_rules or self.comment_rules) and _ISSUE_CALL.search(shape):
+                for text in _issue_payloads_from_curl(seg, shape, quoted):
+                    if self.title_rules:
+                        for title in _issue_titles_from_json(text):
+                            if reason := self.title_rules.check(title):
+                                return reason
+                    if self.comment_rules and (body := _issue_body_from_json(text)):
+                        if reason := self.comment_rules.check_body(body):
+                            return reason
             if _SHELL_ESCAPE.search(shape):
                 return f"{self.role} 역할은 셸 인터프리터에 명령 문자열을 넘길 수 없습니다: `{seg[:120]}`"
             if self.redirect_guard:
@@ -293,6 +412,10 @@ class Guard:
                 m = pat.search(shape)
                 if m:
                     return f"{self.role} 역할에 금지된 명령입니다: '{m.group(0).strip()}' in `{seg[:120]}`"
+            if self.comment_rules and not self.inline_python_guard:
+                for pat, idx in ((_PY_INLINE, 1), (_JS_INLINE, 2)):
+                    if (m := pat.match(shape)) and _hidden_transition(quoted[int(m.group(idx))]):
+                        return "인라인 프로그램 안에서 작업 상태를 바꿀 수 없습니다 — curl -d '<JSON>' 처럼 본문이 보이는 형태로 보내세요."
             if self.inline_python_guard:
                 inline = None
                 if m := _PY_INLINE.match(shape):
@@ -303,6 +426,8 @@ class Guard:
                     code, danger, label = inline
                     if d := danger.search(code):
                         return f"{self.role} 역할의 {label} 안에 금지 동작이 있습니다: '{d.group(0)}'"
+                    if self.comment_rules and _hidden_transition(code):
+                        return f"{label} 안에서 작업 상태를 바꿀 수 없습니다 — curl -d '<JSON>' 처럼 본문이 보이는 형태로 보내세요."
                     continue  # inline program passed its own check; skip the allow list
             if self.term_allow and not any(p.search(shape) for p in self.term_allow):
                 return f"{self.role} 역할의 허용 명령 목록에 없습니다: `{seg[:120]}`"
@@ -322,6 +447,13 @@ class Guard:
             for title in _issue_titles_from_json(args.get("content")):
                 if reason := self.title_rules.check(title):
                     break
+        if reason is None and self.comment_rules and tool_name in _WRITE_TOOLS:
+            content = args.get("content") if tool_name == "write_file" else args.get("new_string")
+            if body := _issue_body_from_json(content):
+                reason = self.comment_rules.check_body(body)
+            elif _hidden_transition(content):
+                reason = ("작업 상태 변경(done/in_progress)은 스크립트 안에서 보내지 마세요 — 완료 댓글 검사를 위해 "
+                          "curl -d '<JSON>' / heredoc / @file 처럼 본문이 보이는 형태로 보내야 합니다.")
         if reason is None and tool_name in _TERMINAL_TOOLS:
             reason = self._check_terminal(args)
         return reason

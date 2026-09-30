@@ -84,7 +84,7 @@ description: "Chief's compact Paperclip coordination contract; details on demand
 - 작업 의존성은 blockedByIssueIds로, 사용자 대기는 interaction과 in_review로 연결. continuation 없는 in_progress 방치 금지. 장시간 polling 대신 child-completion wake.
 - 검수 stage는 executionPolicy.mode=normal,commentRequired=true,maxReviewRounds=3,stages=[{type:review,participants:[{type:agent,agentId:검수자}]}]. 실행자는 done+comment 제출, 반려 때 같은 작업 수정/재제출. 독립 검수 없이 통과 주장 금지.
 - 취소/일시정지/예산/권한/사장님 수정 지시 우선. 신규 위험·접근 거부는 숨기지 말고 담당/해결 행동을 남깁니다. 요청에 없는 재시작/취소 금지.
-- 결과물은 접근 가능한 문서/첨부/work product로 연결. 댓글에는 변경 요약·증거 링크·남은 일. 최종 완료는 검증 후에만.
+- 결과물은 접근 가능한 문서/첨부/work product로 연결. 작업을 done으로 바꾸는 댓글은 반드시 4항목 양식 — "## 완료" 아래 "- 한 일:", "- 확인 방법:"(어떤 명령/절차로 확인했는지, "확인했습니다"만은 불가), "- 증거:"(경로·URL·commit·revision 중 1개 이상), "- 남은 일:"(없음 가능). 비슷하게·대략·아마 같은 모호한 말은 금지. 양식이 없으면 [agentos-guard]가 그 요청을 막고 양식을 알려줍니다. 하위 봇에게 작업을 줄 때도 이 양식을 완료 조건으로 명시합니다. 최종 완료는 검증 후에만.
 
 ## 상세 참조 (현재 조정 작업에 필요한 절만)
 references/full-coordination.md에 upstream 전체 API 안내를 보존했습니다. checkout, artifacts/work products, 예외 API가 실제 필요할 때 해당 제목만 찾아 읽습니다. 전체를 미리 읽지 않습니다. 원문에 일반 실행자 지침이 있어도 비서실장 역할 경계를 확장하지 않습니다.
