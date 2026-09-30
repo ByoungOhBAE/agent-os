@@ -1,0 +1,279 @@
+[
+ {
+  "issue": "HER-37",
+  "parent": "-",
+  "title": "김장 김치 원데이 클래스 인스타 게시글 1개 작성",
+  "writer": "콘텐츠_SNS문구",
+  "docs": [
+   "instagram"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-38",
+  "parent": "-",
+  "title": "발효 막걸리 클래스 잔여석 당근 동네생활 글 작성",
+  "writer": "콘텐츠_당근글",
+  "docs": [
+   "daangn"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-39",
+  "parent": "-",
+  "title": "조리기능장 실기 대비반 첫 수업 블로그 글 작성",
+  "writer": "콘텐츠_블로그본문",
+  "docs": [
+   "blog"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-40",
+  "parent": "-",
+  "title": "전통 장 담그기 클래스 후기 인용 인스타·당근 글 작성",
+  "writer": "콘텐츠_SNS문구",
+  "docs": [
+   "instagram"
+  ],
+  "rounds": 2,
+  "rejects": [
+   "완료 기준 1 — 받지 않은 정보는 쓰지 않거나 '학원 문의' / [확인 필요]로 표기. 작업 설명·상위 계획 어디에도 인스타 프로필에 문의 링크가 있다는 정보가 없습니다. 그런데 완료 댓글은 \"받지 않은 정보 0건\"이라고 보고했습니다."
+  ],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-41",
+  "parent": "-",
+  "title": "한식 반찬 5종 수업 전체 흐름 블로그 글과 인스타 요약 작성",
+  "writer": "콘텐츠_블로그본문",
+  "docs": [
+   "blog"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-42",
+  "parent": "-",
+  "title": "칼질 기초 수업 릴스 캡션과 해시태그 작성",
+  "writer": "콘텐츠_SNS문구",
+  "docs": [
+   "instagram"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-43",
+  "parent": "-",
+  "title": "어린이 여름 쿠킹 특강 후기 3채널 글 작성",
+  "writer": "콘텐츠_블로그본문",
+  "docs": [
+   "blog"
+  ],
+  "rounds": 2,
+  "rejects": [
+   "완료 기준 1 — 받지 않은 정보(수업 내용)는 쓰지 않거나 '학원 문의'/[확인 필요]로 표기. 받은 자료에는 수업 진행 순서(먼저·시작·마지막·마무리)가 없습니다. 사진 번호 1~6은 시간 순서가 아니라 사진 목록입니다. 또 사진 3은 '주먹밥 재"
+  ],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-44",
+  "parent": "-",
+  "title": "발효빵 홈베이킹 클래스 블로그 글 작성",
+  "writer": "콘텐츠_블로그본문",
+  "docs": [
+   "blog"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-45",
+  "parent": "-",
+  "title": "가을 시즌 클래스 5개 안내 블로그·당근·인스타 글 작성",
+  "writer": "콘텐츠_블로그본문",
+  "docs": [
+   "blog"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-46",
+  "parent": "-",
+  "title": "수강생 자격증 합격 소식 인스타 게시글 작성",
+  "writer": "콘텐츠_SNS문구",
+  "docs": [
+   "instagram"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-47",
+  "parent": "HER-39",
+  "title": "조리기능장 실기 대비반 첫 수업 블로그 글 작성 › 블로그 제목 후보 3개 작성",
+  "writer": "콘텐츠_블로그제목",
+  "docs": [
+   "blog-title"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-48",
+  "parent": "HER-40",
+  "title": "전통 장 담그기 클래스 후기 인용 인스타·당근 글 작성 › 후기 인용 당근 동네생활 글 작성",
+  "writer": "콘텐츠_당근글",
+  "docs": [
+   "daangn"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-49",
+  "parent": "HER-41",
+  "title": "한식 반찬 5종 수업 전체 흐름 블로그 글과 인스타 요약 작성 › 반찬 수업 인스타 요약 게시글 작성",
+  "writer": "콘텐츠_SNS문구",
+  "docs": [
+   "instagram"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-55",
+  "parent": "HER-39",
+  "title": "조리기능장 실기 대비반 첫 수업 블로그 글 작성 › 블로그 제목 후보 3개 다시 작성",
+  "writer": "콘텐츠_블로그제목",
+  "docs": [
+   "blog-title"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-56",
+  "parent": "HER-40",
+  "title": "전통 장 담그기 클래스 후기 인용 인스타·당근 글 작성 › 후기 인용 당근 동네생활 글 다시 작성",
+  "writer": "콘텐츠_당근글",
+  "docs": [
+   "daangn"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-57",
+  "parent": "HER-41",
+  "title": "한식 반찬 5종 수업 전체 흐름 블로그 글과 인스타 요약 작성 › 반찬 수업 인스타 요약 게시글 다시 작성",
+  "writer": "콘텐츠_SNS문구",
+  "docs": [
+   "instagram"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-58",
+  "parent": "HER-43",
+  "title": "어린이 여름 쿠킹 특강 후기 3채널 글 작성 › 어린이 특강 후기 인스타 게시글 다시 작성",
+  "writer": "콘텐츠_SNS문구",
+  "docs": [
+   "instagram"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-59",
+  "parent": "HER-43",
+  "title": "어린이 여름 쿠킹 특강 후기 3채널 글 작성 › 어린이 특강 후기 당근 동네생활 글 다시 작성",
+  "writer": "콘텐츠_당근글",
+  "docs": [
+   "daangn"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-60",
+  "parent": "HER-44",
+  "title": "발효빵 홈베이킹 클래스 블로그 글 작성 › 발효빵 클래스 블로그 제목 1개 다시 작성",
+  "writer": "콘텐츠_블로그제목",
+  "docs": [
+   "blog-title"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-61",
+  "parent": "HER-45",
+  "title": "가을 시즌 클래스 5개 안내 블로그·당근·인스타 글 작성 › 가을 클래스 안내 당근 요약 글 다시 작성",
+  "writer": "콘텐츠_당근글",
+  "docs": [
+   "daangn"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ },
+ {
+  "issue": "HER-62",
+  "parent": "HER-45",
+  "title": "가을 시즌 클래스 5개 안내 블로그·당근·인스타 글 작성 › 가을 클래스 안내 인스타 게시글 다시 작성",
+  "writer": "콘텐츠_SNS문구",
+  "docs": [
+   "instagram"
+  ],
+  "rounds": 1,
+  "rejects": [],
+  "done_fmt_ok": true,
+  "status": "done"
+ }
+]

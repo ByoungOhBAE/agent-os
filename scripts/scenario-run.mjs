@@ -53,7 +53,9 @@ ${S.scenarios.map(scenarioBlock).join("\n\n")}
 계획서를 plan 문서로 올리고 사장님 승인 카드(request_confirmation)를 요청하세요. 승인 후 채용·배정을 시작합니다.`;
   const r = await api("POST", `/companies/${COMPANY}/issues`, { title: "홍보 › 수업 사진·상황 시나리오 10건으로 홍보글 제작 조직 검증", description: desc, status: "todo", priority: "high", assigneeAgentId: CHIEF, projectId: PROJECT });
   if (r.status >= 300) { console.error("create failed", r.status, r.text.slice(0, 300)); process.exit(1); }
-  const w = await api("POST", `/agents/${CHIEF}/wakeup`, { reason: "scenario run", issueId: r.json.id });
+  // Paperclip wakeAgentSchema keeps only `payload` — a top-level issueId is dropped and the run then has no source
+  // issue, so every cross-issue write from it is refused (cross_issue_influence_run_context_required).
+  const w = await api("POST", `/agents/${CHIEF}/wakeup`, { reason: "scenario run", payload: { issueId: r.json.id, taskId: r.json.id, taskKey: r.json.id } });
   mkdirSync(OUT, { recursive: true });
   writeFileSync(path.join(OUT, "run.json"), JSON.stringify({ issueId: r.json.id, identifier: r.json.identifier, startedAt: new Date().toISOString(), wake: w.json?.id }, null, 2));
   console.log(`STARTED ${r.json.identifier} ${r.json.id} wake=${w.json?.id ?? w.status}`);
