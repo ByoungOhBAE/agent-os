@@ -173,6 +173,7 @@ roles:
         - '^id_(rsa|ed25519|ecdsa)$'
       other_profiles: true        # no writes into another bot's profile folder
       skills_own_only: true       # skill_manage only on skills under this bot's own profile
+      secret_values: true         # refuse any tool call carrying a literal value from this bot's .env (*KEY/TOKEN/SECRET)
     tools:
       deny: []
     skill_manage:
@@ -197,5 +198,8 @@ roles:
         - '\bhermes(\.exe)?\s+(-p\s+\S+\s+)?(config\s+(set|edit|reset)|plugins?\b|auth\s+(add|remove|reset|logout)|profile\s+(delete|create|rename)|gateway\s+(stop|restart|uninstall)|update\b)'
         - '\bnode\s+.*hermes-bots\.mjs"?\s+(convert|archive|sync-soul|guard)\b'   # hire stays open: the code bot tests the hire gate
         - '\b(drop\s+(table|database)|truncate\s+table)\b'
+        # dumping secrets into the transcript: printenv / env / set, echo of a *KEY/*TOKEN variable
+        - '^(printenv|env|set|export\s+-p|Get-ChildItem\s+env:|gci\s+env:|dir\s+env:)\s*$'
+        - '^(echo|printf|print|Write-Output|Write-Host)\b.*\$(\{(env:)?\w*(KEY|TOKEN|SECRET|PASSWORD)\w*(?!:?\+)[^}]*\}|(env:)?\w*(KEY|TOKEN|SECRET|PASSWORD)\w*\b(?!\}))'
     budget:
       max_tool_calls: 400

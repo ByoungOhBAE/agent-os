@@ -486,6 +486,22 @@ class WorkerHardStops(unittest.TestCase):
         self.assertIsNone(self.w.evaluate("read_file", {"path": "docs/environment.md"}))
         self.assertIsNone(self.w.evaluate("execute_code", {"code": "import os\nprint(os.environ['PAPERCLIP_API_URL'])"}))
         self.assertIsNone(self.t("node -e 'console.log(process.env.PAPERCLIP_API_URL)'"))
+        self.assertIsNone(self.t('curl -s -H "Authorization: Bearer $PAPERCLIP_API_KEY" "$PAPERCLIP_API_URL/api/issues/x"'))
+        self.assertIsNone(self.t('echo "$PAPERCLIP_API_URL"'))
+        self.assertIsNone(self.t('echo "API KEY set: ${PAPERCLIP_API_KEY:+yes}"'))
+
+    def test_secret_value_never_written_out(self):
+        fake = "pcp_drill_" + "9" * 30
+        (self.home / ".env").write_text(f"PAPERCLIP_API_KEY={fake}\nPAPERCLIP_API_URL=http://127.0.0.1:3100\n", encoding="utf-8")
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / "g.jsonl"
+            w = mod.Guard(RULES, "worker", "block", log, self.home)
+            out = w.decide("terminal", {"command": f"curl -s -X POST \"$PAPERCLIP_API_URL/api/issues/x/comments\" -d '{{\"body\":\"키: {fake}\"}}'"}, "s")
+            self.assertIsNotNone(out)
+            self.assertNotIn(fake, log.read_text(encoding="utf-8"))  # the guard log itself must not leak it
+            self.assertIsNotNone(w.evaluate("write_file", {"path": "workspace/post.md", "content": f"key={fake}"}))
+            for c in ("echo $PAPERCLIP_API_KEY", 'echo "$PAPERCLIP_API_KEY"', "printenv", "env", 'printf "%s" "${OPENAI_API_KEY}"'):
+                self.assertIsNotNone(w.evaluate("terminal", {"command": c}), c)
 
     def test_other_roles_unchanged(self):
         # chief/reviewer keep their own rules — the worker hardening is opt-in per role

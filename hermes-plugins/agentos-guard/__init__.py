@@ -469,6 +469,19 @@ class Guard:
         if self.home:
             scratch = str(self.home / "cache" / "scratch").replace("\\", "/")
             self._env = {"TMPDIR": scratch, "TMP": scratch, "TEMP": scratch, "HERMES_HOME": str(self.home).replace("\\", "/")}
+        # Literal secret values from this bot's own .env (held in memory only, never logged). Any tool call that
+        # carries one — a comment, a document, a file, a command — is refused: the bot saw the value somewhere
+        # (env dump, error text) and is about to write it out.
+        self._secret_values: List[str] = []
+        if pr.get("secret_values") and self.home:
+            try:
+                for line in (self.home / ".env").read_text(encoding="utf-8").splitlines():
+                    k, _, v = line.partition("=")
+                    v = v.strip().strip("\"'")
+                    if re.search(r"KEY|TOKEN|SECRET|PASSWORD|PASS\b", k, re.I) and len(v) >= 12:
+                        self._secret_values.append(v)
+            except OSError:
+                pass
         self.deny_tools = set(((r.get("tools") or {}).get("deny")) or [])
         self.deny_skill_actions = set(((r.get("skill_manage") or {}).get("deny_actions")) or [])
         w = r.get("write") or {}
@@ -657,6 +670,10 @@ class Guard:
                 for t in tokens:
                     if reason := self._protected_read(t):
                         return reason
+                if re.match(r"^(echo|printf|print|Write-Output|Write-Host|cat\s+<<<)\b", head, re.I) and \
+                        any(re.search(r"\$(\{(env:)?\w*(KEY|TOKEN|SECRET|PASSWORD)\w*(?!:?\+)[^}]*\}|(env:)?\w*(KEY|TOKEN|SECRET|PASSWORD)\w*\b(?!\}))",
+                                      t, re.I) for t in tokens[1:]):
+                    return f"{self.role} 역할은 비밀 값(API 키·토큰)을 화면에 출력할 수 없습니다."
             if head.lower().startswith(("rm ", "del ", "erase ", "remove-item", "ri ", "unlink ")):
                 for t in tokens[1:]:
                     if _DB_FILE.search(t):
@@ -723,6 +740,11 @@ class Guard:
         return None
 
     def _check_strict_tool(self, tool_name: str, args: Dict[str, Any]) -> Optional[str]:
+        if self._secret_values:
+            blob = json.dumps(args, ensure_ascii=False)
+            if any(v in blob for v in self._secret_values):
+                return (f"{self.role} 역할은 비밀 값(API 키·토큰)을 명령·파일·댓글에 넣을 수 없습니다. "
+                        f"키는 $PAPERCLIP_API_KEY 처럼 변수 이름으로만 쓰세요.")
         if tool_name in _READ_TOOLS and self.protect_read:
             p = args.get(_READ_TOOLS[tool_name])
             if isinstance(p, str) and p and (reason := self._protected_read(p)):
@@ -774,12 +796,22 @@ class Guard:
             return None
         self._log({"at": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "role": self.role, "mode": self.mode,
                    "session": session_id, "tool": tool_name, "reason": reason,
-                   "args": _brief_args(tool_name, args)})
+                   "args": self._redact(_brief_args(tool_name, args))})
         if self.mode != "block":
             logger.warning("agentos-guard[warn] %s %s: %s", self.role, tool_name, reason)
             return None
         return {"action": "block",
                 "message": f"[agentos-guard] 차단: {reason}\n우회하지 말고, 이 일은 담당 봇에게 위임하거나 비서실장/사장님께 보고하세요."}
+
+    def _redact(self, d: Dict[str, Any]) -> Dict[str, Any]:
+        if not self._secret_values:
+            return d
+        out = {}
+        for k, v in d.items():
+            for s in self._secret_values:
+                v = v.replace(s, "[secret]") if isinstance(v, str) else v
+            out[k] = v
+        return out
 
     def _log(self, rec: Dict[str, Any]) -> None:
         if not self.log_path:
