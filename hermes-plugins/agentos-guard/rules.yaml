@@ -102,7 +102,8 @@ roles:
       redirect_guard: true                       # > file only into scratch/Temp/-evidence
       allow:
         - '^curl\b'                                # Paperclip API
-        - '^node\s+.*hermes-bots\.mjs"?\s+(hire|list|status|probe|sync-soul)\b'
+        - '^node(\.exe)?\s+[^|;&<>]*hermes-bots\.mjs"?\s+(hire|list|status|probe|sync-soul|baseline|compare|verify|leak-scan|check-chief|help)\b'
+        - '^(\S*/)?hermes(\.exe)?\s+(-p\s+\S+\s+)?(mcp\s+(catalog|list)|profile\s+list|skills\s+list|status)\b'   # read-only Hermes CLI
         - '^node\s+.*setup-chief-single-window\.mjs"?(\s|$)'
         - '^git(\s+-C\s+("[^"]*"|\S+))?\s+(status|log|diff|show|branch|rev-parse|stash\s+(list|show))\b'
         - '^(ls|dir|cat|type|head|tail|wc|rg|grep|find|pwd|echo|printf|date|whoami|hostname|jq|sort|uniq|cut|tr|awk|sed|cd)\b'

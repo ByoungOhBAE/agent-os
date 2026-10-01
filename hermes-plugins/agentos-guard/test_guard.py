@@ -33,6 +33,32 @@ class ChiefRules(unittest.TestCase):
     def test_curl_pipe_python_print_allowed(self):
         self.assertIsNone(self.c.evaluate("terminal", {"command": CURL + " | python -c \"import sys,json;print(json.load(sys.stdin)['id'])\""}))
 
+    # env prefixes / timeout no longer hide the program from the allow list
+    def test_env_prefix_does_not_hide_program(self):
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": "PYTHONIOENCODING=utf-8 npm install x"}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": "X=1 timeout 60 node build.mjs"}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": "HERMES_HOME=\"C:/h\" hermes.exe profile delete -y pc-x"}))
+        self.assertIsNone(self.c.evaluate("terminal", {"command": "HERMES_HOME=\"C:/h\" node.exe scripts/hermes-bots.mjs verify all"}))
+        self.assertIsNone(self.c.evaluate("terminal", {"command": "RUN=abc curl -s \"$PAPERCLIP_API_URL/api/issues/x\""}))
+
+    # python - <<'PY' (stdin program) gets the same body check as python -c
+    def test_python_heredoc_read_only_allowed(self):
+        cmd = "cd \"$TMPDIR/x\" && PYTHONIOENCODING=utf-8 python - \"$A\" <<'PY'\nimport json, sys\nd = json.load(open(sys.argv[1], encoding='utf-8'))\nprint(len(d))\nPY"
+        self.assertIsNone(self.c.evaluate("terminal", {"command": cmd}))
+
+    def test_python_heredoc_write_outside_scratch_refused(self):
+        for body in ("open('C:/x/agent os/src/app.ts','w').write('x')", "import subprocess; subprocess.run(['git','push'])",
+                     "import pathlib; pathlib.Path('a.md').write_text('x')", "import sqlite3; c=sqlite3.connect('s.db'); c.execute(\"delete from t\")"):
+            self.assertIsNotNone(self.c.evaluate("terminal", {"command": f"PYTHONIOENCODING=utf-8 python - <<'PY'\n{body}\nPY"}), body)
+
+    def test_python_heredoc_write_into_scratch_allowed(self):
+        cmd = "cd \"C:/Users/u/AppData/Local/hermes/profiles/pc-1/cache/scratch/HER-1\" && python - <<'PY'\nimport json\njson.dump({}, open('facts.json', 'w'))\nPY"
+        self.assertIsNone(self.c.evaluate("terminal", {"command": cmd}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd.replace("cache/scratch/HER-1", "workspace")}))
+        fcmd = cmd.replace("open('facts.json', 'w')", "open(f\"facts/{k}_now.json\", \"w\")")
+        self.assertIsNone(self.c.evaluate("terminal", {"command": fcmd}))
+        self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd.replace("open('facts.json', 'w')", "open('../../../../config.yaml', 'w')")}))
+
     def test_hire_allowed(self):
         self.assertIsNone(self.c.evaluate("terminal", {"command": "node C:/x/agent os/scripts/hermes-bots.mjs hire --name a --title b --reports-to c --role-file d.md --projects x"}))
 

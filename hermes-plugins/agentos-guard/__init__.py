@@ -132,6 +132,81 @@ _REDIRECT = re.compile(r"(?<![<>&\d])\d?>{1,2}\s*(?!&)\s*(?:[\"']Q(\d+)[\"']|([^
 _REDIRECT_OK = re.compile(r"(scratch|Temp|TMPDIR|TMP|TEMP|-evidence)[/\\]", re.I)
 # Interpreters that would take a whole new command line as data — always refused, regardless of quoting.
 _SHELL_ESCAPE = re.compile(r"^(bash|sh|zsh|dash|cmd(\.exe)?|powershell(\.exe)?|pwsh|wsl)\b.*\s(-c|/c|-Command|-EncodedCommand|--)\s", re.I)
+# `A=1 B="x" timeout 60 prog …` runs prog: the allow/deny lists judge prog. A value holding a command
+# substitution (`SHA=$(git …)`) is not peeled — that segment is an assignment and stays one.
+_RUN_PREFIX = re.compile(r"^(?:[A-Za-z_][A-Za-z0-9_]*=(?:[\"']Q\d+[\"']|[^\s\"'$`]*)\s+|timeout\s+\d+[smhd]?\s+)+")
+_QPLACE = re.compile(r"^[\"']Q(\d+)[\"']$")
+_PY_EXE = re.compile(r"^(python3?|py)(\.exe)?$", re.I)
+_NODE_EXE = re.compile(r"^node(\.exe)?$", re.I)
+# SQL writes and commits from a Python program (sqlite3 etc.)
+_PY_SQL_WRITE = re.compile(r"\.(execute|executemany|executescript)\(\s*[rRbBfFuU]?[\"']{1,3}\s*(insert|update|delete|drop|alter|create|replace|vacuum|attach)\b|\.commit\(\)", re.I)
+
+
+def _run_shape(shape: str) -> str:
+    """The shape with leading env assignments / ``timeout N`` peeled off (unchanged when nothing follows)."""
+    m = _RUN_PREFIX.match(shape)
+    return shape[m.end():] if m and shape[m.end():].strip() else shape
+
+
+def _resolve_head(shape: str, quoted: List[str]) -> str:
+    """The shape with the program and its first argument un-quoted (``node "Q0" hire`` → ``node C:/…/hermes-bots.mjs
+    hire``) so the allow list can name a quoted script path. Only the first two tokens: payload text stays hidden."""
+    parts = shape.split(None, 2)
+    for i in range(min(2, len(parts))):
+        if m := _QPLACE.match(parts[i]):
+            parts[i] = quoted[int(m.group(1))].replace(" ", "_")
+    return " ".join(parts)
+
+
+def _prog_name(tok: str, quoted: List[str]) -> str:
+    """Basename of a command token, resolving a quoted placeholder (``"Q3"`` → ``.../python.exe`` → ``python.exe``)."""
+    if m := _QPLACE.match(tok):
+        tok = quoted[int(m.group(1))]
+    return re.split(r"[/\\]", tok)[-1]
+
+
+def _inline_program(seg: str, shape: str, quoted: List[str]) -> "Optional[tuple[str, Any, str]]":
+    """``(code, danger_pattern, label)`` when the segment runs a Python/Node program whose source is visible in
+    the command — ``python -c "…"``, ``node -e "…"``, or ``python - <<'PY' … PY`` / ``node <<'JS' … JS`` — else None."""
+    parts = shape.split(None, 1)
+    if not parts:
+        return None
+    prog = _prog_name(parts[0], quoted)
+    is_py, is_js = bool(_PY_EXE.match(prog)), bool(_NODE_EXE.match(prog))
+    if not (is_py or is_js):
+        return None
+    rest = parts[1] if len(parts) > 1 else ""
+    danger, kind = (_PY_DANGER, "python") if is_py else (_JS_DANGER, "node")
+    flag = r"-c" if is_py else r"(?:-e|--eval|-p|--print)"
+    if m := re.match(flag + r"\s+[\"']Q(\d+)[\"']", rest):
+        return (quoted[int(m.group(1))], danger, f"{kind} {'-c' if is_py else '-e'}")
+    # stdin program: `python - [args…] <<'PY'` or `python <<'PY'` (not `python script.py <<EOF`: there the heredoc is data)
+    if re.match(r"(?:-(?:\s+(?:[\"']Q\d+[\"']|[^\s<|;&]+))*\s+)?<<-?\s*['\"]?\w+['\"]?(\s|$)", rest) and (b := _HEREDOC_BODY.search(seg)):
+        return (b.group(3), danger, f"{kind} heredoc")
+    return None
+
+
+# open("<literal path>", "w"/"a"/"x") inside a Python program — the only file write we can locate statically.
+_PY_OPEN_LITERAL = re.compile(r"open\(\s*[rRfF]?([\"'])([^\"'\n]+)\1\s*,\s*(?:mode\s*=\s*)?[rRbB]?[\"'][wax]")
+
+
+def _py_danger(code: str, cwd: Optional[str], env: Dict[str, str]) -> "Optional[str]":
+    """First forbidden operation in a Python program, or None. ``open(path, 'w')`` is allowed when *path*
+    resolves into a scratch/evidence folder — the same places a ``>`` redirect may write to."""
+    for m in _PY_DANGER.finditer(code):
+        hit = m.group(0)
+        if hit.startswith("open("):
+            w = _PY_OPEN_LITERAL.match(code, m.start())
+            # f"facts/{key}.json": the braces may only fill in a file name below the resolved folder
+            target = re.sub(r"\{[^}]*\}", "x", w.group(2)) if w else ""
+            if w and ".." not in w.group(2) and not w.group(2).lstrip().startswith("{"):
+                p = _expand_path(target, cwd, env)
+                if p is not None and _REDIRECT_OK.search(str(p).replace("\\", "/") + "/"):
+                    continue
+        return hit
+    if m := _PY_SQL_WRITE.search(code):
+        return m.group(0)
+    return None
 
 
 def _path_matches(norm: str, globs: List[str]) -> bool:
@@ -570,8 +645,22 @@ class Guard:
         if self.strict_issue or self.protect_write or self.protect_read or self.protect_other_profiles:
             if reason := self._check_terminal_strict(cmd, args.get("workdir")):
                 return reason
+        cwd: Optional[str] = args.get("workdir") if isinstance(args.get("workdir"), str) else None
+        env: Dict[str, str] = {}
         for seg in _split_command_line(cmd):
             shape, quoted = _strip_data(seg)
+            head = shape.lstrip()
+            if m := _CD_SEG.match(head):  # track cd / VAR= so a program's relative write path can be resolved
+                p = _expand_path(quoted[int(m.group(1))] if m.group(1) is not None else m.group(2), cwd, env)
+                cwd = str(p) if p else None
+            elif m := _ASSIGN_SEG.match(head):
+                val = quoted[int(m.group(2))] if m.group(2) is not None else (m.group(3) or "")
+                if "$(" in val or "`" in val:
+                    env.pop(m.group(1), None)
+                else:
+                    env[m.group(1)] = re.sub(r"\$\{(\w+)[^}]*\}|\$(\w+)",
+                                             lambda v: env.get(v.group(1) or v.group(2)) or os.environ.get(v.group(1) or v.group(2)) or v.group(0), val)
+            shape = _run_shape(shape)
             if (self.title_rules or self.comment_rules) and not self.strict_issue and _ISSUE_CALL_LEGACY.search(shape):
                 for text in _issue_payloads_legacy(seg, shape, quoted):
                     if self.title_rules:
@@ -597,19 +686,15 @@ class Guard:
                     if (m := pat.match(shape)) and _hidden_transition(quoted[int(m.group(idx))], self.strict_issue):
                         return "인라인 프로그램 안에서 작업 상태를 바꿀 수 없습니다 — curl -d '<JSON>' 처럼 본문이 보이는 형태로 보내세요."
             if self.inline_python_guard:
-                inline = None
-                if m := _PY_INLINE.match(shape):
-                    inline = (quoted[int(m.group(1))], _PY_DANGER, "python -c")
-                elif m := _JS_INLINE.match(shape):
-                    inline = (quoted[int(m.group(2))], _JS_DANGER, "node -e")
+                inline = _inline_program(seg, shape, quoted)
                 if inline is not None:
                     code, danger, label = inline
-                    if d := danger.search(code):
-                        return f"{self.role} 역할의 {label} 안에 금지 동작이 있습니다: '{d.group(0)}'"
+                    if hit := (_py_danger(code, cwd, env) if danger is _PY_DANGER else (d.group(0) if (d := danger.search(code)) else None)):
+                        return f"{self.role} 역할의 {label} 안에 금지 동작이 있습니다: '{hit}'"
                     if self.comment_rules and _hidden_transition(code):
                         return f"{label} 안에서 작업 상태를 바꿀 수 없습니다 — curl -d '<JSON>' 처럼 본문이 보이는 형태로 보내세요."
                     continue  # inline program passed its own check; skip the allow list
-            if self.term_allow and not any(p.search(shape) for p in self.term_allow):
+            if self.term_allow and not any(p.search(shape) or p.search(_resolve_head(shape, quoted)) for p in self.term_allow):
                 return f"{self.role} 역할의 허용 명령 목록에 없습니다: `{seg[:120]}`"
         return None
 
