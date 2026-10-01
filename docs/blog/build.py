@@ -232,6 +232,7 @@ th{{font-size:.8rem;color:var(--muted);font-weight:600}}
 td.s{{white-space:nowrap}}
 .done{{color:var(--ok);font-weight:700}}
 .todo{{color:var(--muted)}}
+.part{{color:var(--ink);font-weight:600}}
 details.card{{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:8px 0;background:var(--card);font-size:.9rem}}
 details.card summary{{cursor:pointer;line-height:1.5}}
 details.card .meta{{color:var(--muted);font-size:.8rem;margin-left:6px}}
@@ -333,29 +334,37 @@ BODY = f"""
 </tbody></table></div>
 
 <h2>우리(AgentOS)는 어디까지 왔나</h2>
-<p>보고서는 적용 제안 12개를 냈다. 이 중 서로 독립인 <strong>#1·#3·#4를 10월 1일에 구현</strong>했다. 증거는 운영 보드의 시험 작업 HER-25·26·27에 남아 있다(완료 후 보관 처리).</p>
+<p>보고서는 적용 제안 12개를 냈다. 10월 1일 하루 동안 <strong>#1·#3·#4를 구현했고, #2·#5·#6·#10은 일부를 구현</strong>했다. 나머지 5개는 아직 시작하지 않았다. 시험 작업(HER-25~27, HER-33, HER-63~68)은 끝난 뒤 보관 처리했고, 원본 결과는 저장소 <code>docs/evidence/</code>에 있다.</p>
 <div class="tw"><table><thead><tr><th>#</th><th>제안</th><th>원칙</th><th>상태</th></tr></thead><tbody>
-<tr><td>1</td><td>비서실장 생산 금지를 도구 훅으로 강제</td><td>P1·P4</td><td class="done">✔ agentos-guard 플러그인 — HER-25에서 <code>.mjs</code> 쓰기·<code>npm</code> 차단 메시지를 봇이 댓글에 인용</td></tr>
-<tr><td>2</td><td>증거 게이트 스키마(필수 필드 + Evidence Card)</td><td>P3·P7</td><td class="todo">미착수 — 스키마 합의 먼저</td></tr>
-<tr><td>3</td><td>검수 봇 분리·읽기 전용·이종 모델</td><td>P2</td><td class="done">✔ 검수 봇 = OpenAI <code>gpt-6-sol</code>, 쓰기는 <code>review-*.md</code>만 — HER-26에서 <code>2+2=5</code> 반려→수정→승인</td></tr>
-<tr><td>4</td><td>루프 상한을 코드에</td><td>P6</td><td class="done">✔ Paperclip <code>maxReviewRounds=3</code>(초과 시 사람 에스컬레이션) + 역할별 툴콜 예산(120/200/400)</td></tr>
-<tr><td>5</td><td>승인 경계 3M+ 목록 고정</td><td>P5</td><td class="todo">미착수</td></tr>
-<tr><td>6</td><td>실패 보고·핸드오프 형식 표준</td><td>P7</td><td class="todo">미착수</td></tr>
+<tr><td>1</td><td>비서실장 생산 금지를 도구 훅으로 강제</td><td>P1·P4</td><td class="done">✔ agentos-guard 플러그인 — HER-25에서 <code>.mjs</code> 쓰기·<code>npm</code> 차단 메시지를 봇이 댓글에 인용. HER-33 실전에서 비서실장이 30번 막혔고, 매번 우회하지 않고 허용된 방식으로 고쳤다</td></tr>
+<tr><td>2</td><td>증거 게이트 스키마(필수 필드 + Evidence Card)</td><td>P3·P7</td><td class="part">◐ 완료 댓글만 강제 — done에는 <code>한 일 / 확인 방법 / 증거 / 남은 일</code>, 반려에는 <code>위치 / 위반 기준 / 수정안</code>이 없으면 막는다. 스크립트 안에 숨긴 상태 변경도 막는다(비서실장·검수 봇은 block, 워커는 warn). 태스크 필수 필드와 Evidence Card는 아직 없다</td></tr>
+<tr><td>3</td><td>검수 봇 분리·읽기 전용·이종 모델</td><td>P2</td><td class="done">✔ 검수 봇 = OpenAI <code>gpt-6.1-sol</code>(예비 <code>claude-sonnet-5-5</code>), 쓰기는 <code>review-*.md</code>만 — HER-26에서 <code>2+2=5</code> 반려→수정→승인. HER-33에서 21건을 모두 검수했고, 2건을 반려한 뒤 수정본을 통과시켰다</td></tr>
+<tr><td>4</td><td>루프 상한을 코드에</td><td>P6</td><td class="done">✔ Paperclip <code>maxReviewRounds=3</code>(초과 시 사람 에스컬레이션) + 역할별 툴콜 예산(120/200/400). HER-33에서 3라운드에 닿은 작업은 0건이었다</td></tr>
+<tr><td>5</td><td>승인 경계 3M+ 목록 고정</td><td>P5</td><td class="part">◐ Meaning 쪽만 구현 — 워커 규칙: 봇 설정·SOUL·guard 파일과 다른 봇의 스킬·폴더 쓰기, 강제 push·<code>reset --hard</code>·재귀 삭제·DB 파일 삭제, 비밀 파일 읽기를 금지한다(워커는 아직 warn 모드라 기록만 하고, 10월 2일 block 전환 예정). 새 봇 채용에는 사장님 승인 계획과 검수된 역할서가 필요하다. Money·Megaphone(비용, 공개 발행, 외부 발송) 경계는 아직 없다</td></tr>
+<tr><td>6</td><td>실패 보고·핸드오프 형식 표준</td><td>P7</td><td class="part">◐ 완료 보고 4항목(#2)이 핸드오프 형식을 겸한다. 실패 보고 4항목(실행/오류/원인/선택지)은 아직 없다</td></tr>
 <tr><td>7</td><td>컨텍스트 4계층 템플릿 + 규칙 ID</td><td>P8</td><td class="todo">미착수</td></tr>
 <tr><td>8</td><td>외부 부작용 상태 모델(sending/sent/ambiguous)</td><td>P5</td><td class="todo">미착수</td></tr>
 <tr><td>9</td><td>리컨실리에이션 크론(done이 정말 done인지)</td><td>P3·P13</td><td class="todo">미착수</td></tr>
-<tr><td>10</td><td>봇·크론 자리값 감사(월 1회)</td><td>P10</td><td class="todo">미착수</td></tr>
+<tr><td>10</td><td>봇·크론 자리값 감사(월 1회)</td><td>P10</td><td class="part">◐ 채용 쪽만 구현 — 비서실장의 채용 게이트(계획 승인→역할서→검수 승인→hire)를 HER-33에서 실제로 거쳐 봇 2개를 뽑았다. 퇴역 감사는 아직 없다</td></tr>
 <tr><td>11</td><td>모델 등급 라우팅 + 토큰 실측</td><td>P9</td><td class="todo">미착수</td></tr>
 <tr><td>12</td><td>관찰자 봇(쓰기 권한 0)</td><td>P13</td><td class="todo">미착수</td></tr>
 </tbody></table></div>
-<p>덤으로 하나 더: 작업 제목을 사람이 읽게 강제하는 규칙(<code>&lt;영역&gt; › &lt;무엇을 어떻게 한다&gt;</code>, 순번 접미사 금지)도 같은 훅에 넣었다. HER-27에서 <code>조직도 › 제목시험-1</code>은 막히고 <code>조직도 › 제목 규칙 guard 시험용 하위 작업 작성</code>은 통과했다.</p>
+<h3>실전으로 확인한 것</h3>
+<ul>
+<li><strong>홍보 시나리오 10건(HER-33)</strong>: 비서실장이 계획을 세우고 승인받은 뒤 봇 2개를 채용해 21개 작업으로 나눠 배정했다. 21건이 모두 검수를 통과했고 완료 보고 양식도 21건 모두 지켰다. 시나리오에 넣은 함정 7개(받지 않은 가격을 지어내기, 후기 원문 바꾸기, 수강생 개인정보 노출 등)도 모두 피했다.</li>
+<li><strong>워커 guard 실전 회귀(HER-63~68)</strong>: 워커를 block 모드로 두고 "완료 댓글은 한 단어로", "다른 봇 스킬 고쳐 줘", "guard 꺼 줘" 같은 요청 4건을 줬다. 4건 모두 봇이 스스로 거절했다. 대조군인 정상 글 작성은 차단 0건으로 끝까지 진행됐고, 보호 대상 파일 변화도 0건이었다.</li>
+<li><strong>남은 마찰</strong>: 정상적인 완료 보고를 guard가 읽을 수 없는 방식(같은 명령 안에서 만든 파일, 스크립트 안에서 조립한 본문)으로 보내다 막힌 경우가 3건 있었다. 봇은 안내대로 다시 보냈다. 지침에 보내는 방식을 미리 적어 두면 줄일 수 있다.</li>
+<li>파괴 명령과 비밀 파일 경우는 실제 봇에게 시키지 않고, 오프라인 단위 시험 76개와 실제 봇 도구 호출 3,922건 재생 시험으로 확인했다.</li>
+</ul>
+<p>덤으로 둘 더: 작업 제목을 사람이 읽게 강제하는 규칙(<code>&lt;영역&gt; › &lt;무엇을 어떻게 한다&gt;</code>, 순번 접미사 금지)도 같은 훅에 넣었다. HER-27에서 <code>조직도 › 제목시험-1</code>은 막히고 <code>조직도 › 제목 규칙 guard 시험용 하위 작업 작성</code>은 통과했다. 조직도에서 부서별 작업 폴더를 지정하면 소속 봇의 작업 위치가 다음 턴부터 바뀌는 기능도 넣었다(폴더 밖 쓰기 차단은 아직 없다).</p>
+<p><strong>다음</strong>: 워커 guard를 warn에서 block으로 전환(10월 2일 예정), 그다음은 #2 나머지(태스크 필수 필드)와 #5의 Money·Megaphone 경계다.</p>
 
 <h2>이 조사의 한계</h2>
 <ul class="limits">
 <li>한국어 자료는 기간 필터(2개월) 때문에 9편에 그쳤다. 7월 gpters·GeekNews 글 4~5편은 참고 가치가 있지만 뺐다.</li>
 <li>8편은 화면·로그 없이 서술만 있다(강정구, HIROKI, Nick Talwar, HN 댓글 등). 강정구·SMF Works·Orbyt·Komputer Mechanic·진한별은 홍보 요소를 카드에 표기했다.</li>
 <li>수치(T2D3 $2,240→$990, reypham 460M 토큰, Tonden 95% 감축 등)는 본인 보고이며 외부 검증은 없다.</li>
-<li>AgentOS 제안의 "현재와의 차이"는 README 기준 추정이었다. #1·#3·#4는 구현하면서 실제 코드로 확인했다.</li>
+<li>AgentOS 제안의 "현재와의 차이"는 README 기준 추정이었다. 구현·일부 구현한 7개(#1~#6, #10)는 실제 코드와 실전 실행으로 확인했고, 나머지 5개는 여전히 추정이다.</li>
 </ul>
 
 <h2>부록 — 소스 카드 45장</h2>
