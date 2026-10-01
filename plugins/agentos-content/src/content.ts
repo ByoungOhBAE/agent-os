@@ -22,8 +22,11 @@ export type Sources = {
 export type Job = {
   id: string; type: string; status: string; createdAt: string; updatedAt: string; attempt: number;
   progressStage: string | null; subscriptionRuntime: string | null; workerModel: string | null;
-  workerModelVerified: boolean | null; reviewStatus: string | null; error: string | null; draftId: string | null;
+  workerModelVerified: boolean | null; reviewStatus: string | null; reviewReason: string | null;
+  error: string | null; draftId: string | null; topics: Topic[] | null;
 };
+/** 완료된 블로그 주제 작업의 후보(계약 1절 v1.1). 초안이 생기지 않는 유형이라 상태에 실려 옵니다. */
+export type Topic = { title: string; topic: string | null; keyword: string | null };
 export type Status = { activeCount: number; worker: { online: boolean; lastSeenAt: string | null }; jobs: Job[] };
 export type DraftSummary = { id: string; type: string; title: string; reviewStatus: string | null; createdAt: string; contentJobId: string | null };
 export type Draft = { id: string; type: string; title: string; reviewStatus: string | null; reviewReason: string | null; createdAt: string; output: unknown };
@@ -53,6 +56,24 @@ export const typeLabel = (t: unknown) => (TYPE_LABEL as Record<string, string>)[
 export const jobStatusLabel = (s: unknown) => (STATUS_LABEL as Record<string, string>)[String(s)] ?? "알 수 없음";
 export const stageLabel = (s: unknown) => (typeof s === "string" && s ? STAGE_LABEL[s] ?? s : null);
 export const reviewBadge = (reviewStatus: unknown) => (reviewStatus === "approved" ? null : "미검토");
+
+const REVIEW_STATUS_LABEL: Record<string, string> = {
+  needs_human_review: "사람 확인 필요", rejected: "검토 반려", unreviewed: "미검토",
+};
+const REVIEW_REASON_LABEL: Record<string, string> = {
+  invalid_review: "검토 결과를 자동으로 판정할 수 없었습니다",
+  review_rejected: "고쳐 쓰기 한도 안에 지적이 남았습니다",
+  deterministic_check_failed: "원문 대조 검사에서 걸렸습니다",
+  review_unavailable: "검토 단계 응답을 받지 못했습니다",
+  writer_unavailable: "작성 단계 응답을 받지 못했습니다",
+};
+/** 완료된 작업이 승인되지 않았을 때 그 이유를 한 줄로. 승인·진행 중이면 null. */
+export function reviewNote(job: { status: unknown; reviewStatus: unknown; reviewReason: unknown }) {
+  if (job.status !== "done" || job.reviewStatus === "approved") return null;
+  const head = REVIEW_STATUS_LABEL[String(job.reviewStatus)] ?? "미검토";
+  const why = REVIEW_REASON_LABEL[String(job.reviewReason)];
+  return why ? `${head} — ${why}` : head;
+}
 export const isActiveStatus = (s: unknown) => s === "pending" || s === "claimed";
 
 /** User-facing sentence for a structured BFF error. */
@@ -157,6 +178,13 @@ export function normalizeSources(raw: unknown): Sources {
   };
 }
 
+function normalizeTopics(raw: unknown): Topic[] | null {
+  if (!Array.isArray(raw)) return null;
+  const rows = raw.map(obj).filter((t): t is Record<string, unknown> => !!t && typeof t.title === "string" && t.title.trim() !== "")
+    .slice(0, 5).map((t) => ({ title: s(t.title, 120), topic: sn(t.topic, 300), keyword: sn(t.keyword, 60) }));
+  return rows.length ? rows : null;
+}
+
 export function normalizeStatus(raw: unknown): Status {
   const r = obj(raw) ?? {};
   const w = obj(r.worker) ?? {};
@@ -168,7 +196,8 @@ export function normalizeStatus(raw: unknown): Status {
       attempt: typeof j.attempt === "number" ? j.attempt : 0, progressStage: sn(j.progressStage, 40),
       subscriptionRuntime: sn(j.subscriptionRuntime, 120), workerModel: sn(j.workerModel, 120),
       workerModelVerified: typeof j.workerModelVerified === "boolean" ? j.workerModelVerified : null,
-      reviewStatus: sn(j.reviewStatus, 40), error: sn(j.error, 300), draftId: sn(j.draftId, 64),
+      reviewStatus: sn(j.reviewStatus, 40), reviewReason: sn(j.reviewReason, 60),
+      error: sn(j.error, 300), draftId: sn(j.draftId, 64), topics: normalizeTopics(j.topics),
     })),
   };
 }

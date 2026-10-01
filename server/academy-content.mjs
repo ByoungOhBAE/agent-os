@@ -66,6 +66,14 @@ export function pickJobRequest(input) {
   return out;
 }
 
+/** 계약 1절 v1.1: 완료된 blogTopic의 주제 후보 — 제목이 있는 행만, 최대 5개, 필드 3개만(길이 제한). */
+function shapeTopics(value, s) {
+  if (!Array.isArray(value)) return null;
+  const rows = value.filter((t) => isPlainObject(t) && typeof t.title === "string" && t.title.trim()).slice(0, 5)
+    .map((t) => ({ title: s(t.title, 120), topic: s(t.topic, 300), keyword: s(t.keyword, 60) }));
+  return rows.length ? rows : null;
+}
+
 export function createAcademyContentRoutes({ env = process.env, fetcher = fetch, body, json, HttpError, log = () => {} }) {
   function redactor(token) {
     const escaped = JSON.stringify(token).slice(1, -1);
@@ -121,8 +129,10 @@ export function createAcademyContentRoutes({ env = process.env, fetcher = fetch,
           workerModel: s(j.workerModel),
           workerModelVerified: bool(j.workerModelVerified),
           reviewStatus: s(j.reviewStatus),
+          reviewReason: s(j.reviewReason, 60),
           error: s(j.error, 300),
           draftId: s(j.draftId),
+          topics: shapeTopics(j.topics, s),
         })),
       };
     },

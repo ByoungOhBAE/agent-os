@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { useHostContext, useHostNavigation, usePluginAction, usePluginData, type PluginPageProps } from "@paperclipai/plugin-sdk/ui";
 import {
   CONNECTION_ERRORS, CONTENT_TYPES, connectionMessage, describeOutput, isActiveStatus, jobStatusLabel, photoUrl, pollInterval,
-  reviewBadge, stageLabel, typeLabel, validateJobInput,
+  reviewBadge, reviewNote, stageLabel, typeLabel, validateJobInput,
   type ContentError, type ContentType, type Draft, type DraftSummary, type Job, type Photo, type SourceType, type Sources, type Status,
 } from "../content.js";
 
@@ -175,6 +175,7 @@ function ConnectionBanner({ q }: { q: { data: Maybe<Status> | null; loading: boo
 
 function JobRow({ job, runtime, onDraft }: { job: Job; runtime: string; onDraft: (id: string) => void }) {
   const stage = isActiveStatus(job.status) ? stageLabel(job.progressStage) : null;
+  const note = reviewNote(job);
   return (
     <li className="ct-job">
       <div className="ct-row-top">
@@ -188,6 +189,21 @@ function JobRow({ job, runtime, onDraft }: { job: Job; runtime: string; onDraft:
         {job.attempt > 1 && <span>시도 {job.attempt}회</span>}
       </p>
       {job.error && <p className="ct-bad ct-small">{job.error}</p>}
+      {note && <p className="ct-note ct-small" role="note">{note}</p>}
+      {job.topics && (
+        <div className="ct-topics">
+          <p className="ct-muted ct-small">주제 후보 {job.topics.length}개</p>
+          <ol className="ct-topic-list">
+            {job.topics.map((t, i) => (
+              <li key={i} className="ct-topic">
+                <span className="ct-topic-title">{t.title}</span>
+                {t.topic && <span className="ct-topic-desc">{t.topic}</span>}
+                {t.keyword && <span className="ct-topic-kw">키워드 {t.keyword}</span>}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
       {job.draftId && <button type="button" className="ct-btn ct-btn-small" onClick={() => onDraft(job.draftId!)}>초안 보기</button>}
     </li>
   );
@@ -475,6 +491,13 @@ textarea.ct-input{resize:vertical;line-height:1.5}
 .ct-status[data-status="failed"],.ct-status[data-status="abandoned"]{color:var(--ct-error);border-color:rgba(215,162,155,.5)}
 .ct-meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--ct-secondary)}
 .ct-verified{color:var(--ct-accent)}
+.ct-note{color:var(--ct-warn);margin:0}
+.ct-topics{display:grid;gap:6px;width:100%;min-width:0;padding-top:6px;border-top:1px solid var(--ct-line)}
+.ct-topic-list{margin:0;padding:0 0 0 1.4em;display:grid;gap:8px}
+.ct-topic{display:grid;gap:2px;min-width:0;overflow-wrap:anywhere;word-break:keep-all}
+.ct-topic-title{font-size:13px;font-weight:650;color:var(--ct-text);line-height:1.45}
+.ct-topic-desc{font-size:12px;line-height:1.55;color:var(--ct-secondary)}
+.ct-topic-kw{font-size:11px;color:var(--ct-muted)}
 .ct-badge{font-size:10px;font-weight:700;color:var(--ct-ink);background:var(--ct-warn);border-radius:4px;padding:1px 6px}
 .ct-draft-grid{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:16px;align-items:start}
 .ct-draft-item{display:grid;gap:4px;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--ct-line);border-radius:8px;background:transparent;color:inherit;font:inherit;cursor:pointer;transition:background-color .15s,border-color .15s}

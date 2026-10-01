@@ -1,4 +1,4 @@
-# 학원 콘텐츠 생성기 ↔ AgentOS 연동 계약 (v1, 고정)
+# 학원 콘텐츠 생성기 ↔ AgentOS 연동 계약 (v1.1)
 
 계획: `docs/academy-content-generator-port-plan.md` (A안 원격 조종형). 세 작업(홈페이지 API · BFF 중계 · 플러그인)은 이 문서의 JSON 모양만 공유한다. 바꾸려면 이 문서를 먼저 고친다.
 
@@ -54,10 +54,12 @@
   "jobs": [{ "id": "c..", "type": "blogTopic", "status": "pending|claimed|done|failed|abandoned",
              "createdAt": "…", "updatedAt": "…", "attempt": 0, "progressStage": null,
              "subscriptionRuntime": "…", "workerModel": null, "workerModelVerified": null,
-             "reviewStatus": null, "error": null, "draftId": null }]
+             "reviewStatus": null, "reviewReason": null, "error": null, "draftId": null,
+             "topics": null }]
 }
 ```
 - 기존 관리자 `/api/content-jobs/status`와 같은 조회(공유 함수로 분리) + `draftId`(ContentDraft.contentJobId 매칭). error는 300자 자름.
+- v1.1 추가: `reviewReason`(워커 검토 사유 코드, 예 `invalid_review`·`review_rejected`). `topics` = **완료된 blogTopic만** 결과의 후보에서 `{ title(≤120), topic(≤300), keyword(≤60) }` 최대 5개(초안이 생기지 않는 유형이라 상태에 싣는다). facts·selfCheck·strategy·결과 원문은 내보내지 않고, 가격 문구가 섞인 후보는 통째로 뺀다. 그 밖의 작업이나 읽을 수 없는 결과는 `null`. BFF·플러그인도 같은 3필드·길이·5개 상한으로 다시 자른다.
 
 ### GET `/drafts` → `{ "drafts": [{ "id", "type", "title", "reviewStatus", "createdAt", "contentJobId" }] }` (status=draft, 최근 20)
 ### GET `/drafts/:id` → `{ "id", "type", "title", "reviewStatus", "reviewReason", "createdAt", "output": <outputJson 파싱 결과 또는 null> }`, 없으면 404 `not_found`.

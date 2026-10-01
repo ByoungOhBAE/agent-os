@@ -244,7 +244,8 @@ describe("academy content relay", () => {
   it("relays GET /status with whitelisted job fields", async () => {
     const job = {
       id: "j1", type: "blogTopic", status: "done", createdAt: "a", updatedAt: "b", attempt: 1, progressStage: null,
-      subscriptionRuntime: "r", workerModel: "m", workerModelVerified: true, reviewStatus: "ok", error: null, draftId: "d1",
+      subscriptionRuntime: "r", workerModel: "m", workerModelVerified: true, reviewStatus: "ok", reviewReason: "approved", error: null, draftId: "d1",
+      topics: [{ title: "제목", topic: "주제", keyword: "키워드" }],
       resultJson: "RAW", claimToken: "CLAIM", systemPrompt: "SP",
     };
     const s = setup({ respond: () => reply(200, { activeCount: 1, worker: { online: true, lastSeenAt: "t", host: "pc" }, jobs: Array.from({ length: 25 }, () => job), extra: 1 }) });
@@ -257,6 +258,27 @@ describe("academy content relay", () => {
     expect(sent?.data.jobs[0]).toEqual(expected);
     expect(Object.keys(sent?.data).sort()).toEqual(["activeCount", "jobs", "worker"]);
     expect(JSON.stringify(sent)).not.toMatch(/RAW|CLAIM|SP"/);
+  });
+
+  it("status topics: at most 5, only title/topic/keyword strings, bounded, untitled rows dropped, non-array -> null", async () => {
+    const topics = [
+      { title: "t".repeat(500), topic: "p".repeat(900), keyword: "k".repeat(200), strategy: "INTERNAL", basedOnFact: 1 },
+      { title: 3, topic: "no title" },
+      "string row",
+      ...Array.from({ length: 8 }, (_, i) => ({ title: `제목${i}`, topic: 9, keyword: null })),
+    ];
+    const base = { id: "j1", type: "blogTopic", status: "done", reviewReason: `r ${TOKEN}`.repeat(10) };
+    const s = setup({ respond: () => reply(200, { activeCount: 0, worker: {}, jobs: [{ ...base, topics }, { ...base, id: "j2", topics: "x" }, { ...base, id: "j3" }] }) });
+    const { sent } = await s.call("GET", "/api/academy-content/status");
+    const [a, b, c] = sent?.data.jobs;
+    expect(a.topics).toHaveLength(5);
+    expect(a.topics[0]).toEqual({ title: "t".repeat(120), topic: "p".repeat(300), keyword: "k".repeat(60) });
+    expect(a.topics[1]).toEqual({ title: "제목0", topic: null, keyword: null });
+    expect(a.reviewReason.length).toBeLessThanOrEqual(60);
+    expect(b.topics).toBeNull();
+    expect(c.topics).toBeNull();
+    expect(JSON.stringify(sent)).not.toMatch(/INTERNAL|basedOnFact|strategy/);
+    expect(JSON.stringify(sent)).not.toContain(TOKEN);
   });
 
   it("relays GET /drafts list with caps and whitelist", async () => {

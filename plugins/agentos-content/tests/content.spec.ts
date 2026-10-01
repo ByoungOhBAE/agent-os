@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bffOrigin, connectionMessage, describeOutput, isDraftId, jobStatusLabel, photoUrl, pollInterval,
-  reviewBadge, typeLabel, validateJobInput, normalizeStatus, normalizeSources, normalizeDrafts, normalizeDraft,
+  reviewBadge, typeLabel, validateJobInput, normalizeStatus, normalizeSources, normalizeDrafts, normalizeDraft, reviewNote,
 } from "../src/content.js";
 
 const base = {
@@ -25,6 +25,19 @@ describe("상태·유형 라벨", () => {
     expect(reviewBadge("approved")).toBeNull();
     expect(reviewBadge(null)).toBe("미검토");
     expect(reviewBadge("needs_review")).toBe("미검토");
+  });
+  it("검토 결과 문구: 완료 작업의 검토 상태를 구체적으로 알려 주고, 승인·미완료는 문구 없음", () => {
+    expect(reviewNote({ status: "done", reviewStatus: "approved", reviewReason: "approved" })).toBeNull();
+    expect(reviewNote({ status: "claimed", reviewStatus: null, reviewReason: null })).toBeNull();
+    expect(reviewNote({ status: "done", reviewStatus: "needs_human_review", reviewReason: "invalid_review" }))
+      .toBe("사람 확인 필요 — 검토 결과를 자동으로 판정할 수 없었습니다");
+    expect(reviewNote({ status: "done", reviewStatus: "rejected", reviewReason: "review_rejected" }))
+      .toBe("검토 반려 — 고쳐 쓰기 한도 안에 지적이 남았습니다");
+    expect(reviewNote({ status: "done", reviewStatus: "rejected", reviewReason: "deterministic_check_failed" }))
+      .toBe("검토 반려 — 원문 대조 검사에서 걸렸습니다");
+    expect(reviewNote({ status: "done", reviewStatus: "unreviewed", reviewReason: "review_unavailable" }))
+      .toBe("미검토 — 검토 단계 응답을 받지 못했습니다");
+    expect(reviewNote({ status: "done", reviewStatus: "weird", reviewReason: "x" })).toBe("미검토");
   });
   it("연결 오류 문구", () => {
     expect(connectionMessage({ error: "not_configured" })).toBe("홈페이지 연결 토큰이 설정되지 않았습니다");
@@ -122,6 +135,23 @@ describe("응답 정리", () => {
     expect(s.worker).toEqual({ online: true, lastSeenAt: "2026-10-01T00:00:00.000Z" });
     expect(s.jobs).toHaveLength(1);
     expect(JSON.stringify(s)).not.toContain("secret");
+  });
+  it("status topics/reviewReason: 제목 있는 후보만 최대 5개, 필드 3개, 길이 제한, 없으면 null", () => {
+    const topics = [{ title: "t".repeat(400), topic: "주제", keyword: 5, strategy: "INTERNAL" }, { title: "" }, null,
+      ...Array.from({ length: 7 }, (_, i) => ({ title: `제목${i}` }))];
+    const s = normalizeStatus({ jobs: [
+      { id: "cjob00001", type: "blogTopic", status: "done", reviewStatus: "needs_human_review", reviewReason: "invalid_review", topics },
+      { id: "cjob00002", type: "blogTopic", status: "done", topics: "nope" },
+      { id: "cjob00003", type: "igPost", status: "done" },
+    ] });
+    expect(s.jobs[0].reviewReason).toBe("invalid_review");
+    expect(s.jobs[0].topics).toHaveLength(5);
+    expect(s.jobs[0].topics![0]).toEqual({ title: "t".repeat(120), topic: "주제", keyword: null });
+    expect(s.jobs[0].topics![1]).toEqual({ title: "제목0", topic: null, keyword: null });
+    expect(JSON.stringify(s)).not.toContain("INTERNAL");
+    expect(s.jobs[1].topics).toBeNull();
+    expect(s.jobs[2].topics).toBeNull();
+    expect(s.jobs[2].reviewReason).toBeNull();
   });
   it("sources/drafts/draft", () => {
     const src = normalizeSources({ notices: [{ id: "n1", title: "공지", photos: [{ id: "p1", path: "/uploads/a.webp", description: "사진", analyzed: true }] }], courses: null, runtimes: [{ id: "r", label: "R", group: "G" }], postTypes: ["a", 3] });
