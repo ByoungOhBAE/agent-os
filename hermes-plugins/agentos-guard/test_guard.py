@@ -382,6 +382,19 @@ class WorkerHoles(unittest.TestCase):
         f.write_text(BAD_DONE, encoding="utf-8")
         self.assertIn("완료 댓글 형식 위반", self.t(f"cd \"$TMPDIR\" && curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/{UUID}\" -d @done.json"))
 
+    def test_heredoc_mid_line_bodies_checked(self):
+        # Real worker calls from the 2026-10-01 r2 run: the heredoc opener is followed by more options, a pipe,
+        # or a second command after the terminator — valid bash, so the body must be read, not called opaque.
+        url = f"\"$PAPERCLIP_API_URL/api/issues/{UUID}\""
+        shapes = (
+            "curl -s -X PATCH {u} --data-binary @- <<'EOF' -o \"$TMPDIR/r.json\"\n{b}\nEOF\nnode -e \"console.log(1)\"",
+            "curl -s -X PATCH {u} --data-binary @- <<'EOF' | node -e \"let s='';process.stdin.on('data',d=>s+=d)\"\n{b}\nEOF",
+            "curl -s -o \"$TMPDIR/r.json\" -X PATCH {u} --data-binary @- <<EOF\n{b}\nEOF\nnode -e \"console.log(2)\"",
+        )
+        for sh in shapes:
+            self.assertIsNone(self.t(sh.format(u=url, b=GOOD_DONE_JSON)), sh[:60])
+            self.assertIn("완료 댓글 형식 위반", self.t(sh.format(u=url, b=BAD_DONE)) or "", sh[:60])
+
     def test_file_made_in_same_command_refused(self):
         f = self.home / "cache" / "scratch" / "p.json"
         f.write_text(GOOD_DONE_JSON, encoding="utf-8")  # stale good copy on disk — the new one is written unseen

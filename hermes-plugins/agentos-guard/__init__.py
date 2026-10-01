@@ -39,23 +39,24 @@ _WRITE_TOOLS = {"write_file": "path", "patch": "path", "skill_manage": "file_pat
 _TERMINAL_TOOLS = ("terminal", "process_manage")
 
 
+_HEREDOC_OPEN = re.compile(r"<<(-?)\s*(['\"]?)(\w+)\2")
+
+
 def _split_command_line(cmd: str) -> List[str]:
     """Split a shell command line into pipeline/sequence segments (``|``, ``&&``, ``||``, ``;``, newline),
-    ignoring separators inside single/double quotes and inside heredoc bodies (``<<EOF`` … ``EOF``)."""
-    segs, buf, quote, i = [], [], None, 0
-    heredoc_end: Optional[str] = None  # set when the current line opened a heredoc; body swallowed until the terminator
+    ignoring separators inside single/double quotes and inside heredoc bodies (``<<EOF`` … ``EOF``).
+
+    A heredoc body is attached to the segment that *opened* it, wherever the opener sits on its line
+    (``curl … <<'EOF' -o out``, ``curl … <<'EOF' | node …``), and commands after the terminator line become
+    their own segments — the same reading bash does — so ``_HEREDOC_BODY`` always finds opener + body +
+    terminator inside one segment."""
+    segs: List[List[str]] = []
+    buf: List[str] = []
+    quote: Optional[str] = None
+    pending: List["tuple[str, List[str]]"] = []  # (terminator, segment that opened it) waiting for the next newline
+    i = 0
     while i < len(cmd):
         ch = cmd[i]
-        if heredoc_end is not None:
-            # consume whole lines until the terminator line
-            nl = cmd.find("\n", i)
-            line = cmd[i:] if nl < 0 else cmd[i:nl]
-            buf.append(line + "\n")
-            if line.strip() == heredoc_end:
-                heredoc_end = None
-                segs.append("".join(buf)); buf = []
-            i = len(cmd) if nl < 0 else nl + 1
-            continue
         if quote:
             buf.append(ch)
             if ch == quote:
@@ -63,18 +64,40 @@ def _split_command_line(cmd: str) -> List[str]:
         elif ch in "'\"":
             quote = ch
             buf.append(ch)
+        elif cmd.startswith("<<<", i):  # here-string, not a heredoc
+            buf.append("<<<"); i += 3
+            continue
+        elif ch == "<" and (m := _HEREDOC_OPEN.match(cmd, i)):
+            buf.append(m.group(0))
+            pending.append((m.group(3), buf))
+            i = m.end()
+            continue
         elif cmd.startswith(("||", "&&"), i):
-            segs.append("".join(buf)); buf = []; i += 1
-        elif ch == "\n" and (m := re.search(r"<<-?\s*['\"]?(\w+)['\"]?\s*$", "".join(buf))):
-            heredoc_end = m.group(1)
-            buf.append(ch)
+            segs.append(buf); buf = []; i += 1
+        elif ch == "\n" and pending:
+            segs.append(buf); buf = []
+            i += 1
+            for term, owner in pending:  # bodies follow in opener order, each up to its terminator line
+                body: List[str] = []
+                closed = False
+                while i < len(cmd):
+                    nl = cmd.find("\n", i)
+                    line = cmd[i:] if nl < 0 else cmd[i:nl]
+                    i = len(cmd) if nl < 0 else nl + 1
+                    if line.strip() == term:
+                        closed = True
+                        break
+                    body.append(line)
+                owner.append("\n" + "\n".join(body) + ("\n" + term if closed else ""))
+            pending = []
+            continue
         elif ch in "|;\n":
-            segs.append("".join(buf)); buf = []
+            segs.append(buf); buf = []
         else:
             buf.append(ch)
         i += 1
-    segs.append("".join(buf))
-    return [s.strip() for s in segs if s.strip()]
+    segs.append(buf)
+    return [s for s in ("".join(b).strip() for b in segs) if s]
 
 
 _QUOTED = re.compile(r"\"(?:\\.|[^\"\\])*\"|'[^']*'", re.S)
