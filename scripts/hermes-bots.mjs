@@ -18,7 +18,7 @@
 //   check-chief                           -> CHIEF_HERMES_DEFAULT_OK
 //   guard    --agent <id>|--profile <p> --role chief|reviewer|worker [--mode warn|block] | --status   install agentos-guard plugin
 import { createHash, randomBytes } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, readlinkSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import http from "node:http";
 import path from "node:path";
@@ -449,9 +449,10 @@ if (cmd === "baseline") {
   check(owners.every((a) => a.status === "paused" && a.metadata?.agentosArchived), "연결된 봇이 없거나, 멈춤+보관 상태");
   const cfg = existsSync(path.join(home, "config.yaml")) ? readFileSync(path.join(home, "config.yaml"), "utf8") : "";
   check(!/role:\s*(chief|reviewer)\b/.test(cfg), "guard 역할이 chief/reviewer가 아님");
-  // a hire in progress creates the profile before the Paperclip bot points at it — don't race it
-  const idleMin = existsSync(home) ? Math.round((Date.now() - Math.max(...[home, path.join(home, "config.yaml"), path.join(home, "state.db")]
-    .filter((f) => existsSync(f)).map((f) => statSync(f).mtimeMs))) / 60000) : 0;
+  // a hire in progress creates the profile before the Paperclip bot points at it — don't race it. Only files a hire
+  // writes count: the folder itself, state.db and cron/ are touched by the gateway's own housekeeping every minute.
+  const hireFiles = ["config.yaml", "SOUL.md", ".env", "profile.yaml"].map((f) => path.join(home, f)).filter((f) => existsSync(f));
+  const idleMin = hireFiles.length ? Math.round((Date.now() - Math.max(...hireFiles.map((f) => statSync(f).mtimeMs))) / 60000) : 0;
   check(idleMin >= 30, `30분 넘게 손대지 않은 프로필(고용 진행 중 아님) — 마지막 변경 ${idleMin}분 전`);
   if (yes) check(reason.length >= 5, `--reason 이유 적힘 — ${reason || "(없음)"}`);
   console.log(checks.join("\n"));
@@ -461,7 +462,17 @@ if (cmd === "baseline") {
   const TRASH = path.join(HOME, "profile-trash"), stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const dst = path.join(TRASH, `${profile}-${stamp}`);
   const SKIP = /(^|[\\/])(\.env|auth\.json|cache|.*\.lock)$/i;
-  cpSync(home, dst, { recursive: true, filter: (src) => !SKIP.test(path.relative(home, src)) });
+  // skills/computer-use etc. are junctions into shared folders (~/.agents/skills): copying them needs symlink rights
+  // (EPERM) and they are not this bot's data — record where they point instead of copying.
+  const links = [];
+  const isLink = (src) => { try { return lstatSync(src).isSymbolicLink() || readlinkSync(src) !== ""; } catch { return false; } };
+  cpSync(home, dst, { recursive: true, filter: (src) => {
+    const rel = path.relative(home, src);
+    if (SKIP.test(rel)) return false;
+    if (rel && isLink(src)) { links.push({ path: rel, target: readlinkSync(src) }); return false; }
+    return true;
+  } });
+  if (links.length) writeFileSync(path.join(dst, "LINKS.json"), JSON.stringify(links, null, 2));
   const count = (d) => readdirSync(d, { withFileTypes: true }).reduce((n, e) => n + (e.isDirectory() ? count(path.join(d, e.name)) : 1), 0);
   const nBackup = count(dst);
   if (!existsSync(path.join(dst, "config.yaml")) && cfg) fail(`backup incomplete: ${dst}`);
