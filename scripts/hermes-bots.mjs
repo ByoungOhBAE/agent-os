@@ -12,6 +12,7 @@
 //   skills   --agent <agentId> --add a,b   install role skills (Hermes skills, else Paperclip company skill)
 //   sync-soul [all|<agentId>]             regenerate SOUL.md of gateway bots from their Paperclip AGENTS.md
 //   archive  --agent <agentId>            mark a paused test bot as archived (kept, excluded from verify)
+//   retire   --profile pc-xxxxxxxx [--yes --reason <why>]  delete a leftover profile: no bot uses it, or its bot is paused+archived (dry run without --yes; backup first)
 //   verify   [all|<agentId>]              -> VERIFY_ALL_OK
 //   leak-scan                             -> LEAK_SCAN_OK
 //   check-chief                           -> CHIEF_HERMES_DEFAULT_OK
@@ -429,6 +430,52 @@ if (cmd === "baseline") {
   if (a.status !== "paused") fail("보관은 멈춘(paused) 봇만 가능합니다");
   const r = await pc("PATCH", `/agents/${a.id}`, { metadata: { ...(a.metadata ?? {}), agentosArchived: true } });
   console.log(r.status < 300 ? `ARCHIVED ${a.name}` : `FAIL HTTP ${r.status}`);
+} else if (cmd === "retire") {
+  // Delete one bot's Hermes profile — only when it is provably a leftover, with a backup first.
+  // Allowed targets: pc-xxxxxxxx profiles that (a) no Paperclip bot points at (half-made hire), or
+  // (b) belong to a bot that is paused AND archived. Never the chief/reviewer, never a working bot.
+  // Dry run by default; --yes --reason "<why>" actually deletes.
+  const profile = arg("--profile") ?? "";
+  const yes = process.argv.includes("--yes"), reason = (arg("--reason") ?? "").trim();
+  const checks = [];
+  const check = (ok, label) => { checks.push(`${ok ? "✔" : "✘"} ${label}`); return ok; };
+  const home = profileHome(profile);
+  check(/^pc-[0-9a-f]{8}$/.test(profile), `이름이 봇 프로필 형식(pc-8자리) — ${profile || "(없음)"}`);
+  check(existsSync(home) && home !== HOME, "프로필 폴더가 있음");
+  const owners = [];
+  for (const s of await agents()) { const a = await agent(s.id); if (profileOf(a) === profile) owners.push(a); }
+  const own = owners.map((a) => `${a.name}(${a.status}${a.metadata?.agentosArchived ? ",보관" : ""})`).join(", ") || "없음";
+  check(owners.every((a) => !/^(비서실장|검수)/.test(a.name)), `비서실장·검수 봇이 아님 — 연결된 봇: ${own}`);
+  check(owners.every((a) => a.status === "paused" && a.metadata?.agentosArchived), "연결된 봇이 없거나, 멈춤+보관 상태");
+  const cfg = existsSync(path.join(home, "config.yaml")) ? readFileSync(path.join(home, "config.yaml"), "utf8") : "";
+  check(!/role:\s*(chief|reviewer)\b/.test(cfg), "guard 역할이 chief/reviewer가 아님");
+  // a hire in progress creates the profile before the Paperclip bot points at it — don't race it
+  const idleMin = existsSync(home) ? Math.round((Date.now() - Math.max(...[home, path.join(home, "config.yaml"), path.join(home, "state.db")]
+    .filter((f) => existsSync(f)).map((f) => statSync(f).mtimeMs))) / 60000) : 0;
+  check(idleMin >= 30, `30분 넘게 손대지 않은 프로필(고용 진행 중 아님) — 마지막 변경 ${idleMin}분 전`);
+  if (yes) check(reason.length >= 5, `--reason 이유 적힘 — ${reason || "(없음)"}`);
+  console.log(checks.join("\n"));
+  if (checks.some((c) => c.startsWith("✘"))) fail(`RETIRE_REFUSED ${profile}`);
+  if (!yes) { console.log(`RETIRE_DRY_RUN_OK ${profile} — 실제 삭제: --yes --reason "<이유>"`); process.exit(0); }
+  // backup everything except secrets and caches, then delete through Hermes
+  const TRASH = path.join(HOME, "profile-trash"), stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const dst = path.join(TRASH, `${profile}-${stamp}`);
+  const SKIP = /(^|[\\/])(\.env|auth\.json|cache|.*\.lock)$/i;
+  cpSync(home, dst, { recursive: true, filter: (src) => !SKIP.test(path.relative(home, src)) });
+  const count = (d) => readdirSync(d, { withFileTypes: true }).reduce((n, e) => n + (e.isDirectory() ? count(path.join(d, e.name)) : 1), 0);
+  const nBackup = count(dst);
+  if (!existsSync(path.join(dst, "config.yaml")) && cfg) fail(`backup incomplete: ${dst}`);
+  try { hermes(["profile", "delete", profile, "-y"]); } catch (e) {
+    // Seen once: the live gateway kept a log lock of a hot-added profile (WinError 32). Hermes has already
+    // tombstoned it (no longer served); a gateway restart releases the handle and a rerun finishes the delete.
+    const why = String(e.stderr || e.stdout || e.message).split(/\r?\n/).filter(Boolean).slice(-1)[0] ?? "";
+    fail(`RETIRE_PENDING ${profile}: 파일이 사용 중이라 폴더가 남았습니다(백업 ${dst}). 사장님께 게이트웨이 재시작을 요청한 뒤 같은 명령을 다시 실행하세요 — ${why.slice(0, 200)}`);
+  }
+  if (existsSync(home)) fail(`profile still exists after delete (gateway lock?): ${home}`);
+  const entry = { at: new Date().toISOString(), profile, owners: owners.map((a) => ({ id: a.id, name: a.name })), reason,
+    by: process.env.PAPERCLIP_AGENT_ID || "operator", backup: dst, backupFiles: nBackup };
+  writeFileSync(path.join(TRASH, "retire.jsonl"), JSON.stringify(entry) + "\n", { flag: "a" });
+  console.log(`RETIRED ${profile} backup=${dst} files=${nBackup}`);
 } else if (cmd === "verify") {
   const which = process.argv[3] || "all";
   let bad = 0, n = 0;
@@ -549,6 +596,6 @@ if (cmd === "baseline") {
     }
   }
 } else {
-  console.error("usage: baseline|compare|probe|hire|convert|sync-soul|archive|verify|leak-scan|check-chief|guard");
+  console.error("usage: baseline|compare|probe|hire|convert|sync-soul|archive|retire|verify|leak-scan|check-chief|guard");
   process.exitCode = 2;
 }

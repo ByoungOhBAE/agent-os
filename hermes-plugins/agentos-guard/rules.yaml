@@ -102,7 +102,7 @@ roles:
       redirect_guard: true                       # > file only into scratch/Temp/-evidence
       allow:
         - '^curl\b'                                # Paperclip API
-        - '^node(\.exe)?\s+[^|;&<>]*hermes-bots\.mjs"?\s+(hire|list|status|probe|sync-soul|baseline|compare|verify|leak-scan|check-chief|help)\b'
+        - '^node(\.exe)?\s+[^|;&<>]*hermes-bots\.mjs"?\s+(hire|list|status|probe|sync-soul|baseline|compare|verify|leak-scan|check-chief|help|retire)\b'   # retire = checked delete of leftover profiles (refuses working bots, backs up first)
         - '^(\S*/)?hermes(\.exe)?\s+(-p\s+\S+\s+)?(mcp\s+(catalog|list)|profile\s+list|skills\s+list|status)\b'   # read-only Hermes CLI
         - '^node\s+.*setup-chief-single-window\.mjs"?(\s|$)'
         - '^git(\s+-C\s+("[^"]*"|\S+))?\s+(status|log|diff|show|branch|rev-parse|stash\s+(list|show))\b'
@@ -146,7 +146,7 @@ roles:
         - '\b(npm|pnpm|yarn)\s+(install|i|add|remove|uninstall|publish|link|update)\b'
         - '\b(pip3?|uv)\s+(install|uninstall)\b'
         - '\b(docker|docker-compose|ssh|scp|rsync|sudo)\b'
-        - '\bnode\s+.*hermes-bots\.mjs"?\s+(hire|convert|archive|sync-soul|guard)\b'
+        - '\bnode\s+.*hermes-bots\.mjs"?\s+(hire|convert|archive|sync-soul|guard|retire)\b'
     budget:
       max_tool_calls: 200
 
@@ -197,7 +197,7 @@ roles:
         - '\bgit\s+(-C\s+("[^"]*"|\S+)\s+)?(checkout|restore)\s+(--\s+)?\.(\s|$)'
         - '\bgit\s+(-C\s+("[^"]*"|\S+)\s+)?branch\s+(-\w+\s+)*-D\b'
         - '\bhermes(\.exe)?\s+(-p\s+\S+\s+)?(config\s+(set|edit|reset)|plugins?\b|auth\s+(add|remove|reset|logout)|profile\s+(delete|create|rename)|gateway\s+(stop|restart|uninstall)|update\b)'
-        - '\bnode\s+.*hermes-bots\.mjs"?\s+(convert|archive|sync-soul|guard)\b'   # hire stays open: the code bot tests the hire gate
+        - '\bnode\s+.*hermes-bots\.mjs"?\s+(convert|archive|sync-soul|guard|retire)\b'   # hire stays open: the code bot tests the hire gate
         - '\b(drop\s+(table|database)|truncate\s+table)\b'
         # dumping secrets into the transcript: printenv / env / set, echo of a *KEY/*TOKEN variable
         - '^(printenv|env|set|export\s+-p|Get-ChildItem\s+env:|gci\s+env:|dir\s+env:)\s*$'

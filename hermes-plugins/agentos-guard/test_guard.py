@@ -62,6 +62,14 @@ class ChiefRules(unittest.TestCase):
     def test_hire_allowed(self):
         self.assertIsNone(self.c.evaluate("terminal", {"command": "node C:/x/agent os/scripts/hermes-bots.mjs hire --name a --title b --reports-to c --role-file d.md --projects x"}))
 
+    def test_profile_delete_only_through_checked_retire(self):
+        # raw delete can remove any bot (working ones, the reviewer, itself) — only `retire` (checks + backup) is open
+        self.assertIsNone(self.c.evaluate("terminal", {"command": "node C:/x/agent os/scripts/hermes-bots.mjs retire --profile pc-a243fe69 --yes --reason \"고용 중 실패한 빈 프로필\""}))
+        for cmd in ("C:/Users/x/hermes.exe profile delete pc-a243fe69 -y",
+                    "HERMES_HOME=C:/h hermes profile delete pc-7686fab2 -y",
+                    "rm -rf C:/Users/x/AppData/Local/hermes/profiles/pc-7686fab2"):
+            self.assertIsNotNone(self.c.evaluate("terminal", {"command": cmd}), cmd)
+
     def test_readonly_git_allowed(self):
         for cmd in ("git status", "git log --oneline -5", "git diff --name-only", "git stash list", "ls -la", "rg -n foo docs", "cat docs/plan.md"):
             self.assertIsNone(self.c.evaluate("terminal", {"command": cmd}), cmd)
@@ -305,6 +313,9 @@ class ReviewerRules(unittest.TestCase):
     def test_evidence_write_allowed(self):
         self.assertIsNone(self.r.evaluate("write_file", {"path": "C:/p/pc-2/workspace/review-evidence/HER-30.md"}))
         self.assertIsNone(self.r.evaluate("write_file", {"path": "C:/p/pc-2/workspace/review-HER-30.md"}))
+
+    def test_retire_not_for_reviewer(self):
+        self.assertIsNotNone(self.r.evaluate("terminal", {"command": "node C:/x/agent os/scripts/hermes-bots.mjs retire --profile pc-a243fe69 --yes --reason x"}))
 
     def test_deliverable_edits_blocked(self):
         for p in ("C:/x/agent os/src/App.tsx", "C:/x/academy/README.md", "C:/p/pc-2/workspace/draft.md"):
