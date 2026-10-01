@@ -114,3 +114,8 @@ AgentOS 플러그인 UI → 플러그인 worker → BFF(4200, 토큰 보관) →
 - 홈페이지 NAS 배포 + 운영 migrate deploy + `AGENTOS_CONTENT_TOKEN` 설정.
 - AgentOS `.env`에 `ACADEMY_CONTENT_TOKEN` 설정, 4200 BFF 재시작, `scripts/deploy-content-plugin.sh`로 플러그인 설치.
 - 설치 후 실제 3100 화면 1440/768/390 확인(아직 브라우저로 본 적 없음), 구독 실 E2E 1건(구독 사용).
+
+### 2026-10-02 갱신
+- 가격 확인문 오탐 수정(홈페이지 c0944dd), 검수 issues 객체 응답 정규화·AgentOS 주제 후보/검토 사유(홈페이지 f01e636, AgentOS 4c6e848, 계약 v1.1).
+- design-variants 머지 f0e2946 배포(이미지 config 566804…, 마이그레이션 없음, 30개 테이블·사진 284개 해시 전후 동일).
+- 운영 실실행 cmuptnqjn000601ta2d5n0uud: Sonnet 4.6 모델 확인, 검토 approved, 주제 후보 5개가 3100 화면에 표시(content-live-check CONTENT_LIVE_OK).
