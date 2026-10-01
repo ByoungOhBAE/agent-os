@@ -100,3 +100,17 @@ AgentOS 플러그인 UI → 플러그인 worker → BFF(4200, 토큰 보관) →
 
 ## 9. 다음 단계
 승인 후 실행 경로 추천: 홈페이지(P1)·BFF(P2)·플러그인(P3)이 서로 파일이 겹치지 않으므로 **ultrawork 병렬 레인 3개**(API 계약 JSON을 먼저 고정). 시작은 명시적 진행 지시 후.
+
+## 10. 진행 상태 (2026-10-01)
+결정: Q1=A 원격 조종형, Q2=글·카드뉴스·숏폼만, Q3=구독만, Q4=토큰만(추가층은 보류), Q5=나중 — "추천대로" 지시에 따름.
+
+완료(커밋):
+- 홈페이지 `682f964` 기존 P0·P1 개편 커밋, `28dc020` `/api/agentos/content/*` 5개 경로 + 공유 서비스 + migration `20261001090000_content_job_request_key` + `scripts/agentos-content-e2e.mjs`.
+- AgentOS `51d40cd` 계약서, `202f681` BFF 중계 `server/academy-content.mjs`(+index.mjs 연결 4줄) + 플러그인 `plugins/agentos-content` + 빌드·배포 스크립트.
+
+검증(부모 재실행): 홈페이지 leaf-1.1 4/4(전체 432 테스트, tsc·eslint·build), BFF leaf-1.2 2/2(루트 70 테스트), 플러그인 leaf-1.3 1/1(WSL 27 테스트·빌드·키 유출 검사). 중계 E2E: 빌드된 홈페이지(격리 임시 DB)+실제 BFF 코드, 생성→중복키→워커 claim→(완료는 DB 모사)→상태 draftId→초안 조회 통과. 모델 호출 없음.
+
+남은 것(동의 필요):
+- 홈페이지 NAS 배포 + 운영 migrate deploy + `AGENTOS_CONTENT_TOKEN` 설정.
+- AgentOS `.env`에 `ACADEMY_CONTENT_TOKEN` 설정, 4200 BFF 재시작, `scripts/deploy-content-plugin.sh`로 플러그인 설치.
+- 설치 후 실제 3100 화면 1440/768/390 확인(아직 브라우저로 본 적 없음), 구독 실 E2E 1건(구독 사용).
