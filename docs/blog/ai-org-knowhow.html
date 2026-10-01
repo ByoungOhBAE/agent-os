@@ -32,6 +32,7 @@ td.s{white-space:nowrap}
 .done{color:var(--ok);font-weight:700}
 .todo{color:var(--muted)}
 .part{color:var(--ink);font-weight:600}
+@media (max-width:560px){.prog thead{display:none}.prog tr{display:grid;grid-template-columns:1.6em 1fr auto;column-gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}.prog td{border:0;padding:2px 0}.prog td:nth-child(3){color:var(--muted);font-size:.8rem}.prog td:nth-child(4){grid-column:1/-1}}
 details.card{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:8px 0;background:var(--card);font-size:.9rem}
 details.card summary{cursor:pointer;line-height:1.5}
 details.card .meta{color:var(--muted);font-size:.8rem;margin-left:6px}
@@ -132,7 +133,7 @@ a{color:var(--blue)}
 
 <h2>우리(AgentOS)는 어디까지 왔나</h2>
 <p>보고서는 적용 제안 12개를 냈다. 10월 1일 하루 동안 <strong>#1·#3·#4를 구현했고, #2·#5·#6·#10은 일부를 구현</strong>했다. 나머지 5개는 아직 시작하지 않았다. 시험 작업(HER-25~27, HER-33, HER-63~68)은 끝난 뒤 보관 처리했고, 원본 결과는 저장소 <code>docs/evidence/</code>에 있다.</p>
-<div class="tw"><table><thead><tr><th>#</th><th>제안</th><th>원칙</th><th>상태</th></tr></thead><tbody>
+<div class="tw"><table class="prog"><thead><tr><th>#</th><th>제안</th><th>원칙</th><th>상태</th></tr></thead><tbody>
 <tr><td>1</td><td>비서실장 생산 금지를 도구 훅으로 강제</td><td>P1·P4</td><td class="done">✔ agentos-guard 플러그인 — HER-25에서 <code>.mjs</code> 쓰기·<code>npm</code> 차단 메시지를 봇이 댓글에 인용. HER-33 실전에서 비서실장이 30번 막혔고, 매번 우회하지 않고 허용된 방식으로 고쳤다</td></tr>
 <tr><td>2</td><td>증거 게이트 스키마(필수 필드 + Evidence Card)</td><td>P3·P7</td><td class="part">◐ 완료 댓글만 강제 — done에는 <code>한 일 / 확인 방법 / 증거 / 남은 일</code>, 반려에는 <code>위치 / 위반 기준 / 수정안</code>이 없으면 막는다. 스크립트 안에 숨긴 상태 변경도 막는다(비서실장·검수 봇은 block, 워커는 warn). 태스크 필수 필드와 Evidence Card는 아직 없다</td></tr>
 <tr><td>3</td><td>검수 봇 분리·읽기 전용·이종 모델</td><td>P2</td><td class="done">✔ 검수 봇 = OpenAI <code>gpt-6.1-sol</code>(예비 <code>claude-sonnet-5-5</code>), 쓰기는 <code>review-*.md</code>만 — HER-26에서 <code>2+2=5</code> 반려→수정→승인. HER-33에서 21건을 모두 검수했고, 2건을 반려한 뒤 수정본을 통과시켰다</td></tr>
