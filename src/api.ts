@@ -170,6 +170,34 @@ export async function request<T>(
   return payload as T;
 }
 
+export type WorkPlanCategory = "do" | "scheduled" | "planned" | "done";
+export type WorkPlanItem = {
+  file: string;
+  title: string;
+  status: string;
+  category: WorkPlanCategory;
+};
+export type WorkPlanFolder = { id: string; label: string; available: boolean };
+export type WorkPlan = {
+  folder: string;
+  label: string;
+  available: boolean;
+  generatedAt: string;
+  counts: Record<WorkPlanCategory, number>;
+  items: WorkPlanItem[];
+  error?: string;
+};
+
+export async function fetchWorkPlanFolders(): Promise<{ folders: WorkPlanFolder[] }> {
+  return request<{ folders: WorkPlanFolder[] }>("/api/hermes/work-plan/folders");
+}
+
+export async function fetchWorkPlan(folder: string): Promise<WorkPlan> {
+  return request<WorkPlan>(
+    `/api/hermes/work-plan?folder=${encodeURIComponent(folder)}`,
+  );
+}
+
 export function timeAgo(timestamp?: number): string {
   if (!timestamp) return "기록 없음";
   const diff = Math.max(0, Date.now() / 1000 - timestamp);

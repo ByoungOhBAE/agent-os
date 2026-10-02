@@ -6,6 +6,7 @@ import {
   ChevronDown,
   CircleAlert,
   CircleDashed,
+  ClipboardList,
   Clock3,
   FolderKanban,
   Layers3,
@@ -31,6 +32,12 @@ import {
   request,
   timeAgo,
   messageText,
+  fetchWorkPlan,
+  fetchWorkPlanFolders,
+  type WorkPlan,
+  type WorkPlanItem,
+  type WorkPlanFolder,
+  type WorkPlanCategory,
   type Agent,
   type FeatureState,
   type BoardInfo,
@@ -53,17 +60,181 @@ import {
 } from "./api";
 import { readSse } from "./sse";
 
-type Tab = "overview" | "chat" | "sessions" | "skills" | "kanban" | "discover" | "memory" | "runtimes";
+type Tab = "overview" | "chat" | "sessions" | "skills" | "plan" | "kanban" | "discover" | "memory" | "runtimes";
 const tabs: { id: Tab; label: string; icon: typeof Activity }[] = [
   { id: "overview", label: "개요", icon: Activity },
   { id: "chat", label: "Chat", icon: MessageSquare },
   { id: "sessions", label: "Sessions", icon: Layers3 },
   { id: "skills", label: "Skills", icon: Sparkles },
+  { id: "plan", label: "작업 계획", icon: ClipboardList },
   { id: "kanban", label: "Kanban", icon: FolderKanban },
   { id: "discover", label: "탐색", icon: Search },
   { id: "memory", label: "Memory", icon: Layers3 },
   { id: "runtimes", label: "Runtimes", icon: Activity },
 ];
+
+function WorkPlanView() {
+  const [folders, setFolders] = useState<WorkPlanFolder[]>([]);
+  const [folderId, setFolderId] = useState<string>("");
+  const [plan, setPlan] = useState<WorkPlan | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadFolders = useCallback(async () => {
+    try {
+      const res = await fetchWorkPlanFolders();
+      setFolders(res.folders);
+      setFolderId(
+        (cur) =>
+          cur ||
+          res.folders.find((f) => f.available)?.id ||
+          res.folders[0]?.id ||
+          "",
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "폴더 목록을 불러오지 못했습니다.");
+    }
+  }, []);
+
+  const loadPlan = useCallback(async (id: string) => {
+    if (!id) return;
+    setLoading(true);
+    setError("");
+    try {
+      setPlan(await fetchWorkPlan(id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "작업 계획을 불러오지 못했습니다.");
+      setPlan(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadFolders();
+  }, [loadFolders]);
+  useEffect(() => {
+    void loadPlan(folderId);
+  }, [folderId, loadPlan]);
+
+  const columns: { cat: WorkPlanCategory; title: string; hint: string }[] = [
+    { cat: "do", title: "해야 할 일", hint: "진행 중이거나 바로 이어서 할 작업" },
+    { cat: "scheduled", title: "예정된 작업", hint: "승인됨 · 시작 예정" },
+    { cat: "planned", title: "계획만 된 작업", hint: "초안 · 검토/승인 대기" },
+  ];
+  const byCat = (cat: WorkPlanCategory): WorkPlanItem[] =>
+    plan ? plan.items.filter((item) => item.category === cat) : [];
+  const doneItems = byCat("done");
+
+  return (
+    <section className="work-plan" aria-label="작업 계획">
+      <header className="wp-head">
+        <h2>작업 계획</h2>
+        <p>
+          폴더를 골라 해야 할 일 · 예정 · 계획만 된 작업을 한눈에 봅니다.
+          &ldquo;완료&rdquo;에는 증거가 필요합니다.
+        </p>
+      </header>
+
+      <div className="wp-folders" role="tablist" aria-label="폴더 선택">
+        {folders.map((f) => (
+          <button
+            key={f.id}
+            role="tab"
+            aria-selected={folderId === f.id}
+            className={`wp-folder ${folderId === f.id ? "active" : ""}`}
+            disabled={!f.available}
+            title={f.available ? undefined : "폴더를 찾을 수 없습니다"}
+            onClick={() => setFolderId(f.id)}
+          >
+            {f.label}
+            {!f.available && " (없음)"}
+          </button>
+        ))}
+        <button
+          className="btn secondary wp-refresh"
+          onClick={() => void loadPlan(folderId)}
+          disabled={loading || !folderId}
+        >
+          <RefreshCw size={14} /> 새로고침
+        </button>
+      </div>
+
+      {error && <p className="wp-error">{error}</p>}
+      {loading && !plan && <p className="wp-empty">작업 계획을 불러오는 중…</p>}
+
+      {plan && (
+        <>
+          <div className="wp-stats">
+            <div className="wp-stat">
+              <strong>{plan.counts.do}</strong>
+              <span>해야 할 일</span>
+            </div>
+            <div className="wp-stat">
+              <strong>{plan.counts.scheduled}</strong>
+              <span>예정</span>
+            </div>
+            <div className="wp-stat">
+              <strong>{plan.counts.planned}</strong>
+              <span>계획만</span>
+            </div>
+            <div className="wp-stat">
+              <strong>{plan.counts.done}</strong>
+              <span>완료</span>
+            </div>
+          </div>
+
+          <div className="wp-cols">
+            {columns.map((col) => {
+              const items = byCat(col.cat);
+              return (
+                <div key={col.cat} className={`wp-col wp-col-${col.cat}`}>
+                  <h3>
+                    <span className={`wp-dot wp-dot-${col.cat}`} />
+                    {col.title} <span className="wp-count">{items.length}</span>
+                  </h3>
+                  <p className="wp-hint">{col.hint}</p>
+                  {items.length ? (
+                    items.map((item) => (
+                      <article key={item.file} className="wp-card">
+                        <div className="wp-title">{item.title}</div>
+                        {item.status && (
+                          <div className="wp-status">{item.status}</div>
+                        )}
+                        <div className="wp-src">{item.file}</div>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="wp-empty">항목이 없습니다.</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {doneItems.length > 0 && (
+            <div className="wp-done">
+              <h4>✅ 완료 (참고) · {doneItems.length}건</h4>
+              <div className="wp-chips">
+                {doneItems.map((item) => (
+                  <span key={item.file} className="wp-chip" title={item.file}>
+                    {item.title}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="wp-foot">
+            출처: {plan.label} 폴더의 계획 문서 자동 정리 ·{" "}
+            {new Date(plan.generatedAt).toLocaleString("ko-KR")} · 자동 분류는
+            참고용이며 큐레이션으로 보정합니다.
+          </p>
+        </>
+      )}
+    </section>
+  );
+}
 const emptyAgents: Agent[] = [
   {
     id: "hermes",
@@ -3321,6 +3492,7 @@ export default function App() {
         {agent.id === "hermes" && tab === "skills" && (
           <Skills key={profile} profile={profile} />
         )}
+        {agent.id === "hermes" && tab === "plan" && <WorkPlanView />}
         {agent.id === "hermes" && tab === "kanban" && (
           <Kanban profiles={profiles.data?.profiles || []} initialTask={requestedTask} />
         )}

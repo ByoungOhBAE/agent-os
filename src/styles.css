@@ -2446,3 +2446,58 @@ button:active:not(:disabled) { transform: scale(.98); }
   .mission-filters { gap: 1px; }
   .mission-signal-panel > .btn + .btn { margin: 8px 0 0; }
 }
+
+/* 작업 계획 (Work Plan) */
+.work-plan { display: block; }
+.wp-head h2 { font-size: 20px; margin: 0 0 4px; color: var(--text); }
+.wp-head p { margin: 0 0 16px; color: var(--muted); font-size: 13px; max-width: 70ch; }
+.wp-folders { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; }
+.wp-folder {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer;
+}
+.wp-folder:hover:not(:disabled) { border-color: var(--accent); }
+.wp-folder.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 650; }
+.wp-folder:disabled { opacity: .5; cursor: not-allowed; }
+.wp-refresh { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+.wp-error { color: var(--red); font-size: 13px; margin: 8px 0; }
+.wp-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.wp-stat {
+  border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px;
+  min-width: 108px; background: var(--surface);
+}
+.wp-stat strong { display: block; font-size: 24px; color: var(--text); }
+.wp-stat span { font-size: 12px; color: var(--muted); }
+.wp-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.wp-col {
+  border: 1px solid var(--border); border-radius: 14px; padding: 14px;
+  background: var(--surface); min-width: 0;
+}
+.wp-col h3 { font-size: 14px; margin: 0 0 2px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+.wp-count { color: var(--muted); font-weight: 400; font-size: 13px; }
+.wp-hint { font-size: 12px; color: var(--muted); margin: 0 0 12px; }
+.wp-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+.wp-dot-do { background: var(--red); }
+.wp-dot-scheduled { background: var(--amber); }
+.wp-dot-planned { background: var(--muted); }
+.wp-card {
+  border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px;
+  margin-bottom: 10px; background: var(--surface-raised, var(--raised));
+}
+.wp-card:last-child { margin-bottom: 0; }
+.wp-title { font-weight: 600; font-size: 13.5px; line-height: 1.35; color: var(--text); }
+.wp-status { font-size: 12px; color: var(--muted); margin: 5px 0 6px; line-height: 1.45; }
+.wp-src { font-size: 10.5px; color: var(--muted); opacity: .7; word-break: break-all; }
+.wp-empty { color: var(--muted); font-size: 12.5px; }
+.wp-done { margin-top: 22px; border-top: 1px dashed var(--border); padding-top: 14px; }
+.wp-done h4 { font-size: 13px; margin: 0 0 10px; color: var(--muted); font-weight: 600; }
+.wp-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.wp-chip {
+  font-size: 11.5px; border: 1px solid var(--border); border-radius: 999px;
+  padding: 4px 10px; color: var(--muted); background: var(--surface);
+}
+.wp-foot { margin-top: 18px; font-size: 11.5px; color: var(--muted); }
+@media (max-width: 860px) {
+  .wp-cols { grid-template-columns: minmax(0, 1fr); }
+  .wp-refresh { margin-left: 0; }
+}

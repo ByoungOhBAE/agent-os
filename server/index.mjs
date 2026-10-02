@@ -10,6 +10,7 @@ import { listBotWorkspaces, setBotWorkspace, WorkspaceError } from "./bot-worksp
 import { createControlRoutes } from "./control.mjs";
 import { createRoomRoutes } from "./rooms.mjs";
 import { createAcademyContentRoutes } from "./academy-content.mjs";
+import { listWorkPlanFolders, scanWorkPlan } from "./work-plan.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
@@ -654,6 +655,15 @@ async function route(req, res, url) {
   // Department workspaces (org-chart plugin): which folder each bot profile runs in.
   if (pathname === "/api/hermes/workspaces" && method === "GET") {
     return json(res, 200, listBotWorkspaces());
+  }
+  // Work Plan (작업 계획): read-only per-folder planning view.
+  if (pathname === "/api/hermes/work-plan/folders" && method === "GET") {
+    return json(res, 200, { folders: listWorkPlanFolders() });
+  }
+  if (pathname === "/api/hermes/work-plan" && method === "GET") {
+    const result = await scanWorkPlan(url.searchParams.get("folder") || "");
+    if (!result) throw new HttpError(404, "알 수 없는 폴더입니다.");
+    return json(res, 200, result);
   }
   const workspaceOf = pathname.match(/^\/api\/hermes\/workspaces\/([^/]+)$/);
   if (workspaceOf && method === "PATCH") {
