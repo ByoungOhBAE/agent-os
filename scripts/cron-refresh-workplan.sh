@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # Daily auto-refresh for the Paperclip '작업 계획' data.
 # Regenerates the per-folder work-plan snapshot and redeploys it into the
-# Paperclip override dir. No BFF / no LLM needed. Registered as a Hermes cron
-# (no_agent) at 06:00. Idempotent; safe to run anytime.
+# Paperclip override dir. No BFF needed. Idempotent; safe to run anytime.
+#
+# Scheduled by the Paperclip routine '작업계획 스냅샷 매일 최신화'
+# (routine d1a60138-6b9c-4874-88c3-7849540e6fb7, trigger 매일 06:00 Asia/Seoul,
+#  assignee 대시보드개선_코드구현): the routine's agent runs this script via WSL.
+#   bash "/mnt/c/Users/tahar/orca/workspaces/agent os/scripts/cron-refresh-workplan.sh"
 set -euo pipefail
 
 GEN="C:/Users/tahar/orca/workspaces/agent os/scripts/gen-paperclip-workplan.mjs"
