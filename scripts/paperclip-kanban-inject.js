@@ -1,0 +1,218 @@
+/* AgentOS '칸반' (Hermes Kanban) ported into the Paperclip UI.
+ * Full interactive board: read columns/cards, create tasks, move (change status).
+ * Talks to the AgentOS BFF (127.0.0.1:4200), which proxies Hermes Kanban.
+ * Additive + revertible: adds a sidebar item above '작업'(/issues) + an overlay.
+ * Remove the <script> tag + this file (revert script) to undo.
+ */
+(() => {
+  "use strict";
+  if (window.__agentosKanban) return;
+  window.__agentosKanban = true;
+
+  const BFF = "http://127.0.0.1:4200";
+  const NAV_ID = "agentos-kanban-nav";
+  const STATUSES = ["triage", "todo", "scheduled", "ready", "running", "blocked", "review", "done"];
+  const STATUS_KO = {
+    triage: "분류", todo: "할 일", scheduled: "예정", ready: "준비됨",
+    running: "진행 중", blocked: "막힘", review: "검토", done: "완료", archived: "보관",
+  };
+  const ICON =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>';
+
+  function esc(x) {
+    return String(x == null ? "" : x).replace(/[&<>"]/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+  async function api(path, opts) {
+    const r = await fetch(BFF + path, {
+      method: (opts && opts.method) || "GET",
+      headers: opts && opts.body ? { "Content-Type": "application/json" } : {},
+      body: opts && opts.body ? JSON.stringify(opts.body) : undefined,
+      cache: "no-store",
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || `요청 실패 (${r.status})`);
+    return j;
+  }
+
+  // ---- sidebar nav injection ----
+  function findIssuesLink() {
+    return document.querySelector('nav a[href$="/issues"], aside a[href$="/issues"]');
+  }
+  function tryInject() {
+    if (document.getElementById(NAV_ID)) return;
+    const ref = findIssuesLink();
+    if (!ref || !ref.parentElement) return;
+    const a = document.createElement("a");
+    a.id = NAV_ID;
+    a.href = "#agentos-kanban";
+    a.className = ref.className;
+    a.setAttribute("role", "button");
+    a.setAttribute("aria-label", "칸반");
+    a.innerHTML = ICON + '<span style="flex:1 1 auto;min-width:0">칸반</span>';
+    a.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openPanel(); });
+    ref.parentElement.insertBefore(a, ref);
+  }
+
+  // ---- styles ----
+  function ensureStyle() {
+    if (document.getElementById("aos-kb-style")) return;
+    const s = document.createElement("style");
+    s.id = "aos-kb-style";
+    s.textContent = `
+.aos-kb-ov{position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,.6);display:flex;justify-content:center;overflow:auto;padding:24px 14px}
+.aos-kb-panel{width:100%;max-width:1400px;background:#0b0b0e;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;color:#e4e4e7;font-family:inherit;height:max-content;min-height:420px}
+.aos-kb-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.aos-kb-top h2{font-size:19px;margin:0;font-weight:650}
+.aos-kb-sel{background:#18181b;color:#e4e4e7;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:6px 10px;font-size:13px}
+.aos-kb-btn{background:#18181b;color:#e4e4e7;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer}
+.aos-kb-btn:hover{background:rgba(255,255,255,.07)}
+.aos-kb-btn.pri{background:#e4e4e7;color:#18181b;border-color:#e4e4e7;font-weight:600}
+.aos-kb-x{margin-left:auto}
+.aos-kb-sub{color:#a1a1aa;font-size:12.5px;margin:2px 0 14px}
+.aos-kb-new{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.aos-kb-new input{background:#18181b;color:#e4e4e7;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 10px;font-size:13px}
+.aos-kb-new .t{flex:1 1 240px;min-width:0}
+.aos-kb-cols{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.aos-kb-col{flex:0 0 240px;background:#141417;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;min-height:120px}
+.aos-kb-col h3{font-size:12.5px;margin:0 0 10px;color:#e4e4e7;display:flex;align-items:center;gap:6px;text-transform:none}
+.aos-kb-col .n{color:#a1a1aa;font-weight:400}
+.aos-kb-card{background:#18181b;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px 10px;margin-bottom:8px}
+.aos-kb-card .t{font-size:13px;font-weight:550;line-height:1.35}
+.aos-kb-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+.aos-kb-tag{font-size:10.5px;color:#a1a1aa;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:1px 7px}
+.aos-kb-move{background:#0b0b0e;color:#e4e4e7;border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:3px 6px;font-size:11px;margin-top:7px;width:100%}
+.aos-kb-empty{color:#71717a;font-size:11.5px;padding:6px 2px}
+.aos-kb-msg{color:#a1a1aa;font-size:13px;padding:24px 4px}
+.aos-kb-err{color:#f87171}
+.aos-kb-foot{margin-top:12px;font-size:11px;color:#71717a}
+`;
+    document.head.appendChild(s);
+  }
+
+  let boards = [];
+  let currentBoard = "";
+
+  function boardQuery() {
+    return currentBoard ? `?board=${encodeURIComponent(currentBoard)}` : "";
+  }
+
+  async function loadBoard(panel) {
+    const body = panel.querySelector(".aos-kb-body");
+    body.innerHTML = '<p class="aos-kb-msg">불러오는 중…</p>';
+    let board;
+    try {
+      board = await api(`/api/hermes/kanban/board${boardQuery()}`);
+    } catch (e) {
+      body.innerHTML = `<p class="aos-kb-msg aos-kb-err">칸반을 불러오지 못했습니다: ${esc(e.message)}<br><span style="color:#a1a1aa">AgentOS BFF(127.0.0.1:4200)가 실행 중인지 확인하세요 (Paperclip 바로가기 실행 시 자동 기동).</span></p>`;
+      return;
+    }
+    const cols = board.columns || [];
+    const colsHtml = cols
+      .map((c) => {
+        const tasks = c.tasks || [];
+        const cards = tasks.length
+          ? tasks
+              .map((t) => {
+                const opts = STATUSES.concat(["archived"])
+                  .map((s) => `<option value="${s}"${s === c.name ? " selected" : ""}>${STATUS_KO[s] || s}</option>`)
+                  .join("");
+                const tags = [];
+                if (t.assignee) tags.push(`<span class="aos-kb-tag">${esc(t.assignee)}</span>`);
+                if (t.identifier) tags.push(`<span class="aos-kb-tag">${esc(t.identifier)}</span>`);
+                return `<div class="aos-kb-card" data-id="${esc(t.id)}"><div class="t">${esc(t.title)}</div>${
+                  tags.length ? `<div class="aos-kb-meta">${tags.join("")}</div>` : ""
+                }<select class="aos-kb-move" data-id="${esc(t.id)}">${opts}</select></div>`;
+              })
+              .join("")
+          : '<div class="aos-kb-empty">—</div>';
+        return `<div class="aos-kb-col"><h3>${STATUS_KO[c.name] || esc(c.name)} <span class="n">${tasks.length}</span></h3>${cards}</div>`;
+      })
+      .join("");
+    body.innerHTML = `<div class="aos-kb-cols">${colsHtml}</div><p class="aos-kb-foot">출처: Hermes Kanban · 보드 ${esc(currentBoard || "default")} · 상태를 바꾸면 즉시 이동됩니다.</p>`;
+    // move handlers
+    body.querySelectorAll(".aos-kb-move").forEach((sel) => {
+      sel.addEventListener("change", async () => {
+        const id = sel.dataset.id;
+        sel.disabled = true;
+        try {
+          await api(`/api/hermes/kanban/tasks/${encodeURIComponent(id)}${boardQuery()}`, {
+            method: "PATCH",
+            body: { status: sel.value },
+          });
+          await loadBoard(panel);
+        } catch (e) {
+          sel.disabled = false;
+          alert("이동 실패: " + e.message);
+        }
+      });
+    });
+  }
+
+  async function openPanel() {
+    ensureStyle();
+    let ov = document.getElementById("aos-kb-ov");
+    if (ov) { ov.style.display = "flex"; return; }
+    ov = document.createElement("div");
+    ov.id = "aos-kb-ov";
+    ov.className = "aos-kb-ov";
+    ov.innerHTML =
+      '<div class="aos-kb-panel" role="dialog" aria-label="칸반">' +
+      '<div class="aos-kb-top"><h2>🗂️ 칸반</h2>' +
+      '<select class="aos-kb-sel aos-kb-boards" aria-label="보드 선택"></select>' +
+      '<button class="aos-kb-btn aos-kb-refresh">새로고침</button>' +
+      '<button class="aos-kb-btn aos-kb-x">닫기 ✕</button></div>' +
+      '<p class="aos-kb-sub">Hermes Kanban 보드 — 작업을 만들고 상태(열)를 바꿔 이동합니다. 조직 대시보드 안에서 바로.</p>' +
+      '<div class="aos-kb-new"><input class="t" placeholder="새 작업 제목" aria-label="새 작업 제목"><input class="asg" placeholder="담당자(선택)" aria-label="담당자" style="flex:0 0 140px"><button class="aos-kb-btn pri aos-kb-add">+ 새 작업</button></div>' +
+      '<div class="aos-kb-body"><p class="aos-kb-msg">불러오는 중…</p></div></div>';
+    ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
+    document.body.appendChild(ov);
+    const panel = ov.querySelector(".aos-kb-panel");
+    ov.querySelector(".aos-kb-x").addEventListener("click", () => ov.remove());
+    ov.querySelector(".aos-kb-refresh").addEventListener("click", () => loadBoard(panel));
+
+    // board selector
+    const sel = ov.querySelector(".aos-kb-boards");
+    try {
+      const bl = await api("/api/hermes/kanban/boards");
+      boards = bl.boards || [];
+      currentBoard = currentBoard || bl.current || (boards[0] && boards[0].slug) || "";
+      sel.innerHTML = boards
+        .map((b) => `<option value="${esc(b.slug)}"${b.slug === currentBoard ? " selected" : ""}>${esc(b.name || b.slug)}${b.total ? ` (${b.total})` : ""}</option>`)
+        .join("");
+    } catch {
+      sel.innerHTML = '<option value="">default</option>';
+    }
+    sel.addEventListener("change", () => { currentBoard = sel.value; loadBoard(panel); });
+
+    // create
+    const add = ov.querySelector(".aos-kb-add");
+    add.addEventListener("click", async () => {
+      const titleEl = ov.querySelector(".aos-kb-new .t");
+      const asgEl = ov.querySelector(".aos-kb-new .asg");
+      const title = titleEl.value.trim();
+      if (!title) { titleEl.focus(); return; }
+      add.disabled = true;
+      try {
+        await api(`/api/hermes/kanban/tasks${boardQuery()}`, {
+          method: "POST",
+          body: { title, assignee: asgEl.value.trim() || undefined },
+        });
+        titleEl.value = ""; asgEl.value = "";
+        await loadBoard(panel);
+      } catch (e) {
+        alert("생성 실패: " + e.message);
+      } finally {
+        add.disabled = false;
+      }
+    });
+
+    await loadBoard(panel);
+  }
+
+  tryInject();
+  const mo = new MutationObserver(() => { if (!document.getElementById(NAV_ID)) tryInject(); });
+  mo.observe(document.body, { childList: true, subtree: true });
+  setInterval(tryInject, 2000);
+  if (location.hash === "#agentos-kanban") setTimeout(openPanel, 800);
+})();

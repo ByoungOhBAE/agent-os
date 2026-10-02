@@ -7,7 +7,8 @@
 set -euo pipefail
 
 REPO="/mnt/c/Users/tahar/orca/workspaces/agent os"
-SRC_JS="$REPO/scripts/paperclip-workplan-inject.js"
+SRC_WP="$REPO/scripts/paperclip-workplan-inject.js"
+SRC_KB="$REPO/scripts/paperclip-kanban-inject.js"
 WORKPLAN_JSON="${1:-}"   # optional: path to a freshly generated agentos-workplan.json
 
 # Resolve the served UI dir via the ui-dist symlink (survives version bumps).
@@ -25,9 +26,10 @@ else
   echo "backup: already exists (kept)"
 fi
 
-# 2) deploy injection script
-cp "$SRC_JS" "$OV/agentos-workplan.js"
-echo "deployed agentos-workplan.js ($(wc -c <"$OV/agentos-workplan.js")B)"
+# 2) deploy injection scripts
+cp "$SRC_WP" "$OV/agentos-workplan.js"
+cp "$SRC_KB" "$OV/agentos-kanban.js"
+echo "deployed agentos-workplan.js ($(wc -c <"$OV/agentos-workplan.js")B), agentos-kanban.js ($(wc -c <"$OV/agentos-kanban.js")B)"
 
 # 3) deploy data snapshot if provided; otherwise keep existing
 if [ -n "$WORKPLAN_JSON" ] && [ -f "$WORKPLAN_JSON" ]; then
@@ -40,20 +42,23 @@ else
   echo "  node scripts/gen-paperclip-workplan.mjs <out.json>  then pass it as arg" >&2
 fi
 
-# 4) idempotent index.html injection (marker-guarded)
+# 4) idempotent index.html injection (normalises any prior marker, re-inserts both)
 python3 - "$OV/index.html" <<'PY'
-import io, sys
+import io, re, sys
 p = sys.argv[1]
 s = io.open(p, encoding="utf-8").read()
-if "AGENTOS_WORKPLAN_START" in s:
-    print("index.html: already injected")
-else:
-    tag = ("\n    <!-- AGENTOS_WORKPLAN_START -->"
-           '\n    <script src="/agentos-workplan.js" defer></script>'
-           "\n    <!-- AGENTOS_WORKPLAN_END -->\n  ")
-    s = s.replace("</body>", tag + "</body>", 1) if "</body>" in s else s + tag
-    io.open(p, "w", encoding="utf-8").write(s)
-    print("index.html: injected")
+# strip any previous AgentOS injection block (combined or legacy work-plan-only)
+s = re.sub(r"\n?\s*<!-- AGENTOS_INJECT_START -->.*?<!-- AGENTOS_INJECT_END -->\n?", "\n", s, flags=re.S)
+s = re.sub(r"\n?\s*<!-- AGENTOS_WORKPLAN_START -->.*?<!-- AGENTOS_WORKPLAN_END -->\n?", "\n", s, flags=re.S)
+block = (
+    "\n    <!-- AGENTOS_INJECT_START -->"
+    '\n    <script src="/agentos-workplan.js" defer></script>'
+    '\n    <script src="/agentos-kanban.js" defer></script>'
+    "\n    <!-- AGENTOS_INJECT_END -->\n  "
+)
+s = s.replace("</body>", block + "</body>", 1) if "</body>" in s else s + block
+io.open(p, "w", encoding="utf-8").write(s)
+print("index.html: injected '작업 계획' + '칸반'")
 PY
 
-echo "done. Reload the Paperclip dashboard to see the '작업 계획' item above '작업'."
+echo "done. Reload Paperclip to see '작업 계획' and '칸반' above '작업'."

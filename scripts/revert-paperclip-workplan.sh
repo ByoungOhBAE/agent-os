@@ -25,6 +25,6 @@ print("stripped injected block (no backup found)")
 PY
 fi
 
-rm -f "$OV/agentos-workplan.js" "$OV/agentos-workplan.json"
-echo "removed agentos-workplan.js / agentos-workplan.json"
-echo "done. Reload the Paperclip dashboard — the '작업 계획' item is gone."
+rm -f "$OV/agentos-workplan.js" "$OV/agentos-workplan.json" "$OV/agentos-kanban.js"
+echo "removed agentos-workplan.js / agentos-workplan.json / agentos-kanban.js"
+echo "done. Reload the Paperclip dashboard — the '작업 계획' and '칸반' items are gone."

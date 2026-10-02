@@ -38,6 +38,8 @@ if (
 const allowedOrigins = new Set([
   `http://${host}:${port}`,
   "http://127.0.0.1:5173",
+  // Paperclip org dashboard: its injected '칸반' view calls this BFF cross-origin.
+  "http://127.0.0.1:3100",
 ]);
 
 for (const target of [dashboard, apiServer]) {
@@ -1149,34 +1151,20 @@ async function route(req, res, url) {
   throw new HttpError(404, "해당 기능을 찾을 수 없습니다.");
 }
 
-async function staticFile(res, pathname) {
-  const requested = pathname === "/" ? "/index.html" : pathname;
-  const file = path.resolve(dist, "." + decodeURIComponent(requested));
-  if (
-    !file.startsWith(dist + path.sep) &&
-    file !== path.join(dist, "index.html")
-  )
-    throw new HttpError(403, "접근이 거부되었습니다.");
-  const target = (await stat(file).catch(() => null))?.isFile()
-    ? file
-    : path.join(dist, "index.html");
-  const data = await readFile(target);
-  const extension = path.extname(target);
-  const mime =
-    {
-      ".html": "text/html; charset=utf-8",
-      ".js": "text/javascript; charset=utf-8",
-      ".css": "text/css; charset=utf-8",
-      ".svg": "image/svg+xml",
-      ".png": "image/png",
-    }[extension] || "application/octet-stream";
-  res.writeHead(200, {
-    "Content-Type": mime,
+// The standalone AgentOS dashboard UI is retired; this process now runs only as
+// the Paperclip integration BFF. Non-API GETs return a short notice, not a SPA.
+function serveNotice(res, pathname) {
+  const root = pathname === "/";
+  res.writeHead(root ? 200 : 404, {
+    "Content-Type": "text/html; charset=utf-8",
     "X-Content-Type-Options": "nosniff",
-    "Cache-Control":
-      extension === ".html" ? "no-store" : "public, max-age=3600",
+    "Cache-Control": "no-store",
   });
-  res.end(data);
+  res.end(
+    root
+      ? '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>AgentOS BFF</title></head><body style="font-family:system-ui,sans-serif;background:#0b0b0e;color:#e4e4e7;margin:0;padding:48px;line-height:1.6"><h1 style="margin:0 0 12px">AgentOS BFF</h1><p>자체 대시보드 UI는 사용 중단되었습니다. 조직 대시보드는 <b>Paperclip (http://127.0.0.1:3100)</b>을 사용하세요.</p><p style="color:#a1a1aa">이 서버는 Paperclip 연동용 BFF API(<code>/api/*</code>)만 제공합니다.</p></body></html>'
+      : "",
+  );
 }
 
 const server = createServer(async (req, res) => {
@@ -1184,12 +1172,24 @@ const server = createServer(async (req, res) => {
     const hostname = (req.headers.host || "").split(":")[0];
     if (!["127.0.0.1", "localhost"].includes(hostname))
       throw new HttpError(403, "허용되지 않은 호스트입니다.");
-    if (req.headers.origin && !allowedOrigins.has(req.headers.origin))
+    const origin = req.headers.origin;
+    if (origin && !allowedOrigins.has(origin))
       throw new HttpError(403, "허용되지 않은 출처입니다.");
+    if (origin && allowedOrigins.has(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.setHeader("Access-Control-Max-Age", "600");
+    }
+    if (req.method === "OPTIONS") {
+      res.writeHead(204);
+      return res.end();
+    }
     const url = new URL(req.url || "/", `http://${host}:${port}`);
     if (url.pathname.startsWith("/api/")) await route(req, res, url);
     else if (req.method === "GET" || req.method === "HEAD")
-      await staticFile(res, url.pathname);
+      serveNotice(res, url.pathname);
     else throw new HttpError(405, "허용되지 않은 요청입니다.");
   } catch (error) {
     if (res.headersSent) {
