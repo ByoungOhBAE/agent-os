@@ -77,17 +77,28 @@ export function extractDoc(markdown, fileName = "") {
   let status = "";
   const scan = lines.slice(0, 60);
   for (const line of scan) {
-    if (/(^|\s)(상태|status)\s*[:：]/i.test(line) || /\*\*상태/.test(line)) {
-      status = cleanInline(line.replace(/^[-*\s]*/, ""));
+    if (/^\s*[|`]/.test(line)) continue; // skip table rows / code fences
+    // Status marker must sit near the line start (optionally after a
+    // bullet/blockquote/bold), not anywhere inside prose or a code snippet
+    // such as `status:"started"`.
+    if (/^[-*>\s]*(\*\*)?\s*(상태|status)\s*[:：]/i.test(line)) {
+      status = cleanInline(line.replace(/^[-*>\s]*/, ""));
       break;
     }
   }
   // Broader signal for classification when there is no explicit status line:
   // the title plus the first non-empty body lines often carry 완료/진행/초안.
   const bodyHead = lines
-    .filter((l) => l.trim() && !/^#{1,6}\s/.test(l))
+    .filter(
+      (l) =>
+        l.trim() &&
+        !/^#{1,6}\s/.test(l) && // headings
+        !/^\s*\|/.test(l) && // table rows
+        !/^\s*[-=|:\s]+$/.test(l), // table separators / rules
+    )
     .slice(0, 20)
     .map((l) => cleanInline(l))
+    .filter(Boolean)
     .join(" \u00b7 ");
   return { title, status, bodyHead };
 }
