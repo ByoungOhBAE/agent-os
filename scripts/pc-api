@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# pc-api — the only shell command a sandboxed Paperclip agent is allowed to run.
+#
+# Calls the Paperclip control-plane API of the current run and nothing else:
+#   pc-api GET   /api/issues/{task}
+#   pc-api PATCH /api/issues/{task} '{"status":"done","comment":"..."}'
+#   pc-api POST  /api/issues/{task}/comments '{"body":"..."}'
+#
+# Placeholders {task} {company} {agent} {run} are filled from the run's
+# PAPERCLIP_* env, so the agent never needs `$VAR` expansion in its command
+# (Claude Code's permission checker rejects commands containing expansions).
+# The target origin is always $PAPERCLIP_API_URL; the path must be under /api/.
+# The run token is sent as a header and is never printed.
+set -euo pipefail
+
+die() { printf 'pc-api: %s\n' "$1" >&2; exit 2; }
+
+[ $# -ge 2 ] && [ $# -le 3 ] || die "usage: pc-api GET|POST|PATCH /api/... ['<json body>']"
+method=$1 path=$2 body=${3-}
+
+case "$method" in GET|POST|PATCH) ;; *) die "method must be GET, POST or PATCH" ;; esac
+[ -n "${PAPERCLIP_API_URL-}" ] || die "PAPERCLIP_API_URL is not set (not inside a Paperclip run?)"
+[ -n "${PAPERCLIP_API_KEY-}" ] || die "PAPERCLIP_API_KEY is not set (not inside a Paperclip run?)"
+
+path=${path//\{task\}/${PAPERCLIP_TASK_ID-}}
+path=${path//\{company\}/${PAPERCLIP_COMPANY_ID-}}
+path=${path//\{agent\}/${PAPERCLIP_AGENT_ID-}}
+path=${path//\{run\}/${PAPERCLIP_RUN_ID-}}
+
+[[ $path =~ ^/api/[A-Za-z0-9/_.,:=\&?%-]+$ ]] || die "path must start with /api/ and use URL-safe characters"
+[[ $path != *..* ]] || die "path must not contain '..'"
+[[ $path != *//* ]] || die "path must not contain '//'"
+if [ "$method" = GET ] && [ -n "$body" ]; then die "GET takes no body"; fi
+
+args=(-sS --max-time 30 -X "$method"
+  -H "Authorization: Bearer ${PAPERCLIP_API_KEY}"
+  -H "Accept: application/json"
+  -w '\n[pc-api] HTTP %{http_code}\n'
+  -o /dev/stdout)
+[ -n "${PAPERCLIP_RUN_ID-}" ] && args+=(-H "X-Paperclip-Run-Id: ${PAPERCLIP_RUN_ID}")
+if [ -n "$body" ]; then
+  printf '%s' "$body" | python3 -c 'import json,sys; json.load(sys.stdin)' 2>/dev/null || die "body must be valid JSON"
+  args+=(-H "Content-Type: application/json" --data-binary "$body")
+fi
+
+out=$(curl "${args[@]}" "${PAPERCLIP_API_URL%/}${path}") || die "request failed (network/proxy error)"
+printf '%s\n' "$out"
+code=${out##*HTTP }
+[ "${code:0:1}" = 2 ] || exit 1

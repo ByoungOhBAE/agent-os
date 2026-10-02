@@ -1,10 +1,20 @@
 # AgentOS design system
 
+## 2026 console direction · Operations ledger
+
+Audience: one local operator scanning current-board work, deciding what needs review, then opening the source task or session. The console should feel like a calm, precise operations ledger rather than a marketing analytics template. Domain vocabulary: board, task, review, run, source, observation, profile, memory. Physical color world: graphite workstation, slate screen, desaturated sage status light, warm paper notes, amber warning lamp, oxidized red fault indicator. Signature: a board-derived **work ledger**—one dominant current-board count, a thin proportional status track, and a compact attention queue; no fabricated global metrics.
+
+Reject: three equal KPI cards → one source-scoped work ledger; luminous gradient agent tiles → quiet monogram plaques; colored sidebar separate from page → continuous ink canvas with a single boundary. No decorative accent gradients. Success and warnings keep their meaning even without color.
+
+Tokens: ink `#101716`, canvas `#141b19`, panel `#1b2420`, raised `#25302a`, inset `#101815`, soft border `rgba(219,233,211,.10)`, primary text `#edf1e9`, secondary `#b4beb0`, tertiary `#89998b`, signal `#bdd1aa`; blue/amber/red reserved for semantic states. Four-pixel spacing grid; 12–16px component padding, 24–32px section rhythm. Borders-only depth, no decorative shadows. Compact 14px body / 12px metadata / 22px section / 32px page heading; weight and tone separate value, label and provenance. System Korean-capable font stack. One 4/8/12px radius scale for controls/panels/drawers.
+
+The work ledger and connection panels distinguish empty, loading, unavailable, stale, and observed states. Every control retains keyboard focus and 40px+ hit area. At 1440 the work ledger is dominant beside a narrow attention queue; at 768 the sidebar becomes a rail and the queue stacks; at 375 the nav is a drawer and only the board region scrolls horizontally. Keep Korean words intact, wrap identifiers anywhere. The Paperclip-hosted Hermes read-only plugin uses the same ink/sage hierarchy but inherits its host's navigation and does not invent write actions.
+
 AgentOS is a local operations console. The attached video frame informs its density and dark tone; its logos, copy, and artwork are not reused.
 
 ## Layout
 
-- Desktop (>= 1100px): 268px fixed sidebar, 1px divider, fluid main area with a 1120px readable content limit. The chat transcript may use the full remaining width.
+- Desktop (>= 1100px): 268px fixed sidebar, 1px divider, fluid main area with a 1500px content limit. The chat transcript may use the full remaining width.
 - Tablet (600–1099px): 72px icon rail, a collapsible navigation sheet, and a single main column.
 - Mobile (< 600px): 56px top bar, navigation drawer, horizontal feature tabs, stacked cards, and a composer anchored after the transcript. No horizontal page scrolling at 375px.
 - The board scrolls horizontally inside its own region. Its columns retain a 260px minimum width.
@@ -13,15 +23,15 @@ AgentOS is a local operations console. The attached video frame informs its dens
 
 | Token              | Value     | Use                             |
 | ------------------ | --------- | ------------------------------- |
-| `--bg`             | `#0d1110` | App background                  |
-| `--sidebar`        | `#141917` | Navigation                      |
-| `--surface`        | `#191f1c` | Panels                          |
-| `--surface-raised` | `#222a25` | Hover and selected surfaces     |
-| `--border`         | `#303a33` | Subtle separators               |
-| `--text`           | `#eef1e9` | Primary text                    |
-| `--muted`          | `#a1aaa0` | Secondary text                  |
-| `--accent`         | `#a4c997` | Actions and focus               |
-| `--blue`           | `#82afd4` | In progress                     |
+| `--bg`             | `#101716` | App background                  |
+| `--sidebar`        | `#141b19` | Navigation                      |
+| `--surface`        | `#1b2420` | Panels                          |
+| `--surface-raised` | `#25302a` | Hover and selected surfaces     |
+| `--border`         | `rgba(219,233,211,.10)` | Subtle separators   |
+| `--text`           | `#edf1e9` | Primary text                    |
+| `--muted`          | `#b4beb0` | Secondary text                  |
+| `--accent`         | `#bdd1aa` | Actions and focus               |
+| `--blue`           | `#a5bdd0` | In progress                     |
 | `--amber`          | `#e1bc78` | Waiting and warning             |
 | `--red`            | `#e18e88` | Failure and destructive actions |
 

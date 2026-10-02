@@ -40,21 +40,29 @@ import {
   type KanbanBoard,
   type KanbanDetail,
   type KanbanTask,
+  type OperationsSummary,
   type Message,
   type Profile,
   type Session,
+  type SessionSearchHit,
+  type SessionSearchResponse,
+  type McpInventory,
+  type LearningGraph,
   type Skill,
   type Status,
 } from "./api";
 import { readSse } from "./sse";
 
-type Tab = "overview" | "chat" | "sessions" | "skills" | "kanban";
+type Tab = "overview" | "chat" | "sessions" | "skills" | "kanban" | "discover" | "memory" | "runtimes";
 const tabs: { id: Tab; label: string; icon: typeof Activity }[] = [
   { id: "overview", label: "개요", icon: Activity },
   { id: "chat", label: "Chat", icon: MessageSquare },
   { id: "sessions", label: "Sessions", icon: Layers3 },
   { id: "skills", label: "Skills", icon: Sparkles },
   { id: "kanban", label: "Kanban", icon: FolderKanban },
+  { id: "discover", label: "탐색", icon: Search },
+  { id: "memory", label: "Memory", icon: Layers3 },
+  { id: "runtimes", label: "Runtimes", icon: Activity },
 ];
 const emptyAgents: Agent[] = [
   {
@@ -178,6 +186,7 @@ function useLoad<T>(loader: () => Promise<T>, deps: unknown[]) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [observedAt, setObservedAt] = useState<number | null>(null);
   const sequence = useRef(0);
   const refresh = useCallback(async () => {
     const current = ++sequence.current;
@@ -185,7 +194,10 @@ function useLoad<T>(loader: () => Promise<T>, deps: unknown[]) {
     setError("");
     try {
       const result = await loader();
-      if (current === sequence.current) setData(result);
+      if (current === sequence.current) {
+        setData(result);
+        setObservedAt(Date.now());
+      }
     } catch (err) {
       if (current === sequence.current)
         setError(err instanceof Error ? err.message : "요청 실패");
@@ -196,12 +208,39 @@ function useLoad<T>(loader: () => Promise<T>, deps: unknown[]) {
   }, deps);
   useEffect(() => {
     setData(null);
+    setObservedAt(null);
     void refresh();
     return () => {
       sequence.current++;
     };
   }, [refresh]);
-  return { data, setData, loading, error, refresh };
+  return { data, setData, loading, error, observedAt, refresh };
+}
+
+function observationLabel(at: number | null, error: string, loading: boolean) {
+  if (error) return at ? `실패 · 마지막 성공 · ${new Date(at).toLocaleString("ko-KR")}` : "실패 · 시각 미확인";
+  if (loading && at) return `갱신 중 · 마지막 성공 · ${new Date(at).toLocaleString("ko-KR")}`;
+  return at ? new Date(at).toLocaleString("ko-KR") : "시각 미확인";
+}
+
+function useVisiblePolling(refresh: () => Promise<void>, enabled = true) {
+  useEffect(() => {
+    if (!enabled) return;
+    let wasVisible = document.visibilityState === "visible";
+    const onVisibilityChange = () => {
+      const visible = document.visibilityState === "visible";
+      if (visible && !wasVisible) void refresh();
+      wasVisible = visible;
+    };
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, 30_000);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [refresh, enabled]);
 }
 
 function useOverlay(
@@ -252,16 +291,224 @@ function useOverlay(
   }, [open, ref]);
 }
 
+const workFilters = [
+  { id: "active", label: "Active", statuses: ["todo", "scheduled", "ready", "running"] },
+  { id: "attention", label: "Needs you", statuses: ["triage", "blocked", "review"] },
+  { id: "finished", label: "Finished", statuses: ["done"] },
+  { id: "all", label: "All work", statuses: [] },
+] as const;
+
+function MissionWork({ navigate, openTask }: { navigate: (tab: Tab) => void; openTask: (id: string, board: string) => void }) {
+  const [filter, setFilter] = useState<(typeof workFilters)[number]["id"]>("active");
+  const [query, setQuery] = useState("");
+  const [paused, setPaused] = useState(false);
+  const summary = useLoad(
+    () => request<OperationsSummary>("/api/operations/summary"),
+    [],
+  );
+  useVisiblePolling(summary.refresh, !paused && !summary.loading);
+  const data = summary.error ? null : summary.data;
+  const ready = data?.status === "available" && data.tasks && data.counts;
+  const stale = ready && data.asOf && Date.now() - Date.parse(data.asOf) > 60_000;
+  const search = query.trim().toLocaleLowerCase("ko-KR");
+  const visible = ready ? data.tasks!.filter((task) =>
+    (filter === "all" || workFilters.find((item) => item.id === filter)!.statuses.some(
+      (status) => status === task.status,
+    )) && (!search || `${task.title} ${task.assignee || ""}`.toLocaleLowerCase("ko-KR").includes(search)),
+  ) : [];
+  const attention = ready ? data.tasks!.filter((task) =>
+    ["triage", "blocked", "review"].includes(task.status),
+  ) : [];
+  const activity = data?.activity;
+  return (
+    <section className="mission-work" aria-label="Mission Control 작업 현황">
+      <div className="mission-toolbar">
+        <div>
+          <div className="eyebrow">HERMES KANBAN · 현재 보드만</div>
+          <h2>Work in motion</h2>
+          <p>{ready ? `현재 보드 · ${data.counts!.all}건` : "현재 보드 · 집계 대기"}</p>
+        </div>
+        <div className="section-actions">
+          <button className="btn secondary" aria-label="작업 현황 새로고침" onClick={() => void summary.refresh()} disabled={summary.loading}>
+            <RefreshCw size={15} /> 새로고침
+          </button>
+          <button className="btn secondary" onClick={() => setPaused((value) => !value)}>
+            {paused ? "자동 갱신 재개" : "자동 갱신 일시정지"}
+          </button>
+        </div>
+      </div>
+      <p className="mission-source">
+        {ready ? `${data.board?.name || "현재 보드"} · Hermes Kanban · ${data.asOf ? new Date(data.asOf).toLocaleString("ko-KR") : "시각 미확인"}${stale ? " · 오래된 데이터" : ""}${summary.loading ? " · 갱신 중" : ""}` : summary.error && summary.data?.asOf ? `Hermes Kanban · 조회 실패 · 마지막 성공 ${new Date(summary.data.asOf).toLocaleString("ko-KR")}` : "Hermes Kanban · 상태 미확인"}
+        {paused && " · 이 화면의 자동 갱신만 일시정지"}
+      </p>
+      {ready && (
+        <div className="work-ledger" aria-label="현재 보드 작업 요약">
+          <div className="ledger-primary">
+            <span className="eyebrow">CURRENT BOARD / {data.board?.name || "현재 보드"}</span>
+            <div className="ledger-value"><strong>{data.counts!.all}</strong><span>확인된 작업<br /><small>Hermes Kanban · 현재 보드</small></span></div>
+          </div>
+          <div className="ledger-breakdown">
+            <div className="ledger-numbers">
+              <div><span>진행 영역</span><strong>{data.counts!.active}</strong></div>
+              <div><span>확인 필요</span><strong className="attention-value">{data.counts!.attention}</strong></div>
+              <div><span>완료</span><strong>{data.counts!.finished}</strong></div>
+            </div>
+            <div className="ledger-track" aria-hidden="true">
+              {data.counts!.all > 0 && <>
+                <span className="track-active" style={{ flex: data.counts!.active }} />
+                <span className="track-attention" style={{ flex: data.counts!.attention }} />
+                <span className="track-finished" style={{ flex: data.counts!.finished }} />
+              </>}
+            </div>
+            <small>현재 보드의 상태별 분포 · 검색 필터와 무관</small>
+          </div>
+        </div>
+      )}
+      {!ready ? (
+        <div className="mission-unavailable" role="status">
+          <CircleAlert size={21} />
+          <div>
+            <strong>{summary.loading && !data ? "작업 현황 불러오는 중" : "보드 연결 확인 필요"}</strong>
+            <p>{data?.status === "unauthorized" ? "Hermes Dashboard 인증을 확인하세요." : data?.status === "unconfigured" ? "연결된 Hermes Kanban 보드가 없습니다." : summary.error || "Kanban 연결을 확인하세요. 작업 수는 미확인입니다."}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="mission-columns">
+          <div className="mission-list-panel">
+            <div className="mission-filters" aria-label="작업 필터">
+              {workFilters.map((item) => (
+                <button key={item.id} className={filter === item.id ? "selected" : ""} aria-label={item.label} aria-pressed={filter === item.id} onClick={() => setFilter(item.id)}>
+                  {item.label} <span>{data.counts![item.id]}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mission-search-row">
+              <label className="mission-search"><Search size={15} /><input type="search" aria-label="현재 보드 작업 검색" placeholder="현재 보드 작업 검색" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
+              {search && <small>검색 결과 {visible.length}건 · 선택한 상태 필터</small>}
+            </div>
+            {visible.length ? <div className="mission-task-list">{visible.map((task) => (
+              <button key={task.id} className="mission-task" onClick={() => openTask(task.id, data.board!.slug)}>
+                <span><strong>{task.title}</strong><small>{columnLabels[task.status] || task.status || "상태 미확인"}{task.assignee ? ` · ${task.assignee}` : ""}</small></span>
+                <ArrowRight size={16} />
+              </button>
+            ))}</div> : <p className="mission-empty">{search ? "검색 조건에 맞는 작업이 없습니다." : "표시할 작업이 없습니다."}</p>}
+          </div>
+          <aside className="mission-attention" aria-label="Your attention">
+            <div className="eyebrow">YOUR ATTENTION</div>
+            <h3>확인할 작업 <span>{data.counts!.attention}</span></h3>
+            {attention.length ? attention.slice(0, 4).map((task) => (
+              <button key={task.id} className="attention-item" onClick={() => openTask(task.id, data.board!.slug)}><CircleAlert size={15} /><span>{task.title}<small>{columnLabels[task.status] || task.status}</small></span></button>
+            )) : <p>검토·막힘·분류 작업이 없습니다.</p>}
+            <button className="btn secondary" onClick={() => navigate("kanban")}>칸반 보드 열기 <ArrowRight size={15} /></button>
+          </aside>
+        </div>
+      )}
+      <section className="mission-activity" aria-label="최근 활동">
+        <div className="eyebrow">HERMES · BOARD EVENTS</div>
+        <h3>최근 활동</h3>
+        <p className="mission-signal-note">현재 보드 · 최근 이벤트 ID 200개 범위</p>
+        {activity?.status === "available" && ready ? (
+          activity.events?.length ? <div className="mission-activity-list">{activity.events.map((event) => (
+            <button key={event.id} className="mission-task" onClick={() => openTask(event.taskId, data.board!.slug)}>
+              <span><strong>{event.title}</strong><small>{event.kind.replaceAll("_", " ")} · {new Date(event.created_at * 1000).toLocaleString("ko-KR")}</small></span>
+              <ArrowRight size={16} />
+            </button>
+          ))}</div> : <p className="mission-empty">이 범위에 표시할 실제 이벤트가 없습니다.</p>
+        ) : <p className="mission-empty">{activity?.status === "unauthorized" ? "활동 인증 필요 · 작업 수는 유지됩니다." : activity?.status === "unavailable" ? "활동 조회 불가 · 작업 수는 유지됩니다." : "활동 미집계 · 연결 상태를 확인하세요."}</p>}
+        {activity?.asOf && <small className="mission-activity-asof">활동 조회 · {new Date(activity.asOf).toLocaleString("ko-KR")}</small>}
+      </section>
+    </section>
+  );
+}
+
+function MissionSignals({
+  status, statusLoading, statusError, statusObservedAt, refreshStatus, profiles, recent,
+  profile, navigate, openSession,
+}: {
+  status: Status | null;
+  statusLoading: boolean;
+  statusError: string;
+  statusObservedAt: number | null;
+  refreshStatus: () => Promise<void>;
+  profiles: { data: { profiles: Profile[] } | null; loading: boolean; error: string; observedAt: number | null; refresh: () => Promise<void> };
+  recent: { data: { sessions: Session[] } | null; loading: boolean; error: string; observedAt: number | null; refresh: () => Promise<void> };
+  profile: string;
+  navigate: (tab: Tab) => void;
+  openSession: (id: string) => void;
+}) {
+  const dashboardState = !status
+    ? "확인 중"
+    : status.dashboard === "online" ? "온라인" : status.dashboard === "unauthorized" ? "인증 필요" : "오프라인";
+  const apiState = !status
+    ? "확인 중"
+    : status.apiServer === "online" ? "온라인" : status.apiServer === "unauthorized" ? "인증 필요"
+      : status.apiServer === "unconfigured" ? "설정 필요" : "오프라인";
+  const sessions = recent.error ? null : recent.data?.sessions;
+  return (
+    <div className="mission-signals">
+      <section className="panel mission-signal-panel" aria-label="Fleet & connections">
+        <div className="eyebrow">HERMES · CONNECTION DIAGNOSTICS</div>
+        <h2>Fleet & connections</h2>
+        <p className="mission-signal-note">연결 확인은 실행 중인 에이전트 수를 뜻하지 않습니다.</p>
+        {(statusError || profiles.error) && <p className="mission-observation-alert">{statusError && profiles.error ? "조회 실패" : "부분 조회 실패"}</p>}
+        <div className="mission-signal-row"><span>Dashboard · {statusError ? "조회 실패" : dashboardState}</span><small>{status?.dashboardUrl ? `Hermes Dashboard · ${new URL(status.dashboardUrl).port || "기본 포트"}` : "Hermes Dashboard 상태"}</small></div>
+        <div className="mission-signal-row"><span>API Server · {statusError ? "조회 실패" : apiState}</span><small><span>Hermes API Server 연결 상태</span><span>선택 프로필 · {profile}</span></small></div>
+        <div className="mission-signal-row"><span>{profiles.error ? "프로필 수 미확인" : profiles.data ? `프로필 목록 · ${profiles.data.profiles.length}개` : "프로필 목록 · 확인 중"}</span><small>{profiles.error ? "목록 조회 실패" : "Hermes 프로필 목록 · 실행 상태와 별개"}</small></div>
+        <p className="mission-observation">상태 조회 · {observationLabel(statusObservedAt, statusError, statusLoading)}<br />프로필 조회 · {observationLabel(profiles.observedAt, profiles.error, profiles.loading)}</p>
+        <button className="btn secondary" disabled={statusLoading || profiles.loading} onClick={() => { void refreshStatus(); void profiles.refresh(); }}><RefreshCw size={15} /> 연결 다시 확인</button>
+      </section>
+      <section className="panel mission-signal-panel" aria-label="최근 세션">
+        <div className="eyebrow">HERMES · RECENT SESSIONS</div>
+        <h2>최근 세션</h2>
+        <p className="mission-signal-note">{profile} 프로필 · 최근 25개 중 최대 4개 표시 · 실행 상태 아님</p>
+        <p className="mission-observation">세션 조회 · {observationLabel(recent.observedAt, recent.error, recent.loading)}</p>
+        {recent.error ? (
+          <div className="mission-signal-error"><p>최근 세션을 조회할 수 없습니다.</p><button className="btn secondary" onClick={() => void recent.refresh()}>세션 다시 시도</button></div>
+        ) : !sessions ? (
+          <p className="mission-signal-note">{recent.loading ? "세션 불러오는 중" : "세션 상태 확인 중"}</p>
+        ) : sessions.length ? (
+          <div className="mission-recent-list">{sessions.slice(0, 4).map((session) => (
+            <button key={session.id} className="mission-recent-item" onClick={() => openSession(session.id)}>
+              <strong>{session.title || session.display_name || session.preview || "제목 없는 세션"}</strong>
+              <small>{session.source || "Hermes"} · {timeAgo(session.last_active || session.last_activity_at)}</small>
+            </button>
+          ))}</div>
+        ) : <p className="mission-signal-note">이 프로필에 표시할 최근 세션이 없습니다.</p>}
+        {!recent.error && <button className="btn secondary" disabled={recent.loading} onClick={() => void recent.refresh()}><RefreshCw size={15} /> 세션 새로고침</button>}
+        <button className="btn secondary" onClick={() => navigate("sessions")}>전체 세션 보기 <ArrowRight size={15} /></button>
+      </section>
+    </div>
+  );
+}
+
 function Overview({
   agent,
   status,
   profiles,
+  profileLoad,
+  recent,
+  statusLoading,
+  statusError,
+  statusObservedAt,
+  refreshStatus,
+  profile,
   navigate,
+  openTask,
+  openSession,
 }: {
   agent: Agent;
   status: Status | null;
   profiles: Profile[];
+  profileLoad: { data: { profiles: Profile[] } | null; loading: boolean; error: string; observedAt: number | null; refresh: () => Promise<void> };
+  recent: { data: { sessions: Session[] } | null; loading: boolean; error: string; observedAt: number | null; refresh: () => Promise<void> };
+  statusLoading: boolean;
+  statusError: string;
+  statusObservedAt: number | null;
+  refreshStatus: () => Promise<void>;
+  profile: string;
   navigate: (tab: Tab) => void;
+  openTask: (id: string, board: string) => void;
+  openSession: (id: string) => void;
 }) {
   const isHermes = agent.id === "hermes";
   const featureLabels: Record<FeatureState, string> = {
@@ -292,16 +539,17 @@ function Overview({
             : "이 런타임의 연결 상태와 AgentOS 지원 범위를 확인하세요."
         }
       />
-      <div className="metric-grid">
+      {isHermes && <MissionWork navigate={navigate} openTask={openTask} />}
+      {isHermes && <MissionSignals status={status} statusLoading={statusLoading} statusError={statusError} statusObservedAt={statusObservedAt} refreshStatus={refreshStatus} profiles={profileLoad} recent={recent} profile={profile} navigate={navigate} openSession={openSession} />}
+      {!isHermes && <div className="metric-grid">
         <div className="metric-card">
           <div className="metric-label">
             <Wifi size={17} /> 연결 상태
           </div>
           <strong>
             {isHermes
-              ? status?.dashboard === "online"
-                ? "연결됨"
-                : "연결 필요"
+              ? statusError ? "확인 실패" : !status ? "확인 중" : status.dashboard === "online"
+                ? "연결됨" : status.dashboard === "unauthorized" ? "인증 필요" : "연결 필요"
               : agent.installed
                 ? "CLI 발견"
                 : agent.installed === false
@@ -310,7 +558,7 @@ function Overview({
           </strong>
           <span>
             {isHermes
-              ? "Hermes Dashboard · 9119"
+              ? `Hermes Dashboard · ${status?.dashboardUrl ? new URL(status.dashboardUrl).port || "기본 포트" : "확인 중"}`
               : agent.kind === "provider"
                 ? "모델 제공사"
                 : "로컬 실행 파일 기준"}
@@ -318,10 +566,10 @@ function Overview({
         </div>
         <div className="metric-card">
           <div className="metric-label">
-            <Layers3 size={17} /> 활성 프로필
+            <Layers3 size={17} /> 프로필 목록
           </div>
-          <strong>{isHermes ? profiles.length : "—"}</strong>
-          <span>{isHermes ? "분리된 Hermes 환경" : "어댑터 연결 후 표시"}</span>
+          <strong>{isHermes ? profileLoad.error || !profileLoad.data ? "—" : profiles.length : "—"}</strong>
+          <span>{isHermes ? profileLoad.error ? "프로필 수 미확인" : "목록 수 · 실행 상태 아님" : "어댑터 연결 후 표시"}</span>
         </div>
         <div className="metric-card">
           <div className="metric-label">
@@ -334,9 +582,9 @@ function Overview({
                 : "설정 필요"
               : "미연결"}
           </strong>
-          <span>{isHermes ? "API Server · 8642" : "실행 계약 미검증"}</span>
+          <span>{isHermes ? "Hermes API Server 연결 상태" : "실행 계약 미검증"}</span>
         </div>
-      </div>
+      </div>}
       <div className="overview-grid">
         <div className="panel">
           <div className="panel-title">
@@ -460,9 +708,9 @@ function Overview({
   );
 }
 
-function Sessions({ profile }: { profile: string }) {
+function Sessions({ profile, initialSessionId = null, initialSession = null }: { profile: string; initialSessionId?: string | null; initialSession?: Session | null }) {
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialSessionId);
   const [notice, setNotice] = useState("");
   const { data, loading, error, refresh } = useLoad(
     () =>
@@ -503,7 +751,7 @@ function Sessions({ profile }: { profile: string }) {
       setNotice(err instanceof Error ? err.message : "변경 실패");
     }
   }
-  const current = data?.sessions.find((s) => s.id === selected);
+  const current = data?.sessions.find((s) => s.id === selected) || (selected === initialSession?.id ? initialSession : undefined);
   return (
     <div className="page-content">
       <SectionHead
@@ -595,7 +843,7 @@ function Sessions({ profile }: { profile: string }) {
                   </h3>
                   <p>{current.id}</p>
                 </div>
-                <div className="detail-actions">
+                {selected !== initialSession?.id && <div className="detail-actions">
                   <button
                     className="icon-button"
                     title="이름 바꾸기"
@@ -622,7 +870,7 @@ function Sessions({ profile }: { profile: string }) {
                   >
                     <Archive size={17} />
                   </button>
-                </div>
+                </div>}
               </div>
               <div className="detail-stats">
                 <span>
@@ -1392,9 +1640,9 @@ const columnLabels: Record<string, string> = {
   done: "완료",
   archived: "보관",
 };
-function Kanban({ profiles }: { profiles: Profile[] }) {
-  const [boardSlug, setBoardSlug] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
+function Kanban({ profiles, initialTask }: { profiles: Profile[]; initialTask: { id: string; board: string } | null }) {
+  const [boardSlug, setBoardSlug] = useState(initialTask?.board || "");
+  const [selected, setSelected] = useState<string | null>(initialTask?.id || null);
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [bodyText, setBodyText] = useState("");
@@ -2387,32 +2635,221 @@ function Chat({
   );
 }
 
+function HermesDiscovery({ profile, profiles }: { profile: string; profiles: ReturnType<typeof useLoad<{ profiles: Profile[] }>> }) {
+  const mcp = useLoad(
+    () => request<McpInventory>(`/api/hermes/mcp/servers?profile=${encodeURIComponent(profile)}`),
+    [profile],
+  );
+  return (
+    <section aria-label="Hermes 탐색" className="page-content discovery">
+      <SectionHead eyebrow="HERMES DISCOVERY" title="Hermes 탐색" description="읽기 전용 · 현재 프로필에서 확인 가능한 출처만 표시합니다." />
+      <div className="discovery-grid">
+        <div className="panel discovery-card">
+          <h3>Bots · Hermes 프로필</h3>
+          <p className="muted">설정된 프로필 목록입니다. 실행 중인 봇 전체나 상태를 뜻하지 않습니다.</p>
+          {profiles.error ? <StateCard icon={CircleAlert} title="프로필 조회 실패" description={profiles.error} action="다시 확인" onAction={() => void profiles.refresh()} />
+            : profiles.loading && !profiles.data ? <p>프로필 불러오는 중…</p>
+              : profiles.data?.profiles.length ? (
+                <ul className="discovery-list">{profiles.data.profiles.map((item) => (
+                  <li key={item.name}><strong>{item.display_name || item.name}</strong><span>{item.name === profile ? "현재 프로필" : item.name}</span></li>
+                ))}</ul>
+              ) : <p>설정된 프로필이 없습니다.</p>}
+        </div>
+        <div className="panel discovery-card">
+          <h3>MCP · {profile}</h3>
+          <p className="muted">서버 이름·전송 방식·활성 설정만 표시합니다. 연결 성공이나 도구 가용성은 검증하지 않습니다.</p>
+          {mcp.error ? <StateCard icon={CircleAlert} title="MCP 목록 조회 실패" description={mcp.error} action="MCP 다시 확인" onAction={() => void mcp.refresh()} />
+            : mcp.loading && !mcp.data ? <p>MCP 목록 불러오는 중…</p>
+              : mcp.data?.servers.length ? (
+                <ul className="discovery-list">{mcp.data.servers.map((item, index) => (
+                  <li key={`${item.name}-${index}`}><strong>{item.name}</strong><span>{item.enabled ? "설정 활성" : "설정 비활성"} · {item.transport} · {item.source}</span></li>
+                ))}</ul>
+              ) : <p>MCP 0개 · 이 프로필에 설정된 서버 없음</p>}
+        </div>
+        <div className="panel discovery-card">
+          <h3>Workspace · 연결 보류</h3>
+          <p className="muted">읽기 전용 작업 공간 인벤토리 계약을 확인하기 전에는 경로나 파일 내용을 추정하지 않습니다.</p>
+        </div>
+        <div className="panel discovery-card">
+          <h3>Control Room · 계약 미확인</h3>
+          <p className="muted">동명 Hermes 제어 화면이 확인되지 않았습니다. 지표·실행 명령을 임의로 생성하지 않습니다.</p>
+        </div>
+        <div className="panel discovery-card">
+          <h3>시작·복구 도움말</h3>
+          <p className="muted">연결 상태와 조회 시각은 개요에서 확인합니다. 세션 내용은 Ctrl+K 검색이나 Sessions 탭에서 확인합니다. 설정 변경·프로세스 재시작은 이 화면에서 실행하지 않습니다.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HermesMemory({ profile }: { profile: string }) {
+  const graph = useLoad(
+    () => request<LearningGraph>(`/api/hermes/learning/graph?profile=${encodeURIComponent(profile)}`),
+    [profile],
+  );
+  const [view, setView] = useState<"Notes" | "Graph" | "Galaxy">("Notes");
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const term = query.trim().toLocaleLowerCase();
+  const notes = (graph.data?.memory || []).filter((card) => `${card.title} ${card.body}`.toLocaleLowerCase().includes(term));
+  const matches = (graph.data?.nodes || []).filter((node) => `${node.label} ${node.id} ${node.category}`.toLocaleLowerCase().includes(term));
+  const visible = matches.slice(0, 350);
+  const positions = new Map(visible.map((node, index) => {
+    const angle = view === "Galaxy" ? index * 2.39996 : (2 * Math.PI * index / visible.length) - Math.PI / 2;
+    const radius = view === "Galaxy" ? 185 * Math.sqrt((index + 1) / visible.length) : 155;
+    return [node.id, { x: 320 + radius * Math.cos(angle), y: 220 + radius * Math.sin(angle) }] as const;
+  }));
+  const selectedCard = graph.data?.memory.find((card) => card.id === selected);
+  const selectedNode = graph.data?.nodes.find((node) => node.id === selected);
+  return (
+    <section aria-label="Hermes Memory" className="page-content memory-view">
+      <SectionHead eyebrow="HERMES /JOURNEY" title="Memory" description={`읽기 전용 · ${profile} 프로필의 Hermes 학습 그래프. 메모리 카드의 시각은 파일 수정 시각 기반이며 작성 순서가 아닙니다.`} />
+      {graph.error ? <StateCard icon={CircleAlert} title="학습 기록 조회 실패" description={graph.error} action="다시 확인" onAction={() => void graph.refresh()} />
+        : graph.loading && !graph.data ? <p className="muted">학습 기록 불러오는 중…</p>
+          : graph.data && <>
+            <div className="memory-toolbar">
+              <div className="memory-modes" role="group" aria-label="메모리 보기">
+                {(["Notes", "Graph", "Galaxy"] as const).map((mode) => <button key={mode} className={`btn secondary ${view === mode ? "active" : ""}`} aria-pressed={view === mode} onClick={() => { setView(mode); setSelected(null); }}>{mode}</button>)}
+              </div>
+              <label className="search-field"><Search size={16} /><input value={query} onChange={(event) => { setQuery(event.target.value); setSelected(null); }} aria-label="메모리 검색" placeholder="메모리·스킬 검색" /></label>
+            </div>
+            <p className="muted memory-meta">출처: Hermes /journey · 메모리 {graph.data.memory.length}개 · 학습 스킬 {graph.data.stats.skillNodes}개 · 확인된 관계 {graph.data.edges.length}개. 관계는 Hermes가 생성한 연관 정보이며 실제 실행·인과관계를 뜻하지 않습니다.</p>
+            {view === "Notes" ? <div className="memory-layout">
+              <div className="panel memory-list">
+                {notes.length ? notes.map((card) => <button key={card.id} className={selected === card.id ? "selected" : ""} onClick={() => setSelected(card.id)}>
+                  <strong>{card.title}</strong><span>{card.source === "memory" ? "MEMORY.md" : "USER.md"}</span>
+                </button>) : <p className="muted">{graph.data.memory.length ? "일치하는 메모리 없음" : "기록된 메모리 없음"}</p>}
+              </div>
+              <div className="panel memory-preview">{selectedCard ? <><span className="eyebrow">{selectedCard.source === "memory" ? "MEMORY.md" : "USER.md"} · {selectedCard.id}</span><h3>{selectedCard.title}</h3><p>{selectedCard.body}</p></> : <p className="muted">메모리를 선택하면 원문 미리보기를 표시합니다. 이 화면은 원본을 수정하지 않습니다.</p>}</div>
+            </div> : <div className="memory-layout graph-layout">
+              <div className="panel memory-visual">
+                <div className="memory-zoom"><button className="btn secondary" aria-label="줌 축소" onClick={() => setZoom((value) => Math.max(.5, value - .25))}>−</button><span>{Math.round(zoom * 100)}%</span><button className="btn secondary" aria-label="줌 확대" onClick={() => setZoom((value) => Math.min(2, value + .25))}>+</button><button className="btn secondary" onClick={() => { setZoom(1); setQuery(""); setSelected(null); }}>보기 초기화</button></div>
+                {!matches.length ? <p className="muted">시각화할 노드 없음</p> : <>
+                  {matches.length > visible.length && <p className="muted">성능을 위해 앞의 {visible.length}개 노드만 시각화합니다. 전체 노드는 오른쪽 목록에서 검색할 수 있습니다.</p>}
+                  <svg aria-hidden="true" viewBox={`${320 - 320 / zoom} ${220 - 220 / zoom} ${640 / zoom} ${440 / zoom}`}>
+                    {graph.data.edges.map((edge, index) => { const from = positions.get(edge.source); const to = positions.get(edge.target); return from && to ? <line key={index} x1={from.x} y1={from.y} x2={to.x} y2={to.y} /> : null; })}
+                    {visible.map((node) => { const point = positions.get(node.id)!; return <circle key={node.id} cx={point.x} cy={point.y} r={node.kind === "memory" ? 9 : 6} className={node.kind === "memory" ? "memory-node" : "skill-node"} />; })}
+                  </svg>
+                </>}
+              </div>
+              <div className="panel memory-list memory-nodes" aria-label="그래프 노드 목록">
+                {matches.map((node) => <button key={node.id} className={selected === node.id ? "selected" : ""} onClick={() => setSelected(node.id)}>{node.label}</button>)}
+                {selectedNode && <div className="memory-node-detail"><strong>{selectedNode.label} · {selectedNode.category}</strong><p>{selectedCard?.body || (selectedNode.kind === "skill" ? "Hermes가 학습한 스킬" : "메모리 원문 없음")}</p></div>}
+              </div>
+            </div>}
+          </>}
+    </section>
+  );
+}
+
+type RuntimeInventory = {
+  sessions: { id: string; title?: string; model?: string; updatedAt?: number; status?: string }[];
+  total?: number;
+  nextCursor?: string | null;
+  hasMore?: boolean;
+};
+
+function RuntimeSessionCard({ agent, openSessions }: { agent: Agent; openSessions: () => void }) {
+  const inventory = useLoad(
+    () => request<RuntimeInventory>(`/api/${agent.id}/sessions`),
+    [agent.id],
+  );
+  const sessions = Array.isArray(inventory.data?.sessions) ? inventory.data.sessions : null;
+  const latest = sessions?.filter((session) => Number.isFinite(session.updatedAt))
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+  const model = sessions?.find((session) => session.model)?.model;
+  return <div className="panel runtime-card">
+    <h3>{agent.name} · CLI 발견</h3>
+    <p className="muted">{agent.id === "codex" ? "Codex App Server · 최근 세션 첫 페이지" : agent.id === "claude" ? "Claude CLI · agents --json --all" : "OpenClaw CLI · sessions --all-agents"}</p>
+    {inventory.error ? <StateCard icon={CircleAlert} title={`${agent.name} 세션 조회 실패`} description={inventory.error} action="다시 확인" onAction={() => void inventory.refresh()} />
+      : inventory.loading && !inventory.data ? <p>세션 조회 중…</p>
+        : !sessions ? <p>세션 응답 형식 확인 필요</p>
+          : sessions.length ? <>
+            <strong>{agent.id === "codex" ? `첫 페이지 ${sessions.length}건 · ${inventory.data?.nextCursor ? "다음 페이지 있음" : "다음 페이지 없음"}` : agent.id === "openclaw" ? `저장 세션 ${inventory.data?.total ?? "전체 미확인"}건` : `첫 응답 ${sessions.length}건 · 전체 미확인`}</strong>
+            <p>세션 기록 모델 · {model || "미확인"}</p>
+            <p>최근 저장 기록 · {latest?.updatedAt ? timeAgo(latest.updatedAt) : "시각 미확인"} · 실행 상태와 별개</p>
+            <button className="btn secondary" onClick={openSessions}>원본 세션 보기 <ArrowRight size={15} /></button>
+          </> : <p>{agent.id === "claude" ? "Claude CLI의 에이전트 목록에 표시할 세션 없음 · 전체 대화 이력 아님" : agent.id === "codex" ? "Codex · 첫 페이지에 저장 세션 없음" : "OpenClaw · 저장 세션 없음"}</p>}
+    <small>조회 시각 · {observationLabel(inventory.observedAt, inventory.error, inventory.loading)}</small>
+  </div>;
+}
+
+function HermesRuntimes({ agents, agentsLoad, profile, status, statusError, openSessions }: {
+  agents: Agent[];
+  agentsLoad: { loading: boolean; error: string; refresh: () => Promise<void> };
+  profile: string;
+  status: Status | null;
+  statusError: string;
+  openSessions: (id: string) => void;
+}) {
+  return <section aria-label="외부 런타임 상태" className="page-content runtime-view">
+    <SectionHead eyebrow="READ-ONLY ADAPTERS" title="런타임 상태·기록" description="설치 탐지, 세션 기록, 모델 기록은 서로 다릅니다. 실행 중·전체 비용을 추정하지 않습니다." />
+    {agentsLoad.error ? <StateCard icon={CircleAlert} title="런타임 탐지 실패" description={agentsLoad.error} action="다시 확인" onAction={() => void agentsLoad.refresh()} />
+      : agentsLoad.loading ? <p>런타임 확인 중…</p>
+        : <div className="discovery-grid">
+          <div className="panel runtime-card"><h3>Hermes · 프로필 {profile}</h3><p>Dashboard · {statusError ? "조회 실패" : status?.dashboard || "확인 중"}</p><p>API Server · {statusError ? "조회 실패" : status?.apiServer || "확인 중"}</p><p className="muted">연결 상태이며 실행 중인 에이전트 수가 아닙니다.</p></div>
+          {agents.filter((agent) => ["codex", "claude", "openclaw"].includes(agent.id)).map((agent) => agent.installed === true
+            ? <RuntimeSessionCard key={agent.id} agent={agent} openSessions={() => openSessions(agent.id)} />
+            : <div key={agent.id} className="panel runtime-card"><h3>{agent.name} · {agent.installed === false ? "CLI 미발견" : "설치 확인 필요"}</h3><p className="muted">세션·모델·실행 상태 미확인</p></div>)}
+          {agents.filter((agent) => agent.kind === "provider").map((agent) => <div key={agent.id} className="panel runtime-card"><h3>{agent.name} · 모델 제공사 (런타임 아님)</h3><p className="muted">프로필 모델 설정과 독립된 항목 · 사용량 미집계</p></div>)}
+          <div className="panel runtime-card"><h3>비용 미집계</h3><p className="muted">Codex·Claude·OpenClaw의 총 사용량·통화·기간·요금 계약을 확인하지 않았습니다. 0원으로 표시하지 않습니다.</p></div>
+        </div>}
+  </section>;
+}
+
 export default function App() {
   const [agentId, setAgentId] = useState("hermes");
   const [tab, setTab] = useState<Tab>("overview");
+  const [requestedTask, setRequestedTask] = useState<{ id: string; board: string } | null>(null);
+  const [requestedSession, setRequestedSession] = useState<string | null>(null);
+  const [requestedSearchSession, setRequestedSearchSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState("default");
   const [agentSearch, setAgentSearch] = useState("");
   const [mobileNav, setMobileNav] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const agentSearchRef = useRef<HTMLInputElement>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [paletteQuery, setPaletteQuery] = useState("");
+  const [paletteIndex, setPaletteIndex] = useState(0);
+  const [sessionSearch, setSessionSearch] = useState<{ query: string; profile: string; results: SessionSearchHit[]; error: string } | null>(null);
+  const paletteRef = useRef<HTMLDivElement>(null);
+  useOverlay(paletteOpen, () => setPaletteOpen(false), paletteRef);
+  useEffect(() => {
+    const query = paletteQuery.trim();
+    if (!paletteOpen || query.length < 2 || query.length > 120) return;
+    let active = true;
+    const timer = window.setTimeout(() => {
+      void request<SessionSearchResponse>(`/api/hermes/sessions/search?${new URLSearchParams({ q: query, profile })}`)
+        .then((result) => {
+          if (active) setSessionSearch({ query, profile, results: result.results, error: "" });
+        })
+        .catch(() => {
+          if (active) setSessionSearch({ query, profile, results: [], error: "세션 검색 실패" });
+        });
+    }, 250);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [paletteOpen, paletteQuery, profile]);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setSidebarCollapsed(false);
-        setMobileNav(true);
-        window.requestAnimationFrame(() => agentSearchRef.current?.focus());
+        setPaletteQuery("");
+        setPaletteIndex(0);
+        setPaletteOpen(true);
       }
       if (event.key === "Escape") setMobileNav(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const { data: agents } = useLoad(() => request<Agent[]>("/api/agents"), []);
-  const { data: status, refresh: refreshStatus } = useLoad(
+  const agentsLoad = useLoad(() => request<Agent[]>("/api/agents"), []);
+  const agents = agentsLoad.data;
+  const statusLoad = useLoad(
     () => request<Status>(`/api/status?profile=${encodeURIComponent(profile)}`),
     [profile],
   );
+  const { data: status, refresh: refreshStatus } = statusLoad;
   const profiles = useLoad(
     () => request<{ profiles: Profile[] }>("/api/hermes/profiles"),
     [],
@@ -2424,12 +2861,7 @@ export default function App() {
       ),
     [profile],
   );
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      void refreshStatus();
-    }, 30_000);
-    return () => window.clearInterval(timer);
-  }, [refreshStatus]);
+  useVisiblePolling(refreshStatus, !statusLoad.loading);
   const allAgents = agents || emptyAgents;
   const agent = allAgents.find((a) => a.id === agentId) || allAgents[0];
   const shownAgents = allAgents.filter((a) =>
@@ -2441,14 +2873,141 @@ export default function App() {
     setMobileNav(false);
   }
   function navigate(next: Tab) {
+    setRequestedTask(null);
+    setRequestedSession(null);
+    setRequestedSearchSession(null);
     setTab(next);
     setMobileNav(false);
+  }
+  function openTask(id: string, board: string) {
+    setRequestedTask({ id, board });
+    setAgentId("hermes");
+    setTab("kanban");
+    setMobileNav(false);
+  }
+  function openSession(id: string, hit?: SessionSearchHit) {
+    setRequestedSession(id);
+    setRequestedSearchSession(hit ? {
+      id, title: hit.title || undefined, preview: hit.snippet,
+      source: hit.source || undefined, archived: hit.archived,
+      last_active: hit.last_active || undefined,
+    } : null);
+    setAgentId("hermes");
+    setTab("sessions");
+    setMobileNav(false);
+  }
+  const commands: { label: string; run: () => void; detail?: string }[] = [
+    { label: "Hermes Runtimes · 외부 런타임 상태", run: () => { setAgentId("hermes"); navigate("runtimes"); } },
+    { label: "Hermes Memory · /journey", run: () => { setAgentId("hermes"); navigate("memory"); } },
+    { label: "Hermes 탐색 · Bots / MCPs / Workspace / Control Room / 도움말", run: () => { setAgentId("hermes"); navigate("discover"); } },
+    {
+      label: "Mission Control",
+      run: () => {
+        setAgentId("hermes");
+        navigate("overview");
+      },
+    },
+    {
+      label: "Kanban Board",
+      run: () => {
+        setAgentId("hermes");
+        navigate("kanban");
+      },
+    },
+    ...(["chat", "sessions", "skills"] as Tab[]).map((item) => ({
+      label: `Hermes ${item[0].toUpperCase()}${item.slice(1)}`,
+      run: () => {
+        setAgentId("hermes");
+        navigate(item);
+      },
+    })),
+    ...allAgents.map((item) => ({
+      label: item.name,
+      run: () => selectAgent(item.id),
+    })),
+  ];
+  const query = paletteQuery.trim();
+  const currentSearch = sessionSearch?.query === query && sessionSearch.profile === profile ? sessionSearch : null;
+  const filteredCommands = commands.filter((item) =>
+    item.label.toLocaleLowerCase().includes(paletteQuery.trim().toLocaleLowerCase()),
+  ).concat((currentSearch?.results || []).map((hit) => ({
+    label: `세션 · ${hit.title || hit.session_id}`,
+    detail: `${hit.archived ? "보관됨 · " : ""}${profile} · ${hit.snippet || "내용 미리보기 없음"}`,
+    run: () => openSession(hit.session_id, hit),
+  })));
+  function runCommand(command: (typeof commands)[number]) {
+    command.run();
+    setPaletteOpen(false);
   }
   return (
     <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       <a href="#main" className="skip-link">
         본문으로 이동
       </a>
+      {paletteOpen && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPaletteOpen(false);
+          }}
+        >
+          <div
+            className="modal command-palette"
+            role="dialog"
+            aria-modal="true"
+            aria-label="명령 팔레트"
+            ref={paletteRef}
+          >
+            <input
+              className="command-query"
+              aria-label="명령 검색"
+              placeholder="화면 또는 에이전트 검색"
+              value={paletteQuery}
+              onChange={(event) => {
+                setPaletteQuery(event.target.value);
+                setPaletteIndex(0);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                  event.preventDefault();
+                  setPaletteIndex((index) =>
+                    filteredCommands.length
+                      ? (index +
+                          (event.key === "ArrowDown" ? 1 : -1) +
+                          filteredCommands.length) %
+                        filteredCommands.length
+                      : 0,
+                  );
+                }
+                if (event.key === "Enter" && filteredCommands[paletteIndex]) {
+                  event.preventDefault();
+                  runCommand(filteredCommands[paletteIndex]);
+                }
+              }}
+            />
+            <div className="command-results" aria-label="명령 결과">
+              {filteredCommands.length ? (
+                filteredCommands.map((command, index) => (
+                  <button
+                    key={command.label}
+                    className={`command-result ${index === paletteIndex ? "selected" : ""}`}
+                    onMouseEnter={() => setPaletteIndex(index)}
+                    onClick={() => runCommand(command)}
+                  >
+                    <span>{command.label}{command.detail && <small>{command.detail}</small>}</span>
+                  </button>
+                ))
+              ) : (
+                <p className="command-empty">일치하는 화면이나 에이전트가 없습니다.</p>
+              )}
+              {query.length >= 2 && query.length <= 120 && (
+                <p className="command-search-state">{currentSearch?.error || (!currentSearch ? "선택 프로필 세션 검색 중…" : currentSearch.results.length ? "선택 프로필 · ID/메시지 내용 검색 · 최대 8건 · 보관 포함" : "선택 프로필에서 일치하는 세션이 없습니다.")}</p>
+              )}
+            </div>
+            <small>↑↓ 선택 · Enter 이동 · Esc 닫기</small>
+          </div>
+        </div>
+      )}
       <button
         className="mobile-menu"
         aria-label="메뉴 열기"
@@ -2490,13 +3049,12 @@ export default function App() {
         <div className="nav-search">
           <Search size={17} />
           <input
-            ref={agentSearchRef}
             value={agentSearch}
             onChange={(e) => setAgentSearch(e.target.value)}
             placeholder="에이전트 검색"
             aria-label="에이전트 검색"
           />
-          <kbd>Ctrl K</kbd>
+          <kbd>필터</kbd>
         </div>
         <nav>
           <div className="nav-label">WORKSPACE</div>
@@ -2571,6 +3129,17 @@ export default function App() {
             <strong>{agent.name}</strong>
           </div>
           <div className="topbar-actions">
+            <button
+              className="command-trigger"
+              aria-label="명령 팔레트 열기"
+              onClick={() => {
+                setPaletteQuery("");
+                setPaletteIndex(0);
+                setPaletteOpen(true);
+              }}
+            >
+              <Search size={15} /> <span>명령 팔레트</span> <kbd>Ctrl K</kbd>
+            </button>
             <span className="topbar-local">
               <span className="pulse-dot" /> LOCAL
             </span>
@@ -2730,11 +3299,20 @@ export default function App() {
             agent={agent}
             status={status}
             profiles={profiles.data?.profiles || []}
+            profileLoad={profiles}
+            recent={recent}
+            statusLoading={statusLoad.loading}
+            statusError={statusLoad.error}
+            statusObservedAt={statusLoad.observedAt}
+            refreshStatus={refreshStatus}
+            profile={profile}
             navigate={navigate}
+            openTask={openTask}
+            openSession={openSession}
           />
         )}
         {agent.id === "hermes" && tab === "sessions" && (
-          <Sessions key={profile} profile={profile} />
+          <Sessions key={`${profile}:${requestedSession || ""}`} profile={profile} initialSessionId={requestedSession} initialSession={requestedSearchSession} />
         )}
         {agent.id === "codex" && tab === "sessions" && <CodexSessions />}
         {["claude", "openclaw"].includes(agent.id) && tab === "sessions" && (
@@ -2744,8 +3322,11 @@ export default function App() {
           <Skills key={profile} profile={profile} />
         )}
         {agent.id === "hermes" && tab === "kanban" && (
-          <Kanban profiles={profiles.data?.profiles || []} />
+          <Kanban profiles={profiles.data?.profiles || []} initialTask={requestedTask} />
         )}
+        {agent.id === "hermes" && tab === "discover" && <HermesDiscovery profile={profile} profiles={profiles} />}
+        {agent.id === "hermes" && tab === "memory" && <HermesMemory key={profile} profile={profile} />}
+        {agent.id === "hermes" && tab === "runtimes" && <HermesRuntimes agents={allAgents} agentsLoad={agentsLoad} profile={profile} status={status} statusError={statusLoad.error} openSessions={(id) => { setAgentId(id); navigate("sessions"); }} />}
         {agent.id === "hermes" && tab === "chat" && (
           <Chat
             key={profile}

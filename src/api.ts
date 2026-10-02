@@ -38,6 +38,31 @@ export type Session = {
   pinned?: boolean;
   is_active?: boolean;
 };
+export type SessionSearchHit = {
+  session_id: string;
+  profile: string;
+  title: string | null;
+  snippet: string;
+  source: string | null;
+  archived: boolean;
+  last_active: number | null;
+};
+export type SessionSearchResponse = {
+  coverage: "selected-profile-id-and-content";
+  limit: number;
+  results: SessionSearchHit[];
+};
+export type McpInventory = {
+  profile: string;
+  servers: { name: string; transport: "http" | "stdio" | "unknown"; enabled: boolean; source: "config" | "plugin" | "unknown" }[];
+};
+export type LearningGraph = {
+  profile: string;
+  nodes: { id: string; label: string; kind: "memory" | "skill"; category: string; memorySource: "memory" | "profile" | null; timestamp: number | null; useCount: number }[];
+  edges: { source: string; target: string }[];
+  memory: { id: string; source: "memory" | "profile"; title: string; body: string; timestamp: number | null }[];
+  stats: { memoryNodes: number; skillNodes: number; edges: number };
+};
 export type CodexSession = {
   id: string;
   title: string;
@@ -95,6 +120,22 @@ export type KanbanTask = {
   created_at?: number;
   updated_at?: number;
   comment_count?: number;
+};
+export type OperationsSummary = {
+  source: "hermes-kanban";
+  coverage: "current-board";
+  asOf: string | null;
+  status: "available" | "unavailable" | "unauthorized" | "unconfigured";
+  board: { slug: string; name: string } | null;
+  counts: { active: number; attention: number; finished: number; all: number } | null;
+  tasks: Pick<KanbanTask, "id" | "title" | "status" | "assignee" | "updated_at">[] | null;
+  activity?: {
+    source: "hermes-kanban-events";
+    coverage: "current-board-last-200-ids";
+    status: "available" | "unavailable" | "unauthorized";
+    asOf: string | null;
+    events: { id: number; taskId: string; title: string; kind: string; created_at: number }[] | null;
+  };
 };
 export type KanbanBoard = {
   columns: { name: string; tasks: KanbanTask[] }[];

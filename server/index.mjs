@@ -104,6 +104,65 @@ async function dashboardRequest(route, options = {}) {
   throw new HttpError(401, "Hermes 대시보드 인증이 만료되었습니다.");
 }
 
+async function recentBoardEvents(slug, latestId, tasks) {
+  const activity = {
+    source: "hermes-kanban-events",
+    coverage: "current-board-last-200-ids",
+    status: "unavailable",
+    asOf: null,
+    events: null,
+  };
+  if (!Number.isSafeInteger(latestId) || latestId < 0) return activity;
+  if (latestId === 0) return { ...activity, status: "available", asOf: new Date().toISOString(), events: [] };
+  try {
+    const token = await discoverDashboardToken();
+    const route = new URL("/api/plugins/kanban/events", dashboard);
+    route.protocol = "ws:";
+    route.searchParams.set("board", slug);
+    route.searchParams.set("since", String(Math.max(0, latestId - 200)));
+    route.searchParams.set("token", token);
+    const batch = await new Promise((resolve, reject) => {
+      const socket = new WebSocket(route);
+      let settled = false;
+      const finish = (error, events) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        if (socket.readyState === WebSocket.OPEN) socket.close();
+        if (error) reject(error);
+        else resolve(events);
+      };
+      const timer = setTimeout(() => finish(new Error("event timeout")), 2500);
+      socket.addEventListener("open", () => { if (settled) socket.close(); });
+      socket.addEventListener("message", (message) => {
+        try {
+          const payload = JSON.parse(message.data);
+          if (!Array.isArray(payload.events)) throw new Error("invalid events");
+          finish(null, payload.events);
+        } catch { finish(new Error("invalid events")); }
+      }, { once: true });
+      socket.addEventListener("error", () => finish(new Error("event connection failed")), { once: true });
+      socket.addEventListener("close", () => finish(new Error("event connection closed")), { once: true });
+    });
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+    const events = batch.filter((event) =>
+      Number.isSafeInteger(event?.id) && event.id <= latestId &&
+      typeof event?.task_id === "string" && byId.has(event.task_id) &&
+      typeof event?.kind === "string" && event.kind.length <= 80 &&
+      Number.isSafeInteger(event?.created_at) && event.created_at > 0 && event.created_at < 8_640_000_000_000,
+    ).sort((a, b) => b.id - a.id).slice(0, 4).map((event) => ({
+      id: event.id,
+      taskId: event.task_id,
+      title: byId.get(event.task_id).title,
+      kind: event.kind,
+      created_at: event.created_at,
+    }));
+    return { ...activity, status: "available", asOf: new Date().toISOString(), events };
+  } catch (error) {
+    return { ...activity, status: error.status === 401 || error.status === 403 ? "unauthorized" : "unavailable" };
+  }
+}
+
 async function apiRequest(route, options = {}) {
   const profile = param(options.profile || "default", "프로필");
   const key = profile === "default" ? apiKey : profileKeys[profile];
@@ -206,6 +265,32 @@ const control = createControlRoutes({
   HttpError,
   paperclip,
 });
+const rooms = createRoomRoutes({
+  dashboard,
+  getToken: discoverDashboardToken,
+  body,
+  json,
+  HttpError,
+});
+
+const SESSION_RECORD_FIELDS = [
+  "id", "title", "profile", "source", "model", "started_at", "ended_at",
+  "end_reason", "message_count", "tool_call_count", "api_call_count",
+  "input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens",
+  "reasoning_tokens", "billing_provider", "billing_mode", "cost_status",
+  "cost_source", "estimated_cost_usd", "actual_cost_usd", "pricing_version",
+  "archived", "pinned", "last_active",
+];
+
+function pickSessionRecord(record) {
+  const source = record && typeof record === "object" ? record : {};
+  return Object.fromEntries(
+    SESSION_RECORD_FIELDS.filter((field) => field in source).map((field) => [
+      field,
+      source[field],
+    ]),
+  );
+}
 
 function detectCommand(name) {
   const extensions =
@@ -309,6 +394,7 @@ async function route(req, res, url) {
   const method = req.method || "GET";
   if (await control(req, res, url)) return;
   if (await academyContent(req, res, url)) return;
+  if (await rooms(req, res, url)) return;
   if (pathname === "/api/status" && method === "GET") {
     const profile = param(
       url.searchParams.get("profile") || "default",
@@ -489,6 +575,73 @@ async function route(req, res, url) {
       messages: messages.slice(-150),
     });
   }
+  if (pathname === "/api/hermes/learning/graph" && method === "GET") {
+    const profile = param(url.searchParams.get("profile") || "default", "프로필");
+    let graph;
+    try {
+      graph = await dashboardRequest(`/api/learning/graph?${new URLSearchParams({ profile })}`);
+    } catch (error) {
+      throw new HttpError(error.status === 401 ? 401 : 503, "Hermes 학습 기록을 확인할 수 없습니다.");
+    }
+    if (!Array.isArray(graph?.nodes) || !Array.isArray(graph.edges) || !Array.isArray(graph.memory) ||
+      graph.nodes.length > 1500 || graph.edges.length > 4000 || graph.memory.length > 1000)
+      throw new HttpError(503, "Hermes 학습 기록 형식을 확인할 수 없습니다.");
+    const invalid = () => { throw new HttpError(503, "Hermes 학습 기록 형식을 확인할 수 없습니다."); };
+    const nodes = graph.nodes.map((item) => {
+      if (typeof item?.id !== "string" || item.id.length > 200 || !["memory", "skill"].includes(item.kind)) invalid();
+      return {
+        id: item.id,
+        label: typeof item.label === "string" ? item.label.slice(0, 120) : item.id,
+        kind: item.kind,
+        category: typeof item.category === "string" ? item.category.slice(0, 80) : "general",
+        memorySource: item.kind === "memory" && ["memory", "profile"].includes(item.memorySource) ? item.memorySource : null,
+        timestamp: Number.isFinite(item.timestamp) ? item.timestamp : null,
+        useCount: item.kind === "skill" && Number.isInteger(item.useCount) ? item.useCount : 0,
+      };
+    });
+    const ids = new Set(nodes.map((item) => item.id));
+    if (ids.size !== nodes.length) invalid();
+    const memory = graph.memory.map((item, index) => {
+      if (!["memory", "profile"].includes(item?.source) || typeof item.body !== "string") invalid();
+      const id = `memory:${item.source}:${index}`;
+      if (!ids.has(id) || nodes.find((node) => node.id === id)?.kind !== "memory") invalid();
+      return {
+        id, source: item.source,
+        title: typeof item.title === "string" ? item.title.slice(0, 120) : "제목 없음",
+        body: item.body.slice(0, 1200),
+        timestamp: Number.isFinite(item.timestamp) ? item.timestamp : null,
+      };
+    });
+    if (nodes.filter((node) => node.kind === "memory").length !== memory.length) invalid();
+    const edges = graph.edges.map((edge) => {
+      if (!ids.has(edge?.source) || !ids.has(edge?.target)) invalid();
+      return { source: edge.source, target: edge.target };
+    });
+    return json(res, 200, {
+      profile, nodes, edges, memory,
+      stats: { memoryNodes: memory.length, skillNodes: nodes.length - memory.length, edges: edges.length },
+    });
+  }
+  if (pathname === "/api/hermes/mcp/servers" && method === "GET") {
+    const profile = param(url.searchParams.get("profile") || "default", "프로필");
+    let result;
+    try {
+      result = await dashboardRequest(`/api/mcp/servers?${new URLSearchParams({ profile })}`);
+    } catch (error) {
+      throw new HttpError(error.status === 401 ? 401 : 503, "Hermes MCP 목록을 확인할 수 없습니다.");
+    }
+    if (!Array.isArray(result.servers))
+      throw new HttpError(503, "Hermes MCP 목록을 확인할 수 없습니다.");
+    return json(res, 200, {
+      profile,
+      servers: result.servers.map((item) => ({
+        name: typeof item.name === "string" ? item.name.slice(0, 80) : "이름 미확인",
+        transport: ["http", "stdio"].includes(item.transport) ? item.transport : "unknown",
+        enabled: item.enabled === true,
+        source: ["config", "plugin"].includes(item.source) ? item.source : "unknown",
+      })),
+    });
+  }
   if (pathname === "/api/hermes/bots" && method === "GET") {
     let result;
     try {
@@ -575,6 +728,34 @@ async function route(req, res, url) {
       ),
     });
   }
+  if (pathname === "/api/hermes/sessions/search" && method === "GET") {
+    const profile = param(url.searchParams.get("profile") || "default", "프로필");
+    const q = (url.searchParams.get("q") || "").trim();
+    if (q.length < 2 || q.length > 120)
+      throw new HttpError(400, "검색어는 2~120자여야 합니다.");
+    let result;
+    try {
+      result = await dashboardRequest(`/api/sessions/search?${new URLSearchParams({ q, profile, limit: "8" })}`);
+    } catch (error) {
+      throw new HttpError(error.status === 401 ? 401 : 503, "Hermes 세션 검색에 실패했습니다.");
+    }
+    if (!Array.isArray(result.results) || result.results.some((item) =>
+      typeof item?.session_id !== "string" || !/^[\w.:-]{1,180}$/.test(item.session_id),
+    )) throw new HttpError(503, "Hermes 세션 검색 결과를 확인할 수 없습니다.");
+    return json(res, 200, {
+      coverage: "selected-profile-id-and-content",
+      limit: 8,
+      results: result.results.slice(0, 8).map((item) => ({
+        session_id: item.session_id,
+        profile,
+        title: typeof item.title === "string" ? item.title.slice(0, 180) : null,
+        snippet: typeof item.snippet === "string" ? item.snippet.slice(0, 320) : "",
+        source: typeof item.source === "string" ? item.source.slice(0, 80) : null,
+        archived: item.archived === true,
+        last_active: Number.isFinite(item.last_active) ? item.last_active : null,
+      })),
+    });
+  }
   const sessionMatch = pathname.match(
     /^\/api\/hermes\/sessions\/([^/]+)(?:\/(messages))?$/,
   );
@@ -584,14 +765,22 @@ async function route(req, res, url) {
     const query = profile
       ? `?profile=${encodeURIComponent(param(profile, "프로필"))}`
       : "";
-    if (method === "GET")
+    if (method === "GET" && sessionMatch[2])
       return json(
         res,
         200,
         await dashboardRequest(
-          `/api/sessions/${encodeURIComponent(id)}${sessionMatch[2] ? "/messages" : ""}${query}`,
+          `/api/sessions/${encodeURIComponent(id)}/messages${query}`,
         ),
       );
+    if (method === "GET") {
+      // 세션 레코드는 허용 목록만 전달한다: system_prompt, model_config, cwd,
+      // git 정보, billing_base_url, origin/user/chat ID 등은 로컬 호출자에게도 넘기지 않는다.
+      const record = await dashboardRequest(
+        `/api/sessions/${encodeURIComponent(id)}${query}`,
+      );
+      return json(res, 200, pickSessionRecord(record));
+    }
     if (method === "PATCH" && !sessionMatch[2]) {
       const input = await body(req);
       const patch = { profile: profile || "default" };
@@ -718,6 +907,63 @@ async function route(req, res, url) {
         counts,
       })),
     });
+  }
+  if (pathname === "/api/operations/summary" && method === "GET") {
+    const summary = {
+      source: "hermes-kanban",
+      coverage: "current-board",
+      asOf: null,
+      status: "unavailable",
+      board: null,
+      counts: null,
+      tasks: null,
+    };
+    try {
+      const listing = await dashboardRequest("/api/plugins/kanban/boards");
+      const selected = listing.boards?.find((item) => item.slug === listing.current)
+        || listing.boards?.[0];
+      if (!selected || typeof selected.slug !== "string")
+        return json(res, 200, { ...summary, status: "unconfigured" });
+      const slug = param(selected.slug, "보드");
+      const result = await dashboardRequest(
+        `/api/plugins/kanban/board?board=${encodeURIComponent(slug)}`,
+      );
+      if (!Array.isArray(result.columns) ||
+          !result.columns.every((column) => Array.isArray(column.tasks)))
+        throw new Error("Invalid board response");
+      const tasks = result.columns.flatMap((column) => column.tasks)
+        .filter((task) => task && typeof task.id === "string" &&
+          typeof task.title === "string" && task.status !== "archived")
+        .map((task) => ({
+          id: task.id,
+          title: task.title,
+          status: task.status,
+          assignee: task.assignee,
+          updated_at: task.updated_at,
+        }));
+      const active = new Set(["todo", "scheduled", "ready", "running"]);
+      const attention = new Set(["triage", "blocked", "review"]);
+      return json(res, 200, {
+        ...summary,
+        status: "available",
+        asOf: new Date().toISOString(),
+        board: { slug, name: selected.name || slug },
+        counts: {
+          active: tasks.filter((task) => active.has(task.status)).length,
+          attention: tasks.filter((task) => attention.has(task.status)).length,
+          finished: tasks.filter((task) => task.status === "done").length,
+          all: tasks.length,
+        },
+        tasks,
+        activity: await recentBoardEvents(slug, result.latest_event_id, tasks),
+      });
+    } catch (error) {
+      return json(res, 200, {
+        ...summary,
+        status: error.status === 401 || error.status === 403
+          ? "unauthorized" : "unavailable",
+      });
+    }
   }
   const board = url.searchParams.get("board");
   const boardQuery = board

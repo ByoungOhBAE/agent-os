@@ -123,6 +123,32 @@
       "projects": [
         "rimbus"
       ]
+    },
+    {
+      "profile": "pc-a2d59386",
+      "agentId": "1515b103-01cd-47de-81c9-5fbb6af07dba",
+      "name": "검수_작업검수",
+      "projects": [
+        "agent-os",
+        "academy",
+        "rimbus"
+      ]
+    },
+    {
+      "profile": "pc-c2b2f67e",
+      "agentId": "1388ed57-d91b-4008-ae46-fe02b6ef701c",
+      "name": "콘텐츠_블로그본문",
+      "projects": [
+        "academy"
+      ]
+    },
+    {
+      "profile": "pc-3656a1bc",
+      "agentId": "776a5e91-cd70-4111-8001-8ead71e4d057",
+      "name": "콘텐츠_당근글",
+      "projects": [
+        "academy"
+      ]
     }
   ],
   "entries": [
