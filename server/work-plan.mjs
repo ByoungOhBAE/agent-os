@@ -103,6 +103,83 @@ export function extractDoc(markdown, fileName = "") {
   return { title, status, bodyHead };
 }
 
+// Capture a labelled section's text — supports bullet/inline labels
+// ("- 목적: ...") and header labels ("## 목표" followed by lines).
+function captureSection(lines, startIdx) {
+  const first = lines[startIdx];
+  const parts = [];
+  if (/^#{1,6}\s/.test(first)) {
+    for (let i = startIdx + 1; i < lines.length && parts.length < 8; i++) {
+      const l = lines[i];
+      if (/^#{1,6}\s/.test(l)) break;
+      if (/^\s*[|`]/.test(l)) continue;
+      if (l.trim()) parts.push(l);
+    }
+  } else {
+    const after = first.replace(/^[-*>\s]*\**\s*[^:：]*[:：]\s*/, "");
+    if (after.trim()) parts.push(after);
+    for (let i = startIdx + 1; i < lines.length && parts.length < 6; i++) {
+      const l = lines[i];
+      if (!l.trim()) break;
+      if (/^\s{2,}[-*\d]/.test(l) || /^\s{4,}\S/.test(l)) parts.push(l);
+      else break;
+    }
+  }
+  return cleanInline(parts.join(" · ")).slice(0, 500);
+}
+
+function findSection(lines, labelRe) {
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (/^\s*[|`]/.test(l)) continue;
+    if (new RegExp(`^#{1,6}\\s*(?:${labelRe})`).test(l)) return captureSection(lines, i);
+    if (new RegExp(`^[-*>\\s]*\\**\\s*(?:${labelRe})\\s*[:：]`).test(l)) return captureSection(lines, i);
+  }
+  return "";
+}
+
+function findFirst(lines, groups) {
+  for (const g of groups) {
+    const r = findSection(lines, g);
+    if (r) return r;
+  }
+  return "";
+}
+
+// Boss-friendly detail pulled from the plan doc itself (grounded, not invented):
+// what it is / why we do it / expected effect / what is out of scope.
+export function extractDetail(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  const why = findFirst(lines, ["목적|목표", "왜|이유", "배경"]);
+  const expected = findFirst(lines, [
+    "향후 확인 기준|완료 기준|성공 기준",
+    "기대\\s*효과|기대",
+    "효과|결과",
+  ]);
+  let what = findFirst(lines, [
+    "예정\\s*내용|남은\\s*예정",
+    "내용|요약|개요|한\\s*문장",
+    "무엇|해야\\s*할\\s*일",
+  ]);
+  if (!what) {
+    what = lines
+      .filter(
+        (l) =>
+          l.trim() &&
+          !/^#{1,6}\s/.test(l) &&
+          !/^\s*[|`]/.test(l) &&
+          !/^[-*>\s]*(\*\*)?\s*(상태|status)\s*[:：]/i.test(l),
+      )
+      .slice(0, 3)
+      .map((l) => cleanInline(l))
+      .filter(Boolean)
+      .join(" · ")
+      .slice(0, 400);
+  }
+  const exclude = findFirst(lines, ["제외", "범위\\s*밖", "하지\\s*않"]);
+  return { what, why, expected, exclude };
+}
+
 // --- filesystem scan ---
 
 async function collectMarkdown(root) {
@@ -170,12 +247,17 @@ export async function scanWorkPlan(folderId) {
     if (!status && !planish.test(relPosix) && !planish.test(title)) continue;
     const signal = status || bodyHead;
     const category = classifyStatus(signal, title);
+    const detail = extractDetail(text);
     counts[category] += 1;
     items.push({
       file: relPosix,
       title,
       status: (status || bodyHead).slice(0, 180),
       category,
+      what: detail.what,
+      why: detail.why,
+      expected: detail.expected,
+      exclude: detail.exclude,
     });
   }
   items.sort((a, b) => a.file.localeCompare(b.file));

@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   classifyStatus,
   extractDoc,
+  extractDetail,
   listWorkPlanFolders,
   scanWorkPlan,
 } from "../server/work-plan.mjs";
@@ -39,6 +40,35 @@ describe("classifyStatus", () => {
     expect(classifyStatus("", "무언가 계획")).toBe("planned");
     expect(classifyStatus("", "ROADMAP")).toBe("planned");
     expect(classifyStatus("아무말", "그냥 문서")).toBe("planned");
+  });
+});
+
+describe("extractDetail", () => {
+  it("pulls what/why/expected from bullet-labelled sections", () => {
+    const md = [
+      "# 계층형 작업명 표시",
+      "- 상태: **초안**",
+      "- 목적: 관리번호만으로는 알기 어려운 작업을 이름으로 파악한다.",
+      "- 예정 내용:",
+      "  - 프로젝트 → 상위 작업 관계를 반영한 표시 이름.",
+      "- 향후 확인 기준: 계층과 표시명이 일치한다.",
+      "- 제외: 현재 관리번호 변경.",
+    ].join("\n");
+    const d = extractDetail(md);
+    expect(d.why).toContain("관리번호");
+    expect(d.what).toContain("표시 이름");
+    expect(d.expected).toContain("일치");
+    expect(d.exclude).toContain("관리번호 변경");
+  });
+  it("reads header-style sections (## 목표)", () => {
+    const md = "# 시험 계획\n\n## 목표\n1. 구멍을 막고 증명한다.\n\n## 그밖에\n잡담";
+    const d = extractDetail(md);
+    expect(d.why).toContain("구멍을 막고");
+  });
+  it("falls back to the first body paragraph for 'what'", () => {
+    const d = extractDetail("# 무제\n\n이 문서는 그냥 설명만 있습니다.");
+    expect(d.what).toContain("설명만");
+    expect(d.why).toBe("");
   });
 });
 
