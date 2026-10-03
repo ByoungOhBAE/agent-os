@@ -2,20 +2,22 @@
 // Reuses the folder scanner; writes a snapshot that Paperclip serves same-origin.
 // Usage: node scripts/gen-paperclip-workplan.mjs [outFile]
 import { writeFileSync } from "node:fs";
-import { listWorkPlanFolders, scanWorkPlan } from "../server/work-plan.mjs";
+import { listWorkPlanFolders, scanWorkPlan, workPlanFolderRoots } from "../server/work-plan.mjs";
 
 const out = { generatedAt: new Date().toISOString(), folders: [] };
+// root lets the project hub map a Paperclip project workspace cwd to its folder.
+const rootOf = new Map(workPlanFolderRoots().map((f) => [f.id, f.root]));
 for (const f of listWorkPlanFolders()) {
   if (!f.available) {
     out.folders.push({
-      id: f.id, label: f.label, available: false,
+      id: f.id, label: f.label, root: rootOf.get(f.id), available: false,
       counts: { do: 0, scheduled: 0, planned: 0, done: 0 }, items: [],
     });
     continue;
   }
   const p = await scanWorkPlan(f.id);
   out.folders.push({
-    id: p.folder, label: p.label, available: true,
+    id: p.folder, label: p.label, root: rootOf.get(p.folder), available: true,
     counts: p.counts, items: p.items,
   });
 }

@@ -16,6 +16,11 @@ const DEFAULT_FOLDERS = [
     label: "학원 홈페이지",
     root: path.join(workspacesRoot, "academy homepage"),
   },
+  {
+    id: "rimbus-company-project",
+    label: "림버스 회사 프로젝트",
+    root: path.join(workspacesRoot, "rimbus company project"),
+  },
 ];
 
 function configuredFolders() {
@@ -214,6 +219,12 @@ export function listWorkPlanFolders() {
     label: f.label,
     available: existsSync(f.root),
   }));
+}
+
+/** Folder roots (forward-slash absolute paths) for snapshot consumers that map
+ *  a project's workspace cwd to its work-plan folder. Not exposed via the BFF. */
+export function workPlanFolderRoots() {
+  return configuredFolders().map((f) => ({ id: f.id, root: path.resolve(f.root).split(path.sep).join("/") }));
 }
 
 export async function scanWorkPlan(folderId) {

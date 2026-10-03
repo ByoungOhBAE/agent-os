@@ -8,6 +8,7 @@ import {
   extractDetail,
   listWorkPlanFolders,
   scanWorkPlan,
+  workPlanFolderRoots,
 } from "../server/work-plan.mjs";
 
 const dirs: string[] = [];
@@ -118,5 +119,22 @@ describe("scanWorkPlan", () => {
       { id: "t", label: "테스트", root: tmpdir() },
     ]);
     expect(await scanWorkPlan("nope")).toBeNull();
+  });
+});
+
+describe("workPlanFolderRoots", () => {
+  it("returns forward-slash absolute roots for every configured folder", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "wp-roots-"));
+    dirs.push(dir);
+    process.env.WORK_PLAN_FOLDERS_JSON = JSON.stringify([{ id: "t", label: "테스트", root: dir }]);
+    const roots = workPlanFolderRoots();
+    expect(roots).toHaveLength(1);
+    expect(roots[0].id).toBe("t");
+    expect(roots[0].root).not.toContain("\\");
+    expect(path.resolve(roots[0].root)).toBe(path.resolve(dir));
+  });
+
+  it("includes the three project folders by default", () => {
+    expect(workPlanFolderRoots().map((f) => f.id)).toEqual(["agent-os", "academy-homepage", "rimbus-company-project"]);
   });
 });
