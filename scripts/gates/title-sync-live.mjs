@@ -1,6 +1,9 @@
 // T5: live cascade on production, using an archived (cancelled) pair only: HER-27 (parent) and HER-28 (child).
-// Rename the parent -> the plugin must rewrite the child's path within 60s, keeping the child's own name;
+// Rename the parent -> the plugin must rewrite the child's path within 20s, keeping the child's own name;
 // rename back -> the child returns to its exact starting title. Ends with both titles as they started.
+// Run with Node 24 (C:/Program Files/nodejs/node.exe). The Hermes-bundled Windows Node 26.7 can leave a lone
+// in-flight fetch unresolved for 10-30s when only long timers are pending (client-side; the server answers
+// in ms, verified 2026-10-04 with simultaneous WSL curl probes), which made this gate look slow.
 import { displayTitle } from "../../plugins/agentos-control/src/task-title.ts";
 
 const API = "http://127.0.0.1:3100/api";
@@ -24,15 +27,15 @@ if (p1 === p0) fail("could not derive test title");
 
 const t0 = Date.now();
 await patch(parent.id, p1);
-const moved = await waitFor(async () => { const c = await get("HER-28"); return c.title.startsWith(`${p1} › `) ? c : null; }, 60000);
+const moved = await waitFor(async () => { const c = await get("HER-28"); return c.title.startsWith(`${p1} › `) ? c : null; }, 20000);
 const restoreAndFail = async (m) => { await patch(parent.id, p0); fail(m); };
-if (!moved) await restoreAndFail("child path not updated within 60s");
+if (!moved) await restoreAndFail("child path not updated within 20s");
 const secs = ((Date.now() - t0) / 1000).toFixed(1);
 if (displayTitle(moved.title).name !== ownName) await restoreAndFail(`child own name changed: ${moved.title}`);
 if (moved.status !== child.status) await restoreAndFail("child status changed");
 
 await patch(parent.id, p0);
-const back = await waitFor(async () => { const c = await get("HER-28"); return c.title === c0 ? c : null; }, 60000);
+const back = await waitFor(async () => { const c = await get("HER-28"); return c.title === c0 ? c : null; }, 20000);
 if (!back) fail(`child did not return to "${c0}"`);
 const pEnd = (await get("HER-27")).title;
 if (pEnd !== p0) fail("parent not restored");

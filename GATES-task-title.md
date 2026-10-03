@@ -22,8 +22,8 @@ Scope: 사장님 결정(2026-10-04) — 1) 플러그인 화면에서 경로·이
   EXPECT: T4_TITLE_PLUGINS_DEPLOYED_OK
   EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\tahar\orca\workspaces\agent os; path=04e6d10c0865/53 entries; EXPECT=matched; output-sha256=94ecb2200b5299da411ffdfd58b7cb09c4283de520f7e8023cc8519fa8b2ff9b; output-bytes=157
 
-- [x] T5: 운영 실시간 연쇄 — 보관된 HER-27 제목을 바꾸면 60초 안에(서버 자체 멈춤 감안, 연쇄 처리 자체는 1초 미만) 하위 HER-28의 경로가 따라 바뀌고 자기 이름·상태는 그대로이며, 되돌리면 HER-28도 정확히 원래 제목으로 돌아온다.
-  CHECK: node scripts/gates/title-sync-live.mjs
+- [x] T5: 운영 실시간 연쇄 — 보관된 HER-27 제목을 바꾸면 20초 안에 하위 HER-28의 경로가 따라 바뀌고 자기 이름·상태는 그대로이며, 되돌리면 HER-28도 정확히 원래 제목으로 돌아온다.
+  CHECK: "C:/Program Files/nodejs/node.exe" scripts/gates/title-sync-live.mjs
   EXPECT: T5_TITLE_CASCADE_LIVE_OK
   EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\tahar\orca\workspaces\agent os; path=04e6d10c0865/53 entries; EXPECT=matched; output-sha256=92d0da05aa1c1ca07540b32581a23b9f782c2dc27b1cb89cd899b14779980016; output-bytes=188
 
