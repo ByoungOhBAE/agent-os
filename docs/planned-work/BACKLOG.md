@@ -29,4 +29,6 @@
   - 격리 시험 3회(새 복원본마다 실제 저장소 대신 **미끼 저장소**로 경로 교체): 매회 137/137 닫힘, 미끼 저장소 2,115개 파일 내용 해시 동일, 작업(이슈)·프로젝트 작업공간 바이트 동일, 파괴적 작업 기록 0, 운영 무변경.
   - 운영 적용: 백업 `fullbackup-20261003T223317Z`(B1 검증) 후 공식 API(`PATCH /api/execution-workspaces/:id {status:"archived"}`)로 137/137 닫음. 최종 상태 `cleanup_failed`는 정상(폴더를 지우지 않았으므로 "정리됨"이 아닐 뿐, 재검사 대상 아님). 실제 저장소 33,264개 항목 중 변경은 작업 중 새로 만든 스크립트 1개뿐. 닫은 뒤 95초간 git 검사 0회, Paperclip CPU 19%→4%.
   - 증거: `%LOCALAPPDATA%/agentos/ws-close/`(trial1~3, prod/snap.json·resume.log). 스크립트 `scripts/exec-ws-close*.{mjs,sh}`, `scripts/dir-manifest.mjs`, 검증 `scripts/gates/exec-ws-close-verify.mjs`.
+- **정정**: "저장 안 된 변경 121개"는 실제 변경이 아니라 **줄바꿈(CRLF/LF) 해석 차이**였다. Windows git은 깨끗(clean), WSL git(Paperclip이 쓰는 쪽)만 121개 파일을 "변경됨"으로 본다(추가·삭제 줄 수가 54,660으로 동일). 그래서 커밋해도 Paperclip 눈에는 계속 "더러운" 저장소였다.
+- 재발 방지 후보(승인 필요): WSL 쪽 git이 Windows와 같은 줄바꿈 규칙을 쓰게 맞추기(`.gitattributes` 또는 WSL 전용 설정). 저장소 설정 변경이라 Windows 쪽 영향 확인 후 진행.
 - 재발: 프로젝트에 연결된 작업이 실행될 때마다 기록이 새로 생기고, 저장소가 깨끗해지기 전엔 자동으로 안 닫힌다. 쌓이면 `scripts/exec-ws-close.mjs`로 같은 방식으로 닫는다(드라이런 먼저, 안전 조건 불충족 기록은 자동 제외). 운영 /mnt/c 저장소는 기록당 약 3초 걸리므로 긴 실행은 `systemd-run --user`로 띄운다.
