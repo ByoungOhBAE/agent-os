@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   useHostContext, useHostLocation, useHostNavigation,
   type PluginPageProps, type PluginSidebarProps,
@@ -6,8 +6,8 @@ import {
 import {
   ARTIFACT_KINDS, PRIORITY_LABEL, TABS, UNASSIGNED,
   activeProjectId, artifactKindLabel, artifactsQuery, fmtDate, groupIssues, hubPath, issuesForProject,
-  matchFolder, parseHubSearch, planBuckets, routineSummary, routinesForProject, sidebarProjects,
-  type HubTab, type IssueLite, type PlanFolder, type ProjectLite, type RoutineLite,
+  matchFolder, parseHubSearch, planBuckets, planDetail, routineSummary, routinesForProject, sidebarProjects,
+  type HubTab, type IssueLite, type PlanFolder, type PlanItem, type ProjectLite, type RoutineLite,
 } from "../model.js";
 
 // ---------------------------------------------------------------------------------------------
@@ -315,6 +315,7 @@ type Snapshot = { generatedAt?: string; folders?: PlanFolder[] };
 
 function PlanView({ project, unassigned }: { project: ProjectLite | null; unassigned: boolean }) {
   const load = useJson<Snapshot>(unassigned ? null : "/agentos-workplan.json");
+  const [detail, setDetail] = useState<PlanItem | null>(null);
   if (unassigned) return <Notice>작업계획은 프로젝트 폴더의 계획 문서에서 만들어지므로 미분류에는 없습니다.</Notice>;
   if (load.error) return <Notice tone="bad">작업계획 스냅샷을 불러오지 못했습니다 ({load.error}). <Retry onClick={load.reload} /></Notice>;
   if (!load.data) return <Notice>불러오는 중…</Notice>;
@@ -332,10 +333,13 @@ function PlanView({ project, unassigned }: { project: ProjectLite | null; unassi
           const list = (
             <ul className="aph-col-list">
               {b.items.map((item) => (
-                <li key={item.file} className="aph-card aph-plan-item">
-                  <span className="aph-issue-title">{item.title}</span>
-                  {item.what && <span className="aph-clamp">{item.what}</span>}
-                  <code className="aph-file">{item.file}</code>
+                <li key={item.file}>
+                  <button type="button" className="aph-card aph-plan-item" data-aph-plan-item={item.file} aria-haspopup="dialog"
+                    onClick={() => setDetail(item)}>
+                    <span className="aph-issue-title">{item.title}</span>
+                    {item.what && <span className="aph-clamp">{item.what}</span>}
+                    <span className="aph-file">{item.file}</span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -351,7 +355,44 @@ function PlanView({ project, unassigned }: { project: ProjectLite | null; unassi
           );
         })}
       </div>
+      {detail && <PlanDetailDialog item={detail} onClose={() => setDetail(null)} />}
     </div>
+  );
+}
+
+/** Item detail popup (a real modal <dialog>): what / why / expected, same sections as the '작업 계획' page. */
+function PlanDetailDialog({ item, onClose }: { item: PlanItem; onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const d = planDetail(item);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (dialog && !dialog.open) dialog.showModal();
+    return () => { if (dialog?.open) dialog.close(); };
+  }, []);
+  return (
+    <dialog ref={ref} className="aph-dialog" aria-labelledby="aph-dialog-title" data-aph-plan-dialog={item.file}
+      onClose={onClose} onCancel={onClose}
+      onClick={(event) => { if (event.target === event.currentTarget) ref.current?.close(); }}>
+      <div className="aph-dialog-body">
+        <div className="aph-dialog-head">
+          <div className="aph-dialog-titles">
+            <span className="aph-chip">{d.category}</span>
+            <h2 id="aph-dialog-title" className="aph-dialog-title">{d.title}</h2>
+          </div>
+          <button type="button" className="aph-btn" onClick={() => ref.current?.close()} autoFocus>닫기</button>
+        </div>
+        {d.sections.map((sec) => (
+          <section key={sec.key} className="aph-dialog-sec" data-aph-sec={sec.key}>
+            <h3>{sec.label}</h3>
+            <p className={sec.missing ? "aph-muted" : undefined}>{sec.text}</p>
+          </section>
+        ))}
+        <dl className="aph-dialog-meta">
+          <dt>상태</dt><dd>{d.status}</dd>
+          <dt>출처 문서</dt><dd className="aph-file">{d.file}</dd>
+        </dl>
+      </div>
+    </dialog>
   );
 }
 
@@ -553,6 +594,23 @@ a.aph-card:focus-visible{outline:2px solid var(--ring,var(--primary));outline-of
 .aph-filter[aria-pressed="true"]{color:var(--foreground);border-color:var(--agentos-lamp,var(--primary));background:var(--accent)}
 .aph-filter:focus-visible{outline:2px solid var(--ring,var(--primary));outline-offset:2px}
 .aph-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:var(--muted)}
+button.aph-plan-item{font:inherit;text-align:left;width:100%;cursor:pointer}
+button.aph-plan-item:hover{border-color:color-mix(in oklab,var(--foreground) 25%,transparent)}
+button.aph-plan-item:focus-visible{outline:2px solid var(--ring,var(--primary));outline-offset:2px}
+.aph-dialog{position:fixed;inset:0;margin:auto;height:fit-content;max-height:min(86vh,760px);width:min(640px,calc(100vw - 32px));overflow:auto;
+  padding:0;border:1px solid var(--border);border-radius:14px;background:var(--popover,var(--card));color:var(--foreground);
+  box-shadow:0 24px 64px -12px rgba(0,0,0,.6);word-break:keep-all;overflow-wrap:anywhere}
+.aph-dialog::backdrop{background:rgba(0,0,0,.55)}
+.aph-dialog-body{display:flex;flex-direction:column;gap:14px;padding:20px;font-weight:400}
+.aph-dialog-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.aph-dialog-titles{display:flex;flex-direction:column;gap:8px;min-width:0}
+.aph-dialog-titles .aph-chip{align-self:flex-start}
+.aph-dialog-title{margin:0;font-size:18px;font-weight:650;line-height:1.4}
+.aph-dialog-sec h3{margin:0 0 4px;font-size:12px;font-weight:650;color:var(--muted-foreground)}
+.aph-dialog-sec p{margin:0;font-size:14px;font-weight:400;line-height:1.65;white-space:pre-line}
+.aph-muted{color:var(--muted-foreground)}
+.aph-dialog-meta{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted-foreground)}
+.aph-dialog-meta dd{margin:0;font-weight:400;color:var(--foreground)}
 .aph-details summary{cursor:pointer;font-size:12px;color:var(--muted-foreground);margin-bottom:8px}
 .aph-picker-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .aph-picker-card{flex-direction:row;align-items:center;gap:10px;min-height:52px;font-size:14px;font-weight:550}

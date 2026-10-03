@@ -102,7 +102,31 @@ export function normalizePath(raw: string | null | undefined): string | null {
   return p.toLowerCase();
 }
 
-export type PlanItem = { file: string; title: string; status?: string; category: string; what?: string };
+export type PlanItem = {
+  file: string; title: string; status?: string; category: string;
+  what?: string; why?: string; expected?: string; exclude?: string;
+};
+
+export const PLAN_CATEGORY: Record<string, string> = { do: "해야 할 일", scheduled: "예정된 작업", planned: "계획만 된 작업", done: "완료" };
+const MISSING = "계획 문서에 아직 적혀 있지 않습니다.";
+
+/** Detail popup content, same sections as the '작업 계획' page popup. Missing text is marked, never invented. */
+export function planDetail(item: PlanItem) {
+  const text = (v: string | undefined) => (v && v.trim() ? v.trim() : null);
+  const sections: Array<{ key: string; label: string; text: string; missing: boolean }> = [
+    { key: "what", label: "무엇인가요?", raw: item.what },
+    { key: "why", label: "왜 하나요?", raw: item.why },
+    { key: "expected", label: "기대 효과", raw: item.expected },
+  ].map(({ key, label, raw }) => ({ key, label, text: text(raw) ?? MISSING, missing: !text(raw) }));
+  if (text(item.exclude)) sections.push({ key: "exclude", label: "이번엔 안 하는 것", text: text(item.exclude)!, missing: false });
+  return {
+    title: item.title,
+    category: PLAN_CATEGORY[item.category] ?? item.category,
+    sections,
+    status: text(item.status) ?? "-",
+    file: item.file,
+  };
+}
 export type PlanFolder = {
   id: string;
   label: string;

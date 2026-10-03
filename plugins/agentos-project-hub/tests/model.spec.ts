@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   activeProjectId, artifactKindLabel, artifactsQuery, fmtDate, groupIssues, hubPath, issuesForProject,
-  matchFolder, normalizePath, parseHubSearch, planBuckets, routineSummary, routinesForProject, sidebarProjects,
+  matchFolder, normalizePath, parseHubSearch, planBuckets, planDetail, routineSummary, routinesForProject, sidebarProjects,
   UNASSIGNED, type IssueLite, type PlanFolder, type ProjectLite,
 } from "../src/model.js";
 import manifest from "../src/manifest.js";
@@ -130,5 +130,22 @@ describe("manifest", () => {
     expect(manifest.ui?.slots?.map((s) => [s.type, s.exportName])).toEqual([
       ["page", "ProjectHubPage"], ["sidebar", "ProjectHubSidebar"],
     ]);
+  });
+});
+
+describe("plan detail popup content", () => {
+  it("keeps what/why/expected in order and marks missing text instead of inventing it", () => {
+    const d = planDetail({ file: "docs/a.md", title: "A 계획", category: "planned", status: "초안", what: " 무엇 ", why: "", expected: undefined });
+    expect(d.title).toBe("A 계획");
+    expect(d.category).toBe("계획만 된 작업");
+    expect(d.sections.map((s) => [s.key, s.missing])).toEqual([["what", false], ["why", true], ["expected", true]]);
+    expect(d.sections[0].text).toBe("무엇");
+    expect(d.sections[1].text).toBe("계획 문서에 아직 적혀 있지 않습니다.");
+    expect(d.file).toBe("docs/a.md");
+  });
+  it("adds the exclude section only when present and falls back for status", () => {
+    const d = planDetail({ file: "b.md", title: "B", category: "do", exclude: "드래그 편집" });
+    expect(d.sections.at(-1)).toEqual({ key: "exclude", label: "이번엔 안 하는 것", text: "드래그 편집", missing: false });
+    expect(d.status).toBe("-");
   });
 });
