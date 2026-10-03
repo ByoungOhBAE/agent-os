@@ -830,7 +830,7 @@ ${P}chip:hover{border-color:rgba(var(--g-c),.5);color:var(--h-secondary,#b3beb2)
 ${P}chip[aria-pressed=true]{color:var(--h-text,#e8eee7);background:rgba(var(--g-c),.1);border-color:rgba(var(--g-c),.4)}
 ${P}chip-dot{width:8px;height:8px;border-radius:50%;flex:none;background:rgb(var(--g-c));box-shadow:0 0 8px rgba(var(--g-c),.75)}
 ${P}chip[aria-pressed=false] .g-chip-dot{background:transparent;box-shadow:inset 0 0 0 1.5px rgba(var(--g-c),.55)}
-${P}chip-n{font-variant-numeric:tabular-nums;font-size:11px;color:var(--h-muted,#829185);font-weight:500}
+${P}chip-n{font-variant-numeric:tabular-nums;font-size:11px;color:var(--h-secondary,#b7c3b5);font-weight:500}
 ${P}row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}
 ${P}search{position:relative;flex:1 1 260px;min-width:0;display:block}
 ${P}search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--h-muted,#829185);pointer-events:none}
