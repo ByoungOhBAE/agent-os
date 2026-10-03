@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { usePluginAction, usePluginData } from "@paperclipai/plugin-sdk/ui";
 import { Markdown, MARKDOWN_CSS } from "./markdown.js";
+import { TaskTitle, TASK_TITLE_CSS } from "./task-title-view.js";
 
 type Stage = "planning" | "approval" | "working" | "reviewing" | "reported" | "blocked" | "cancelled";
 const STAGE_LABEL: Record<Stage, string> = {
@@ -108,7 +109,7 @@ export function ChiefDesk({ companyId }: { companyId: string | null }) {
                   <span className={`k-stage k-stage-${r.stage}`}>{STAGE_LABEL[r.stage]}</span>
                   {r.waitingOnUser && <span className="k-flag">내 확인 필요</span>}
                 </span>
-                <span className="k-item-title">{r.title.replace(/^요청:\s*/, "")}</span>
+                <TaskTitle className="k-item-title" title={r.title.replace(/^요청:\s*/, "")} />
                 <span className="k-muted">{r.identifier ?? ""}{r.tasks.total ? ` · 작업 ${r.tasks.done}/${r.tasks.total}` : ""} · {when(r.createdAt)}</span>
               </button>
             </li>
@@ -169,7 +170,7 @@ function RequestView({ companyId, issueId, onBack, onChanged }: { companyId: str
       <header className="k-head">
         <button type="button" className="c-back" onClick={onBack} aria-label="목록으로">←</button>
         <div className="k-head-id">
-          <h2 className="k-title">{d.request.title.replace(/^요청:\s*/, "")}</h2>
+          <h2 className="k-title"><TaskTitle title={d.request.title.replace(/^요청:\s*/, "")} /></h2>
           <p className="k-muted">{d.request.identifier} · {when(d.request.createdAt)} 요청</p>
         </div>
         <span className={`k-stage k-stage-${stage}`}>{STAGE_LABEL[stage]}</span>
@@ -241,7 +242,7 @@ function RequestView({ companyId, issueId, onBack, onChanged }: { companyId: str
                 <li key={t.id} className="k-task">
                   <span className={`k-task-status k-t-${t.status}`}>{TASK_LABEL[t.status] ?? t.status}</span>
                   <span className="k-task-main">
-                    <span className="k-task-title">{t.title}</span>
+                    <TaskTitle className="k-task-title" title={t.title} />
                     <span className="k-muted">{t.identifier} · {t.assignee ?? "담당 없음"}{!t.nameRuleOk && <b className="k-warn"> · 이름 규칙(부서명_담당업무) 어김</b>}</span>
                   </span>
                 </li>
@@ -276,7 +277,7 @@ function RequestView({ companyId, issueId, onBack, onChanged }: { companyId: str
   );
 }
 
-export const CHIEF_CSS = MARKDOWN_CSS + `
+export const CHIEF_CSS = MARKDOWN_CSS + TASK_TITLE_CSS + `
 .k-root{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;margin-top:16px;height:calc(100dvh - 320px);min-height:560px}
 .k-side,.k-main{border:1px solid var(--c-line);background:var(--c-panel);border-radius:12px;box-shadow:var(--agentos-sheen,none);min-height:0;min-width:0}
 .k-side{display:flex;flex-direction:column;overflow:auto}
@@ -298,7 +299,8 @@ export const CHIEF_CSS = MARKDOWN_CSS + `
 .k-item:hover{background:var(--c-raised)}
 .k-item[aria-current="true"]{background:var(--c-raised);box-shadow:inset 2px 0 0 var(--c-accent)}
 .k-item-top{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.k-item-title{font-size:14px;font-weight:600;word-break:keep-all;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.k-item-title{font-size:14px;font-weight:600}
+.k-item-title .tt-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .k-stage{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:650;border:1px solid var(--c-line-strong);color:var(--c-secondary);white-space:nowrap}
 .k-stage-approval{color:var(--c-warn);border-color:rgba(214,189,145,.5)}
 .k-stage-working,.k-stage-reviewing{color:var(--c-accent);border-color:rgba(189,209,170,.45)}

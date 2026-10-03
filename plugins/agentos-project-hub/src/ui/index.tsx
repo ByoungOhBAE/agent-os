@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+// 작업 제목 표시(경로 작게 · 이름 굵게)는 통합 관제와 같은 컴포넌트를 쓴다.
+import { TaskTitle, TASK_TITLE_CSS } from "../../../agentos-control/src/ui/task-title-view.js";
 import {
   useHostContext, useHostLocation, useHostNavigation,
   type PluginPageProps, type PluginSidebarProps,
@@ -190,7 +192,7 @@ export function ProjectHubPage(_props: PluginPageProps) {
   const cwd = project?.primaryWorkspace?.cwd ?? null;
   return (
     <div className="aph-root" data-agentos-project-hub="page" data-aph-project={selectedId ?? ""} data-aph-tab={tab}>
-      <style>{PAGE_CSS}</style>
+      <style>{PAGE_CSS + TASK_TITLE_CSS}</style>
       <header className="aph-top">
         <div className="aph-top-text">
           <p className="aph-eyebrow">프로젝트 허브</p>
@@ -288,7 +290,7 @@ function KanbanView({ companyId, projectId }: { companyId: string; projectId: st
                             <span className="aph-id">{issue.identifier ?? "—"}</span>
                             {issue.priority && <span className="aph-chip" data-priority={issue.priority}>{PRIORITY_LABEL[issue.priority] ?? issue.priority}</span>}
                           </span>
-                          <span className="aph-issue-title">{issue.title}</span>
+                          <TaskTitle className="aph-issue-title" title={issue.title} />
                           <span className="aph-small">{fmtDate(issue.updatedAt)}</span>
                         </a>
                       </li>

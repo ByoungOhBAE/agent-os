@@ -40,3 +40,81 @@ describe("작업 제목 규칙", () => {
     expect(reason("a ›  › c-1")).toBeNull(); // empty segments collapse
   });
 });
+
+import { cascadeSubtree, displayTitle, isRuleTitle, ownSegment, pickSeq, planTitleCleanup, shortPath } from "../src/task-title.js";
+
+describe("제목 화면 분리 · 순번 정리 · 상위 이름 연쇄 갱신", () => {
+  it("splits a title into path, name and sequence for display; free-form titles are shown whole", () => {
+    expect(displayTitle("홍보 › 가을 클래스-1 › 인스타 게시글-2")).toEqual({ tag: null, path: "홍보 › 가을 클래스-1", name: "인스타 게시글", seq: 2 });
+    expect(displayTitle("[보관] 가드 회귀 › 김치 문구-1")).toEqual({ tag: "[보관]", path: "가드 회귀", name: "김치 문구", seq: 1 });
+    expect(displayTitle("요청: 블로그 제목 아이디어")).toEqual({ tag: null, path: "", name: "요청: 블로그 제목 아이디어", seq: null });
+    expect(displayTitle("새 요청-1")).toEqual({ tag: null, path: "", name: "새 요청", seq: 1 });
+    expect(isRuleTitle("Spike: write hello file")).toBe(false);
+  });
+
+  it("shortens a deep path to project › … › direct parent", () => {
+    expect(shortPath("홍보 › 조직 검증-1 › 가을 클래스 글-1")).toBe("홍보 › … › 가을 클래스 글-1");
+    expect(shortPath("홍보 › 조직 검증-1")).toBe("홍보 › 조직 검증-1");
+    expect(shortPath("")).toBe("");
+  });
+
+  it("reads the own segment: redo words dropped, existing -N or (rN) kept as a hint", () => {
+    expect(ownSegment("홍보 › 글 작성 › 인스타 게시글 다시 작성")).toEqual({ name: "인스타 게시글 작성", seqHint: null });
+    expect(ownSegment("[보관] 가드 회귀 › 차단 규칙 확인하기 (r3)")).toEqual({ name: "차단 규칙 확인하기", seqHint: 3 });
+    expect(ownSegment("AgentOS › guard-시험-2")).toEqual({ name: "guard-시험", seqHint: 2 });
+  });
+
+  it("keeps a free hinted sequence, otherwise takes the next one", () => {
+    expect(pickSeq(["a", "b"], 3, ["a › b-1"])).toBe(3);
+    expect(pickSeq(["a", "b"], 1, ["a › b-1"])).toBe(2);
+    expect(pickSeq(["a", "b"], null, ["[보관] a › b-1", "a › b-2", "a › c-9"])).toBe(3);
+  });
+
+  it("cascades a parent full title into every descendant and numbers redo siblings", () => {
+    const issues = [
+      { id: "p", title: "홍보 › 가을 클래스 글 작성-1", parentId: null, createdAt: "1" },
+      { id: "c1", title: "홍보 › 가을 클래스 글 작성 › 인스타 게시글 작성", parentId: "p", createdAt: "2" },
+      { id: "c2", title: "홍보 › 가을 클래스 글 작성 › 인스타 게시글 다시 작성", parentId: "p", createdAt: "3" },
+      { id: "g", title: "홍보 › 엉뚱한 경로 › 해시태그", parentId: "c2", createdAt: "4" },
+    ];
+    expect(cascadeSubtree(issues[0], issues)).toEqual([
+      { id: "c1", from: issues[1].title, to: "홍보 › 가을 클래스 글 작성-1 › 인스타 게시글 작성-1" },
+      { id: "c2", from: issues[2].title, to: "홍보 › 가을 클래스 글 작성-1 › 인스타 게시글 작성-2" },
+      { id: "g", from: issues[3].title, to: "홍보 › 가을 클래스 글 작성-1 › 인스타 게시글 작성-2 › 해시태그-1" },
+    ]);
+  });
+
+  it("renaming a parent rewrites only the path of its children (their own names stay)", () => {
+    const issues = [
+      { id: "p", title: "홍보 › 봄 클래스 글-1", parentId: null, createdAt: "1" },
+      { id: "c", title: "홍보 › 가을 클래스 글-1 › 인스타-1", parentId: "p", createdAt: "2" },
+    ];
+    expect(cascadeSubtree(issues[0], issues)).toEqual([{ id: "c", from: issues[1].title, to: "홍보 › 봄 클래스 글-1 › 인스타-1" }]);
+  });
+
+  it("a free-form parent leaves its children alone", () => {
+    const issues = [
+      { id: "p", title: "요청: 블로그 제목 아이디어를 받아 주세요.", parentId: null, createdAt: "1" },
+      { id: "c", title: "가을 발효 요리 블로그 제목 5개 작성", parentId: "p", createdAt: "2" },
+    ];
+    expect(cascadeSubtree(issues[0], issues)).toEqual([]);
+  });
+
+  it("cleanup numbers roots in creation order, keeps tags, and is idempotent", () => {
+    const issues = [
+      { id: "r1", title: "[보관] 가드 회귀 › 차단 규칙 확인하기", parentId: null, createdAt: "1" },
+      { id: "k1", title: "[보관] 가드 회귀 › 김치 문구 작성하기", parentId: "r1", createdAt: "2" },
+      { id: "r2", title: "[보관] 가드 회귀 › 차단 규칙 확인하기 (r2)", parentId: null, createdAt: "3" },
+      { id: "r3", title: "요청: 자유 형식 제목", parentId: null, createdAt: "4" },
+      { id: "k3", title: "자유 형식 하위", parentId: "r3", createdAt: "5" },
+    ];
+    const plan = planTitleCleanup(issues);
+    expect(plan.map((c) => [c.id, c.to])).toEqual([
+      ["r1", "[보관] 가드 회귀 › 차단 규칙 확인하기-1"],
+      ["k1", "[보관] 가드 회귀 › 차단 규칙 확인하기-1 › 김치 문구 작성하기-1"],
+      ["r2", "[보관] 가드 회귀 › 차단 규칙 확인하기-2"],
+    ]);
+    const after = issues.map((i) => ({ ...i, title: plan.find((c) => c.id === i.id)?.to ?? i.title }));
+    expect(planTitleCleanup(after)).toEqual([]);
+  });
+});

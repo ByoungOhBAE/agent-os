@@ -1,0 +1,23 @@
+{
+  "name": "@agentos/agentos-title-sync",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "paperclipPlugin": {
+    "manifest": "./dist/manifest.js",
+    "worker": "./dist/worker.js"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "node esbuild.config.mjs"
+  },
+  "dependencies": {
+    "@paperclipai/plugin-sdk": "2026.916.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
