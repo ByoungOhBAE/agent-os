@@ -14,7 +14,7 @@ const DEFAULT_FOLDERS = [
   {
     id: "academy-homepage",
     label: "학원 홈페이지",
-    root: path.join(workspacesRoot, "academy homepage", "홈페이지제작"),
+    root: path.join(workspacesRoot, "academy homepage"),
   },
 ];
 

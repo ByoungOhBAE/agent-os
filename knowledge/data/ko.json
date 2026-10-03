@@ -132,8 +132,8 @@
       "source": "claude-subscription"
     },
     "f2b22f7876e1": {
-      "ko": "academy-homepage는 서로 다른 경로의 git 워크트리를 사용합니다: C:\\Users\\tahar\\academy homepage(master); C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작(콘텐츠 생성기와 local-worker가 있는 메인 개발 브랜치, 여기서 작업); .../제미니-도움; .../컨텐츠-생성. 커밋되지 않은 새 폴더는 만들어진 워크트리에만 존재하므로, 항상 정확한 워크트리의 절대 경로를 알려주세요.",
-      "en": "academy-homepage uses git worktrees at different paths: C:\\Users\\tahar\\academy homepage (master); C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작 (main dev branch with the content generator and local-worker; work here); .../제미니-도움; .../컨텐츠-생성. A new uncommitted folder exists only in the worktree where it was made, so always give the exact worktree absolute path.",
+      "ko": "academy-homepage는 단일 git 저장소(브랜치 main, GitHub ByoungOhBAE/academy-homepage)이며 경로는 C:/Users/tahar/orca/workspaces/academy homepage입니다. 2026-10-03에 옛 워크트리(C:/Users/tahar/academy homepage의 master, 홈페이지제작 등)를 통합하고 삭제했으니 여기서 작업합니다.",
+      "en": "academy-homepage is a single git repo (branch main, origin GitHub ByoungOhBAE/academy-homepage) at C:/Users/tahar/orca/workspaces/academy homepage. On 2026-10-03 the old worktrees (master at C:/Users/tahar/academy homepage, 홈페이지제작, etc.) were consolidated and removed; work here.",
       "source": "claude-subscription"
     },
     "dfbf35cbbad8": {
@@ -222,8 +222,8 @@
       "source": "claude-subscription"
     },
     "6ed30ef93620": {
-      "ko": "academy-homepage는 git worktree로 여러 브랜치가 서로 다른 디스크 경로에 있다: C:\\Users\\tahar\\academy homepage(master), C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작(메인 개발 브랜치, content generator·local-worker 포함, 여기서 작업), /제미니-도움, /컨텐츠-생성. 새 미커밋 폴더(예: android-notifier/)는 작업한 worktree 경로에만 존재하므로, 사용자가 다른 브랜치 폴더를 보고 있으면 못 찾을 수 있다 — 파일 전달 시 정확한 worktree 절대경로를 명시할 것.",
-      "en": "academy-homepage는 git worktree로 여러 브랜치가 서로 다른 디스크 경로에 있다: C:\\Users\\tahar\\academy homepage(master), C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작(메인 개발 브랜치, content generator·local-worker 포함, 여기서 작업), /제미니-도움, /컨텐츠-생성. 새 미커밋 폴더(예: android-notifier/)는 작업한 worktree 경로에만 존재하므로, 사용자가 다른 브랜치 폴더를 보고 있으면 못 찾을 수 있다 — 파일 전달 시 정확한 worktree 절대경로를 명시할 것.",
+      "ko": "academy-homepage는 단일 git 저장소(브랜치 main, GitHub ByoungOhBAE/academy-homepage)이며 경로는 C:/Users/tahar/orca/workspaces/academy homepage입니다. 2026-10-03에 옛 워크트리(C:/Users/tahar/academy homepage의 master, 홈페이지제작 등)를 통합하고 삭제했으니 여기서 작업합니다.",
+      "en": "academy-homepage is a single git repo (branch main, origin GitHub ByoungOhBAE/academy-homepage) at C:/Users/tahar/orca/workspaces/academy homepage. On 2026-10-03 the old worktrees (master at C:/Users/tahar/academy homepage, 홈페이지제작, etc.) were consolidated and removed; work here.",
       "source": "already-korean"
     },
     "0f9efcfc1ef6": {

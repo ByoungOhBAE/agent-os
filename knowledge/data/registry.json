@@ -424,7 +424,7 @@
       "from": [
         "hermes-root/MEMORY.md#6ed30ef93620"
       ],
-      "en": "academy-homepage uses git worktrees at different paths: C:\\Users\\tahar\\academy homepage (master); C:/Users/tahar/orca/workspaces/academy homepage/홈페이지제작 (main dev branch with the content generator and local-worker; work here); .../제미니-도움; .../컨텐츠-생성. A new uncommitted folder exists only in the worktree where it was made, so always give the exact worktree absolute path."
+      "en": "academy-homepage is a single git repo (branch main, origin GitHub ByoungOhBAE/academy-homepage) at C:/Users/tahar/orca/workspaces/academy homepage. On 2026-10-03 the old worktrees (master at C:/Users/tahar/academy homepage, 홈페이지제작, etc.) were consolidated and removed; work here."
     },
     {
       "id": "k-nas-deploy",
