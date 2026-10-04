@@ -6,10 +6,12 @@ import {
   type PluginPageProps, type PluginSidebarProps,
 } from "@paperclipai/plugin-sdk/ui";
 import {
-  ARTIFACT_KINDS, PRIORITY_LABEL, TABS, UNASSIGNED,
-  activeProjectId, artifactKindLabel, artifactsQuery, fmtDate, groupIssues, hubPath, issuesForProject,
-  matchFolder, parseHubSearch, planBuckets, planDetail, routineSummary, routinesForProject, sidebarProjects,
-  type HubTab, type IssueLite, type PlanFolder, type PlanItem, type ProjectLite, type RoutineLite,
+  ARTIFACT_KINDS, EMPTY_FILTER, NO_ASSIGNEE, PRIORITY_LABEL, STATUS_COLUMNS, TABS, UNASSIGNED, UNKNOWN_AGENT,
+  activeProjectId, artifactKindLabel, artifactsQuery, assigneeName, boardSummary, filterIssues, fmtDate, hubPath,
+  isFiltered, issuesForProject, lastFinished, matchFolder, parseHubSearch, planBuckets, planDetail, relTime,
+  routineSummary, routinesForProject, shortAgentName, sidebarProjects, splitBoard,
+  type AgentLite, type BoardFilter, type ClosedKey, type HubTab, type IssueLite, type PlanFolder, type PlanItem,
+  type ProjectLite, type RoutineLite,
 } from "../model.js";
 
 // ---------------------------------------------------------------------------------------------
@@ -252,61 +254,192 @@ function ProjectPicker({ projects, invalid }: { projects: ProjectLite[]; invalid
 }
 
 // --- 칸반 -------------------------------------------------------------------------------------
+// v2 (시안): "지금 무슨 일이 진행 중인가"를 먼저, 끝난 작업은 접힌 기록으로. 근거: docs/plans/칸반-리디자인-시안.md
 
-const COLUMN_PREVIEW = 30;
+const HISTORY_PREVIEW = 30;
+const STATUS_LABEL: Record<string, string> = Object.fromEntries(STATUS_COLUMNS.map((c) => [c.key, c.label]));
+/** Summary strip order: what needs attention first. */
+const SUMMARY_ORDER = ["blocked", "in_review", "in_progress", "todo", "backlog"];
+
+/** Status glyphs (lucide geometry, MIT): shape differs per status so colour is never the only signal. */
+function StatusIcon({ status }: { status: string }) {
+  switch (status) {
+    case "backlog": return <Svg><path d="M10.1 2.18a9.93 9.93 0 0 1 3.8 0" /><path d="M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7" /><path d="M21.82 10.1a9.93 9.93 0 0 1 0 3.8" /><path d="M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69" /><path d="M13.9 21.82a9.94 9.94 0 0 1-3.8 0" /><path d="M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7" /><path d="M2.18 13.9a9.93 9.93 0 0 1 0-3.8" /><path d="M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69" /></Svg>;
+    case "todo": return <Svg><circle cx="12" cy="12" r="10" /></Svg>;
+    case "in_progress": return <Svg><circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor" /></Svg>;
+    case "in_review": return <Svg><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0" /><circle cx="12" cy="12" r="3" /></Svg>;
+    case "blocked": return <Svg><path d="M2.59 8.38 8.38 2.6A2 2 0 0 1 9.8 2h4.4a2 2 0 0 1 1.42.59l5.79 5.79A2 2 0 0 1 22 9.8v4.4a2 2 0 0 1-.59 1.42l-5.79 5.79A2 2 0 0 1 14.2 22H9.8a2 2 0 0 1-1.42-.59L2.6 15.62A2 2 0 0 1 2 14.2V9.8a2 2 0 0 1 .59-1.42" /><path d="M12 8v4" /><path d="M12 16h.01" /></Svg>;
+    case "done": return <Svg><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></Svg>;
+    case "cancelled": return <Svg><circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></Svg>;
+    default: return <Svg><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></Svg>;
+  }
+}
+
+/** Short 담당 label on the card; the full bot name stays in data-aph-who and the tooltip. */
+function Who({ name }: { name: string }) {
+  return <span className="aph-who" data-aph-who={name} title={name}>{shortAgentName(name)}</span>;
+}
+
+function When({ iso, now }: { iso: string | null | undefined; now: number }) {
+  return <time className="aph-when" dateTime={iso ?? undefined} title={fmtDate(iso)}>{relTime(iso, now)}</time>;
+}
 
 function KanbanView({ companyId, projectId }: { companyId: string; projectId: string }) {
   const navigation = useHostNavigation();
   const qs = projectId === UNASSIGNED ? "limit=1000" : `projectId=${encodeURIComponent(projectId)}&limit=1000`;
   const load = useJson<IssueLite[]>(`/api/companies/${encodeURIComponent(companyId)}/issues?${qs}`);
-  const [expanded, setExpanded] = useState<string[]>([]);
+  const agentsLoad = useJson<AgentLite[]>(`/api/companies/${encodeURIComponent(companyId)}/agents`);
+  const [filter, setFilter] = useState<BoardFilter>(EMPTY_FILTER);
+  const [segment, setSegment] = useState<ClosedKey>("done");
+  const [showAll, setShowAll] = useState(false);
   if (load.error) return <Notice tone="bad">작업을 불러오지 못했습니다 ({load.error}). <Retry onClick={load.reload} /></Notice>;
   if (!load.data) return <Notice>불러오는 중…</Notice>;
-  const issues = issuesForProject(load.data, projectId);
-  const columns = groupIssues(issues);
-  const total = columns.reduce((n, c) => n + c.items.length, 0);
-  return (
-    <div data-aph-kanban-total={total}>
-      <p className="aph-meta">작업 {total}개 · 읽기 전용 보기입니다. 카드를 누르면 작업 화면으로 이동합니다.</p>
-      {total === 0 ? <Notice>이 프로젝트에 작업이 없습니다.</Notice> : (<>
-        {columns.some((c) => c.items.length === 0) && (
-          <p className="aph-empty-cols" data-aph-empty-cols={columns.filter((c) => c.items.length === 0).map((c) => c.key).join(",")}>
-            비어 있는 상태: {columns.filter((c) => c.items.length === 0).map((c) => c.label).join(" · ")}
-          </p>
+
+  const now = Date.now();
+  const issues = issuesForProject(load.data, projectId).filter((i) => !i.hiddenAt);
+  const total = issues.length;
+  const full = splitBoard(issues);
+  const board = splitBoard(filterIssues(issues, filter));
+  const summary = boardSummary(issues, now);
+  const filtered = isFiltered(filter);
+  const last = lastFinished(issues);
+  const agents = agentsLoad.data;
+  const who = (issue: IssueLite) => (agentsLoad.error ? "담당 정보 없음" : !agents ? "…" : assigneeName(issue, agents));
+  const assigneeIds = [...new Set(issues.map((i) => i.assigneeAgentId).filter((x): x is string => !!x))];
+  const hasUnassigned = issues.some((i) => !i.assigneeAgentId);
+  const fullCount = (key: string) => full.active.find((c) => c.key === key)?.items.length ?? 0;
+  const set = (patch: Partial<BoardFilter>) => setFilter((f) => ({ ...f, ...patch }));
+  const issueLink = (issue: IssueLite) => navigation.linkProps(`/issues/${encodeURIComponent(issue.identifier || issue.id)}`);
+
+  if (total === 0) return <div data-aph-kanban-total={0}><Notice>이 프로젝트에 작업이 아직 없습니다. 비서실장에게 요청하면 여기에 나타납니다.</Notice></div>;
+
+  const card = (issue: IssueLite) => (
+    <li key={issue.id}>
+      <a {...issueLink(issue)} className="aph-card aph-issue" data-aph-issue={issue.id} data-status={issue.status}>
+        {(issue.priority === "critical" || issue.priority === "high") && (
+          <span className="aph-chip" data-priority={issue.priority}>{PRIORITY_LABEL[issue.priority]}</span>
         )}
-        <div className="aph-board" role="list" aria-label="상태별 작업">
-          {columns.filter((c) => c.items.length > 0).map((col) => {
-            const showAll = expanded.includes(col.key);
-            const items = showAll ? col.items : col.items.slice(0, COLUMN_PREVIEW);
-            return (
-              <section key={col.key} className="aph-col" role="listitem" data-aph-col={col.key} data-count={col.items.length} aria-label={`${col.label} ${col.items.length}개`}>
-                <h2 className="aph-col-head"><span>{col.label}</span><b>{col.items.length}</b></h2>
-                {(
-                  <ul className="aph-col-list">
-                    {items.map((issue) => (
-                      <li key={issue.id}>
-                        <a {...navigation.linkProps(`/issues/${encodeURIComponent(issue.identifier || issue.id)}`)} className="aph-card aph-issue" data-aph-issue={issue.id}>
-                          <span className="aph-issue-top">
-                            <span className="aph-id">{issue.identifier ?? "—"}</span>
-                            {issue.priority && <span className="aph-chip" data-priority={issue.priority}>{PRIORITY_LABEL[issue.priority] ?? issue.priority}</span>}
-                          </span>
-                          <TaskTitle className="aph-issue-title" title={issue.title} />
-                          <span className="aph-small">{fmtDate(issue.updatedAt)}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {col.items.length > COLUMN_PREVIEW && (
-                  <button type="button" className="aph-btn aph-more" onClick={() => setExpanded((e) => showAll ? e.filter((k) => k !== col.key) : [...e, col.key])}>
-                    {showAll ? "접기" : `${col.items.length - COLUMN_PREVIEW}개 더 보기`}
-                  </button>
-                )}
+        <TaskTitle className="aph-issue-title" title={issue.title} />
+        <span className="aph-foot">
+          <Who name={who(issue)} />
+          <When iso={issue.updatedAt} now={now} />
+          <span className="aph-id" translate="no">{issue.identifier ?? "—"}</span>
+        </span>
+      </a>
+    </li>
+  );
+
+  return (
+    <div className="aph-kb" data-aph-kanban-total={total}>
+      {/* ① 한눈 요약: 주의가 필요한 상태가 먼저. 누르면 그 상태만 걸러 봅니다. */}
+      <div className="aph-summary" role="group" aria-label="상태별 작업 수 (누르면 걸러 보기)">
+        {SUMMARY_ORDER.map((key) => {
+          const n = summary.counts[key] ?? 0;
+          return (
+            <button key={key} type="button" className="aph-sum" data-aph-sum={key} data-count={n} data-tone={key}
+              data-zero={n === 0 ? "true" : undefined} aria-pressed={filter.status === key}
+              onClick={() => set({ status: filter.status === key ? "" : key })}>
+              <StatusIcon status={key} />
+              <span className="aph-sum-label">{STATUS_LABEL[key]}</span>
+              <b className="aph-sum-n">{n}</b>
+            </button>
+          );
+        })}
+        <p className="aph-sum-note">최근 7일 완료 <b>{summary.doneWeek}</b> · 전체 {total}개</p>
+      </div>
+
+      <div className="aph-toolbar">
+        <label className="aph-field aph-field-grow">
+          <span>검색</span>
+          <input type="search" name="kanban-search" autoComplete="off" spellCheck={false} value={filter.q} placeholder="예: HER-46, 인스타…"
+            onChange={(e) => set({ q: e.target.value })} />
+        </label>
+        <label className="aph-field">
+          <span>담당</span>
+          <select name="kanban-assignee" value={filter.assignee} onChange={(e) => set({ assignee: e.target.value })}>
+            <option value="">전체</option>
+            {assigneeIds.map((id) => <option key={id} value={id}>{agents?.find((a) => a.id === id)?.name ?? UNKNOWN_AGENT}</option>)}
+            {hasUnassigned && <option value="none">{NO_ASSIGNEE}</option>}
+          </select>
+        </label>
+        {filtered && <button type="button" className="aph-btn aph-clear" onClick={() => setFilter(EMPTY_FILTER)}>필터 지우기</button>}
+      </div>
+
+      {/* ② 지금 진행 중인 일 */}
+      <section className="aph-active" data-aph-active="" aria-labelledby="aph-active-title">
+        <h2 className="aph-section-title" id="aph-active-title">
+          지금 진행 중인 일 <b>{filtered ? `${board.activeCount} / ${full.activeCount}` : full.activeCount}</b>
+        </h2>
+        {full.activeCount === 0 ? (
+          <div className="aph-calm" role="status">
+            <StatusIcon status="done" />
+            <div>
+              <p className="aph-calm-title">진행 중인 작업이 없습니다</p>
+              <p className="aph-calm-sub">
+                {last ? <>마지막으로 끝난 작업: <a {...issueLink(last)} className="aph-inline">{last.identifier ?? "작업"}</a> · <When iso={last.completedAt ?? last.updatedAt} now={now} /></> : "끝난 작업 기록도 아직 없습니다."}
+              </p>
+            </div>
+          </div>
+        ) : board.activeCount === 0 ? (
+          <p className="aph-notice" role="status">필터에 맞는 진행 중 작업이 없습니다. <button type="button" className="aph-btn" onClick={() => setFilter(EMPTY_FILTER)}>필터 지우기</button></p>
+        ) : (
+          <div className="aph-board2">
+            {board.active.map((col) => (
+              <section key={col.key} className="aph-col2" data-aph-col={col.key} data-count={fullCount(col.key)} data-tone={col.key}
+                data-empty={col.items.length === 0 ? "true" : undefined} aria-label={`${col.label} ${col.items.length}개`}>
+                <h3 className="aph-col-head"><StatusIcon status={col.key} /><span>{col.label}</span><b>{col.items.length}</b></h3>
+                {col.items.length === 0 ? <p className="aph-empty">없음</p> : <ul className="aph-col-list">{col.items.map(card)}</ul>}
               </section>
-            );
-          })}
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ③ 끝난 작업: 기본 접힘 */}
+      <details className="aph-history" data-aph-history="">
+        <summary>
+          <span className="aph-history-title">끝난 작업 <b>{full.closed.done.length + full.closed.cancelled.length}</b></span>
+          <span className="aph-history-sub">완료 {full.closed.done.length} · 취소 {full.closed.cancelled.length}</span>
+        </summary>
+        <div className="aph-seg" role="group" aria-label="끝난 작업 종류">
+          {(["done", "cancelled"] as const).map((k) => (
+            <button key={k} type="button" className="aph-filter" aria-pressed={segment === k} onClick={() => { setSegment(k); setShowAll(false); }}>
+              {STATUS_LABEL[k]} {board.closed[k].length}
+            </button>
+          ))}
         </div>
-      </>)}
+        {(["done", "cancelled"] as const).map((k) => {
+          const rows = board.closed[k];
+          const visible = showAll ? rows : rows.slice(0, HISTORY_PREVIEW);
+          return (
+            <section key={k} data-aph-col={k} data-count={full.closed[k].length} hidden={segment !== k} aria-label={`${STATUS_LABEL[k]} 기록`}>
+              {rows.length === 0 ? <p className="aph-empty">{filtered ? "필터에 맞는 기록이 없습니다." : "기록이 없습니다."}</p> : (
+                <ul className="aph-rows">
+                  {visible.map((issue) => (
+                    <li key={issue.id}>
+                      <a {...issueLink(issue)} className="aph-row" data-aph-issue={issue.id} data-status={issue.status}>
+                        <span className="aph-row-ico" data-tone={issue.status}><StatusIcon status={issue.status} /></span>
+                        <TaskTitle className="aph-row-title" title={issue.title} />
+                        <span className="aph-row-meta">
+                          <Who name={who(issue)} />
+                          <When iso={issue.completedAt ?? issue.cancelledAt ?? issue.updatedAt} now={now} />
+                          <span className="aph-id" translate="no">{issue.identifier ?? "—"}</span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {rows.length > HISTORY_PREVIEW && (
+                <button type="button" className="aph-btn aph-more" onClick={() => setShowAll((v) => !v)}>
+                  {showAll ? "접기" : `${rows.length - HISTORY_PREVIEW}개 더 보기`}
+                </button>
+              )}
+            </section>
+          );
+        })}
+      </details>
+      <p className="aph-meta aph-foot-note">읽기 전용 보기입니다 · 카드를 누르면 작업 상세로 이동합니다</p>
     </div>
   );
 }
@@ -616,7 +749,102 @@ button.aph-plan-item:focus-visible{outline:2px solid var(--ring,var(--primary));
 .aph-details summary{cursor:pointer;font-size:12px;color:var(--muted-foreground);margin-bottom:8px}
 .aph-picker-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .aph-picker-card{flex-direction:row;align-items:center;gap:10px;min-height:52px;font-size:14px;font-weight:550}
-.aph-inline{color:var(--agentos-lamp,var(--primary))}
+.aph-inline{color:var(--agentos-lamp,var(--primary));text-decoration:underline;text-underline-offset:2px}
 @media (min-width:768px) and (max-width:1023px){.aph-board{grid-auto-columns:minmax(200px,1fr)}}
 @media (max-width:767px){.aph-title{font-size:20px}.aph-board{grid-auto-columns:minmax(78vw,1fr)}.aph-tab{padding:8px 10px}}
+/* --- 칸반 v2 (시안) --- */
+.aph-kb{display:flex;flex-direction:column;gap:16px;container:kb/inline-size}
+.aph-active{container:board/inline-size}
+.aph-kb [data-tone="blocked"]{--tone:var(--destructive,#e5484d)}
+.aph-kb [data-tone="in_review"]{--tone:var(--agentos-brass,#d6bd91)}
+.aph-kb [data-tone="in_progress"]{--tone:var(--agentos-lamp,var(--primary))}
+.aph-kb [data-tone="todo"],.aph-kb [data-tone="backlog"],.aph-kb [data-tone="other"]{--tone:var(--muted-foreground)}
+.aph-kb [data-tone="done"]{--tone:var(--agentos-lamp,var(--primary))}
+.aph-kb [data-tone="cancelled"]{--tone:var(--muted-foreground)}
+.aph-summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.aph-sum{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--border);
+  background:var(--card);color:var(--foreground);font:inherit;font-size:13px;cursor:pointer;transition:border-color .15s,background-color .15s}
+.aph-sum,.aph-filter,.aph-row,.aph-issue,.aph-history>summary{touch-action:manipulation}
+.aph-sum .aph-ico{color:var(--tone)}
+.aph-sum-n{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.aph-sum[data-zero]{color:var(--muted-foreground)}
+.aph-sum[data-zero] .aph-sum-n{font-weight:500}
+.aph-sum:not([data-zero])[data-tone="blocked"],.aph-sum:not([data-zero])[data-tone="in_review"]{border-color:color-mix(in oklab,var(--tone) 60%,transparent);background:color-mix(in oklab,var(--tone) 10%,var(--card))}
+.aph-sum[aria-pressed="true"]{border-color:var(--tone);box-shadow:inset 0 0 0 1px var(--tone)}
+.aph-sum:hover{border-color:color-mix(in oklab,var(--foreground) 30%,transparent)}
+.aph-sum:focus-visible,.aph-filter:focus-visible,.aph-field input:focus-visible,.aph-field select:focus-visible,.aph-history summary:focus-visible,.aph-row:focus-visible{outline:2px solid var(--ring,var(--primary));outline-offset:2px}
+.aph-sum-note{margin:0 0 0 auto;font-size:12px;color:var(--muted-foreground)}
+.aph-sum-note b{color:var(--foreground);font-variant-numeric:tabular-nums}
+.aph-toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end}
+.aph-field{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600;color:var(--muted-foreground);min-width:0}
+.aph-field-grow{flex:1 1 240px}
+.aph-field input,.aph-field select{font:inherit;font-size:13px;font-weight:400;min-height:36px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card);color:var(--foreground);min-width:0;width:100%}
+.aph-field select{min-width:180px}
+.aph-clear{min-height:36px}
+.aph-section-title{display:flex;align-items:baseline;gap:8px;margin:4px 0 10px;font-size:15px;font-weight:650}
+.aph-section-title b{font-size:13px;color:var(--muted-foreground);font-variant-numeric:tabular-nums}
+.aph-calm{display:flex;gap:12px;align-items:flex-start;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.aph-calm .aph-ico{width:20px;height:20px;color:var(--agentos-lamp,var(--primary));margin-top:1px}
+.aph-calm-title{margin:0;font-size:14px;font-weight:600}
+.aph-calm-sub{margin:4px 0 0;font-size:13px;color:var(--muted-foreground)}
+.aph-board2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:start}
+.aph-col2{display:flex;flex-direction:column;gap:8px;min-width:0;padding:10px;border-radius:12px;border-top:3px solid var(--tone);
+  background:color-mix(in oklab,var(--muted) 45%,transparent)}
+.aph-col2 .aph-col-head{justify-content:flex-start;gap:8px;align-items:center}
+.aph-col2 .aph-col-head .aph-ico{color:var(--tone)}
+.aph-col2 .aph-col-head b{margin-left:auto}
+.aph-col2[data-empty]{opacity:.75}
+.aph-col2[data-empty] .aph-empty{padding:2px 0}
+.aph-issue{gap:8px}
+.aph-issue[data-status="blocked"]{border-color:color-mix(in oklab,var(--destructive,#e5484d) 55%,var(--border));box-shadow:inset 3px 0 0 var(--destructive,#e5484d)}
+.aph-issue[data-status="in_review"]{box-shadow:inset 3px 0 0 var(--agentos-brass,#d6bd91)}
+.aph-issue .aph-chip{align-self:flex-start}
+.aph-foot{display:flex;align-items:center;gap:8px;min-width:0;font-size:12px;color:var(--muted-foreground)}
+.aph-who{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--foreground);font-weight:500}
+.aph-when{flex:none;white-space:nowrap}
+.aph-foot .aph-id,.aph-row-meta .aph-id{margin-left:auto;flex:none}
+.aph-history{border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.aph-history>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:12px 16px;min-height:44px;cursor:pointer;list-style-position:inside}
+.aph-history-title{font-size:15px;font-weight:650}
+.aph-history-title b{font-size:13px;color:var(--muted-foreground);margin-left:4px}
+.aph-history-sub{font-size:12px;color:var(--muted-foreground)}
+.aph-history[open]>summary{border-bottom:1px solid var(--border)}
+.aph-seg{display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px 4px}
+.aph-history section{padding:4px 8px 12px}
+.aph-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.aph-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:8px;border-radius:8px;color:var(--foreground);text-decoration:none}
+.aph-row:hover{background:var(--accent)}
+.aph-rows li+li .aph-row{border-top:1px solid color-mix(in oklab,var(--border) 60%,transparent);border-radius:0}
+.aph-row-ico{display:inline-flex;color:var(--tone)}
+.aph-row-title{font-size:13px;font-weight:500}
+.aph-row-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted-foreground);min-width:0}
+.aph-row-meta .aph-who{max-width:180px;font-weight:400;color:var(--muted-foreground)}
+.aph-foot-note{margin:0}
+@media (prefers-reduced-motion:reduce){.aph-sum{transition:none}}
+/* 좁은 폭(요약 칩이 한 줄에 안 들어감): 숫자 위주 5칸 */
+@container kb (max-width:640px){
+  .aph-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .aph-sum{flex-direction:column;justify-content:center;gap:2px;padding:6px 2px;min-height:60px;text-align:center}
+  .aph-sum-label{font-size:11px;line-height:1.2}
+  .aph-sum-note{grid-column:1/-1;margin:2px 0 0}
+  .aph-field-grow{flex:1 1 55%}
+  .aph-field:not(.aph-field-grow){flex:1 1 35%}
+  .aph-field select{min-width:0}
+}
+/* 상태 열 5개가 한 줄에 안 들어가 줄바꿈될 때: 주의가 필요한 상태가 먼저, 빈 상태는 요약 줄의 0으로 충분 */
+@container board (max-width:1047px){
+  .aph-col2[data-aph-col="blocked"]{order:-5}.aph-col2[data-aph-col="in_review"]{order:-4}.aph-col2[data-aph-col="in_progress"]{order:-3}
+  .aph-col2[data-aph-col="todo"]{order:-2}.aph-col2[data-aph-col="backlog"]{order:-1}
+  .aph-col2[data-empty]{display:none}
+}
+@container kb (max-width:640px){
+  .aph-row{grid-template-columns:auto minmax(0,1fr)}
+  .aph-row-meta{grid-column:2;flex-wrap:wrap;gap:4px 10px}
+  .aph-row-meta .aph-id{margin-left:0}
+}
+@media (max-width:767px),(pointer:coarse){
+  .aph-sum,.aph-field input,.aph-field select,.aph-clear,.aph-filter,.aph-more,.aph-kb .aph-btn{min-height:44px}
+  .aph-history>summary{min-height:48px}
+}
 `;

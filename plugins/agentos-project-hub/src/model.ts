@@ -28,7 +28,12 @@ export type IssueLite = {
   projectId?: string | null;
   updatedAt?: string | null;
   hiddenAt?: string | null;
+  assigneeAgentId?: string | null;
+  completedAt?: string | null;
+  cancelledAt?: string | null;
 };
+
+export type AgentLite = { id: string; name: string };
 
 export const STATUS_COLUMNS: Array<{ key: string; label: string }> = [
   { key: "backlog", label: "백로그" },
@@ -85,6 +90,102 @@ export function groupIssues<T extends IssueLite>(issues: T[]): Column<T>[] {
   const other = visible.filter((i) => !known.has(i.status)).sort(byTime);
   if (other.length) columns.push({ key: "other", label: "기타", items: other });
   return columns;
+}
+
+// --- board v2: "지금 일" first, finished work as collapsed history --------------------------------
+
+/** Work-in-flight statuses, in workflow order. Each always gets a column so positions never shift. */
+export const ACTIVE_COLUMNS = STATUS_COLUMNS.filter((c) => c.key !== "done" && c.key !== "cancelled");
+export const CLOSED_KEYS = ["done", "cancelled"] as const;
+export type ClosedKey = (typeof CLOSED_KEYS)[number];
+/** Statuses that need the boss's eye: shown first in the summary strip and tinted on the board. */
+export const ATTENTION_KEYS = ["blocked", "in_review"];
+
+const finishedAt = (i: IssueLite) => Date.parse(i.completedAt ?? i.cancelledAt ?? i.updatedAt ?? "") || 0;
+const touchedAt = (i: IssueLite) => Date.parse(i.updatedAt ?? "") || 0;
+
+export type Board<T> = { active: Column<T>[]; closed: Record<ClosedKey, T[]>; activeCount: number };
+
+/** Split visible issues into active columns (fixed set + trailing 기타) and finished history (newest first). */
+export function splitBoard<T extends IssueLite>(issues: T[]): Board<T> {
+  const visible = issues.filter((i) => !i.hiddenAt);
+  const known = new Set(STATUS_COLUMNS.map((c) => c.key));
+  const active: Column<T>[] = ACTIVE_COLUMNS.map((c) => ({
+    ...c, items: visible.filter((i) => i.status === c.key).sort((a, b) => touchedAt(b) - touchedAt(a)),
+  }));
+  const other = visible.filter((i) => !known.has(i.status)).sort((a, b) => touchedAt(b) - touchedAt(a));
+  if (other.length) active.push({ key: "other", label: "기타", items: other });
+  const closed = {
+    done: visible.filter((i) => i.status === "done").sort((a, b) => finishedAt(b) - finishedAt(a)),
+    cancelled: visible.filter((i) => i.status === "cancelled").sort((a, b) => finishedAt(b) - finishedAt(a)),
+  };
+  return { active, closed, activeCount: active.reduce((n, c) => n + c.items.length, 0) };
+}
+
+/** Count per status (visible issues only) plus finished-in-the-last-7-days. */
+export function boardSummary(issues: IssueLite[], now = Date.now()) {
+  const counts: Record<string, number> = {};
+  let doneWeek = 0;
+  for (const i of issues) {
+    if (i.hiddenAt) continue;
+    counts[i.status] = (counts[i.status] ?? 0) + 1;
+    if (i.status === "done" && now - finishedAt(i) <= 7 * 864e5 && finishedAt(i) > 0) doneWeek += 1;
+  }
+  return { counts, doneWeek };
+}
+
+/** The most recently finished (done) issue — for the "nothing is running" empty state. */
+export function lastFinished<T extends IssueLite>(issues: T[]): T | null {
+  return issues.filter((i) => !i.hiddenAt && i.status === "done").sort((a, b) => finishedAt(b) - finishedAt(a))[0] ?? null;
+}
+
+export const NO_ASSIGNEE = "담당 없음";
+export const UNKNOWN_AGENT = "알 수 없는 봇";
+
+export function assigneeName(issue: IssueLite, agents: AgentLite[] | null | undefined): string {
+  if (!issue.assigneeAgentId) return NO_ASSIGNEE;
+  return agents?.find((a) => a.id === issue.assigneeAgentId)?.name ?? UNKNOWN_AGENT;
+}
+
+/** Bot names are "부서_담당"; the department prefix repeats on every card, so show the 담당 part (full name stays in title). */
+export function shortAgentName(name: string): string {
+  const i = name.indexOf("_");
+  const rest = i > 0 ? name.slice(i + 1).trim() : "";
+  return rest || name;
+}
+
+export type BoardFilter = { q: string; assignee: string; status: string };
+export const EMPTY_FILTER: BoardFilter = { q: "", assignee: "", status: "" };
+
+/** Text (title or HER-id, case-insensitive), assignee ("" all · "none" unassigned · agent id) and status filters. */
+export function filterIssues<T extends IssueLite>(issues: T[], f: BoardFilter): T[] {
+  const q = f.q.trim().toLowerCase();
+  return issues.filter((i) => {
+    if (q && !`${i.identifier ?? ""} ${i.title}`.toLowerCase().includes(q)) return false;
+    if (f.assignee === "none" && i.assigneeAgentId) return false;
+    if (f.assignee && f.assignee !== "none" && i.assigneeAgentId !== f.assignee) return false;
+    if (f.status && i.status !== f.status) return false;
+    return true;
+  });
+}
+
+export function isFiltered(f: BoardFilter): boolean {
+  return !!(f.q.trim() || f.assignee || f.status);
+}
+
+/** "방금 전 / N분 전 / N시간 전 / N일 전", then a calendar date. Absolute time stays in fmtDate. */
+export function relTime(iso: string | null | undefined, now = Date.now()): string {
+  const t = iso ? Date.parse(iso) : NaN;
+  if (!Number.isFinite(t)) return "—";
+  const diff = Math.max(0, now - t);
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "방금 전";
+  if (min < 60) return REL_FMT.format(-min, "minute");
+  const h = Math.floor(min / 60);
+  if (h < 24) return REL_FMT.format(-h, "hour");
+  const d = Math.floor(h / 24);
+  if (d < 7) return REL_FMT.format(-d, "day");
+  return DAY_FMT.format(new Date(t));
 }
 
 export function issuesForProject<T extends IssueLite>(issues: T[], projectId: string): T[] {
@@ -203,6 +304,8 @@ export function artifactsQuery(companyId: string, projectId: string, kind: strin
   return `/api/companies/${encodeURIComponent(companyId)}/artifacts?${q.toString()}`;
 }
 
+const REL_FMT = new Intl.RelativeTimeFormat("ko", { numeric: "always" });
+const DAY_FMT = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
 const DATE_FMT = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
 
 export function fmtDate(iso: string | null | undefined): string {

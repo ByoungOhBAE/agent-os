@@ -1,0 +1,149 @@
+{
+  "note": "예시 데이터 — 진행 중 카드 모양을 보여주기 위한 가짜 작업. 증거 아님. 담당 봇 id는 실제 봇 id.",
+  "issues": [
+    {
+      "id": "sample-1",
+      "identifier": "EX-1",
+      "title": "[예시] 칸반 개선 › 카드에 담당 봇 표시 구현-1",
+      "status": "in_progress",
+      "priority": "high",
+      "assigneeAgentId": "694e5a9f-e932-4141-9d20-08cdd653d324",
+      "updatedAt": "2026-10-04T07:55:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-2",
+      "identifier": "EX-2",
+      "title": "[예시] 칸반 개선 › 상태 요약 줄 디자인-1",
+      "status": "in_progress",
+      "priority": "medium",
+      "assigneeAgentId": "11650ed8-bb2c-4c3a-a391-b34bd76c8389",
+      "updatedAt": "2026-10-04T07:32:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-3",
+      "identifier": "EX-3",
+      "title": "[예시] 디자인 스킬 › 공용 폴더 후보 검토-1",
+      "status": "in_progress",
+      "priority": "medium",
+      "assigneeAgentId": "d922202d-44cd-4b28-b7bf-c68ff12354f4",
+      "updatedAt": "2026-10-04T06:47:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-4",
+      "identifier": "EX-4",
+      "title": "[예시] 칸반 개선 › 모바일 세로 배치 검수-1",
+      "status": "in_review",
+      "priority": "high",
+      "assigneeAgentId": "1515b103-01cd-47de-81c9-5fbb6af07dba",
+      "updatedAt": "2026-10-04T07:47:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-5",
+      "identifier": "EX-5",
+      "title": "[예시] 작업 제목 규칙 › 보관 태그 정리 검수-1",
+      "status": "in_review",
+      "priority": "medium",
+      "assigneeAgentId": "1515b103-01cd-47de-81c9-5fbb6af07dba",
+      "updatedAt": "2026-10-04T05:47:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-6",
+      "identifier": "EX-6",
+      "title": "[예시] 칸반 개선 › 운영 배포 승인 대기-1",
+      "status": "blocked",
+      "priority": "critical",
+      "assigneeAgentId": "694e5a9f-e932-4141-9d20-08cdd653d324",
+      "updatedAt": "2026-10-04T07:12:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-7",
+      "identifier": "EX-7",
+      "title": "[예시] 칸반 개선 › 빈 상태 문구 다듬기-1",
+      "status": "todo",
+      "priority": "medium",
+      "assigneeAgentId": "11650ed8-bb2c-4c3a-a391-b34bd76c8389",
+      "updatedAt": "2026-10-04T07:59:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-8",
+      "identifier": "EX-8",
+      "title": "[예시] 산출물 탭 › 썸네일 크기 조정-1",
+      "status": "todo",
+      "priority": "low",
+      "assigneeAgentId": null,
+      "updatedAt": "2026-10-04T04:07:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-9",
+      "identifier": "EX-9",
+      "title": "[예시] 칸반 개선 › 접근성 실측(키보드·대비)-1",
+      "status": "todo",
+      "priority": "medium",
+      "assigneeAgentId": "1515b103-01cd-47de-81c9-5fbb6af07dba",
+      "updatedAt": "2026-10-04T03:07:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-10",
+      "identifier": "EX-10",
+      "title": "[예시] 루틴 탭 › 실행 기록 그래프 아이디어-1",
+      "status": "backlog",
+      "priority": "low",
+      "assigneeAgentId": null,
+      "updatedAt": "2026-10-02T22:47:14.057Z",
+      "hiddenAt": null
+    },
+    {
+      "id": "sample-11",
+      "identifier": "EX-11",
+      "title": "[예시] 칸반 개선 › 검색·담당 필터 구현-1",
+      "status": "done",
+      "priority": "high",
+      "assigneeAgentId": "694e5a9f-e932-4141-9d20-08cdd653d324",
+      "updatedAt": "2026-10-03T22:07:14.057Z",
+      "hiddenAt": null,
+      "completedAt": "2026-10-03T22:07:14.057Z"
+    },
+    {
+      "id": "sample-12",
+      "identifier": "EX-12",
+      "title": "[예시] 칸반 개선 › 진단 보고서 작성-1",
+      "status": "done",
+      "priority": "medium",
+      "assigneeAgentId": "11650ed8-bb2c-4c3a-a391-b34bd76c8389",
+      "updatedAt": "2026-10-03T07:07:14.057Z",
+      "hiddenAt": null,
+      "completedAt": "2026-10-03T07:07:14.057Z"
+    },
+    {
+      "id": "sample-13",
+      "identifier": "EX-13",
+      "title": "[예시] 작업계획 › 상세 팝업 검수-1",
+      "status": "done",
+      "priority": "medium",
+      "assigneeAgentId": "1515b103-01cd-47de-81c9-5fbb6af07dba",
+      "updatedAt": "2026-10-01T13:27:14.057Z",
+      "hiddenAt": null,
+      "completedAt": "2026-10-01T13:27:14.057Z"
+    },
+    {
+      "id": "sample-14",
+      "identifier": "EX-14",
+      "title": "[예시] 칸반 개선 › 드래그 이동(보류)-1",
+      "status": "cancelled",
+      "priority": "low",
+      "assigneeAgentId": null,
+      "updatedAt": "2026-10-03T17:07:14.057Z",
+      "hiddenAt": null,
+      "cancelledAt": "2026-10-03T17:07:14.057Z"
+    }
+  ]
+}

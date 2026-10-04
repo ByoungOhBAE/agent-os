@@ -22,3 +22,6 @@ knowledge/skills/
 # Python bytecode (build artifact)
 __pycache__/
 *.pyc
+
+# Kanban redesign preview bundle (never deployed from here)
+preview-dist/
