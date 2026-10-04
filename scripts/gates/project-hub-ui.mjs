@@ -9,6 +9,8 @@ const PC = "http://127.0.0.1:3100";
 const CO = "db6f5310-0afc-4b67-8ca2-8059bd26f0cb";
 const SHOTS = process.env.APH_SHOTS || path.join(process.env.LOCALAPPDATA || ".", "hermes", "cache", "scratch", "aph-gate");
 mkdirSync(SHOTS, { recursive: true });
+const TAB_COUNT = (await import("node:fs")).readFileSync(new URL("../../plugins/agentos-project-hub/src/model.ts", import.meta.url), "utf8")
+  .split("export const TABS")[1].split("];")[0].match(/\{ id: "/g).length;
 const problems = [];
 const check = (cond, msg) => { if (!cond) problems.push(msg); };
 const api = async (p) => { const r = await fetch(PC + p, { cache: "no-store" }); if (!r.ok) throw new Error(`${p} ${r.status}`); return r.json(); };
@@ -77,7 +79,7 @@ for (const vp of widths) {
   await page.goto(`${PC}/HER/projects/${ref}/issues`, { waitUntil: "networkidle", timeout: 30000 }).catch(() => {});
   await openDrawer();
   await page.waitForSelector("[data-agentos-project-hub=sidebar] li[data-aph-project]", { timeout: 15000 });
-  check(await group(main.id).locator("[data-aph-link]").count() === 4, `${tag} active project group should show 4 links`);
+  check(await group(main.id).locator("[data-aph-link]").count() === TAB_COUNT, `${tag} active project group should show ${TAB_COUNT} links`);
   check(await group(other.id).locator("[data-aph-link]").count() === 0, `${tag} inactive project group should be collapsed`);
   check(await page.locator("[data-agentos-project-hub=sidebar] li[data-aph-project]").count() === projects.length + 1, `${tag} sidebar should list every project + 미분류`);
 
@@ -97,7 +99,7 @@ for (const vp of widths) {
   await otherBtn.focus();
   await page.keyboard.press("Enter");
   check(await otherBtn.getAttribute("aria-expanded") === "true", `${tag} Enter should expand a project group`);
-  check(await group(other.id).locator("[data-aph-link]").count() === 4, `${tag} expanded group should show 4 links`);
+  check(await group(other.id).locator("[data-aph-link]").count() === TAB_COUNT, `${tag} expanded group should show ${TAB_COUNT} links`);
   await page.keyboard.press("Enter");
 
   // 2) kanban via sidebar link

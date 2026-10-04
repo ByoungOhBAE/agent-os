@@ -5,12 +5,13 @@ export const UNASSIGNED = "none";
 /** Every project plus 미분류 on one board (the 업무 › 칸반 menu opens this). */
 export const ALL_PROJECTS = "all";
 
-export type HubTab = "kanban" | "plan" | "routines" | "outputs";
+export type HubTab = "kanban" | "plan" | "routines" | "outputs" | "git";
 export const TABS: Array<{ id: HubTab; label: string }> = [
   { id: "kanban", label: "칸반" },
   { id: "plan", label: "작업계획" },
   { id: "routines", label: "루틴" },
   { id: "outputs", label: "산출물" },
+  { id: "git", label: "커밋·푸시" },
 ];
 
 export type ProjectLite = {

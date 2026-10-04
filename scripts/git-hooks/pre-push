@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# AgentOS push recorder (pre-push hook). Appends one JSON line per pushed ref so the project hub's
+# 「커밋·푸시」 tab can show WHO pushed (bot / Hermes / other) and WHEN.
+#
+# Rules: it NEVER blocks or fails a push (always exits 0, errors swallowed, ~2s cap per git call),
+# writes nothing into the repository, and records no secrets (URL credentials are stripped; only
+# ids/names/shas). Same file for Windows Git Bash, WSL and Linux.
+#
+# Log: $AGENTOS_GIT_ACTIVITY_DIR, else %LOCALAPPDATA%/agentos/git-activity (Windows),
+#      else /mnt/c/Users/*/AppData/Local/agentos/git-activity (WSL, if it exists),
+#      else ~/.local/state/agentos/git-activity  →  pushes.jsonl
+# Source of truth: agent os repo scripts/git-hooks/pre-push (installed by scripts/install-git-activity-hooks.sh).
+
+agentos_record_push() {
+  set +e
+  local zero="0000000000000000000000000000000000000000"
+  local remote="$1" url="$2"
+  local dir="${AGENTOS_GIT_ACTIVITY_DIR:-}"
+  if [ -z "$dir" ] && [ -n "${LOCALAPPDATA:-}" ]; then
+    if command -v cygpath >/dev/null 2>&1; then dir="$(cygpath -u "$LOCALAPPDATA")/agentos/git-activity"; else dir="$LOCALAPPDATA/agentos/git-activity"; fi
+  fi
+  if [ -z "$dir" ]; then
+    for d in /mnt/c/Users/*/AppData/Local/agentos/git-activity; do [ -d "$d" ] && { dir="$d"; break; }; done
+  fi
+  [ -z "$dir" ] && dir="$HOME/.local/state/agentos/git-activity"
+  mkdir -p "$dir" 2>/dev/null || return 0
+  local log="$dir/pushes.jsonl"
+
+  local t=""; command -v timeout >/dev/null 2>&1 && t="timeout 2"
+  esc() { printf '%s' "$1" | tr -d '\000-\037' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'; }
+  local repo ident at hermes_home
+  repo="$($t git rev-parse --show-toplevel 2>/dev/null)"
+  ident="$($t git var GIT_COMMITTER_IDENT 2>/dev/null)"
+  at="$(date +%Y-%m-%dT%H:%M:%S%z | sed -E 's/([+-][0-9]{2})([0-9]{2})$/\1:\2/')"
+  url="$(printf '%s' "$url" | sed -E 's#^(https?://)[^@/]+@#\1#')"
+  hermes_home="${HERMES_HOME:-}"; hermes_home="${hermes_home//\\//}"; hermes_home="${hermes_home##*/}"
+
+  local local_ref local_sha remote_ref remote_sha count from
+  while read -r local_ref local_sha remote_ref remote_sha; do
+    [ -z "$remote_ref" ] && continue
+    from="$remote_sha"; [ "$from" = "$zero" ] && from=""
+    count=""
+    if [ -n "$from" ] && [ "$local_sha" != "$zero" ]; then
+      count="$($t git rev-list --count "$from..$local_sha" 2>/dev/null)"
+    fi
+    printf '{"at":"%s","repo":"%s","remote":"%s","url":"%s","localRef":"%s","remoteRef":"%s","from":%s,"to":"%s","count":%s,"agentosActor":"%s","paperclipAgentId":"%s","paperclipRunId":"%s","paperclipTaskId":"%s","hermes":%s,"hermesHome":"%s","ident":"%s"}\n' \
+      "$at" "$(esc "$repo")" "$(esc "$remote")" "$(esc "$url")" "$(esc "$local_ref")" "$(esc "$remote_ref")" \
+      "$( [ -n "$from" ] && printf '"%s"' "$(esc "$from")" || printf 'null')" "$(esc "$local_sha")" \
+      "$( [[ "$count" =~ ^[0-9]+$ ]] && printf '%s' "$count" || printf 'null')" \
+      "$(esc "${AGENTOS_ACTOR:-}")" "$(esc "${PAPERCLIP_AGENT_ID:-}")" "$(esc "${PAPERCLIP_RUN_ID:-}")" "$(esc "${PAPERCLIP_TASK_ID:-}")" \
+      "$( [ "${HERMES_AGENT:-}" = "true" ] && printf true || printf false)" "$(esc "$hermes_home")" "$(esc "$ident")" >> "$log" 2>/dev/null
+  done
+  return 0
+}
+
+agentos_record_push "$@" >/dev/null 2>&1
+exit 0

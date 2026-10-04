@@ -16,6 +16,7 @@ const projects: ProjectLite[] = [
 
 describe("hub URL", () => {
   it("round-trips project and tab", () => {
+    expect(parseHubSearch(new URL(hubPath(projects[1].id, "git"), "http://x").search).tab).toBe("git");
     const path = hubPath(projects[1].id, "routines");
     expect(path).toBe(`/project-hub?project=${projects[1].id}&tab=routines`);
     expect(parseHubSearch(path.split("?")[1])).toEqual({ project: projects[1].id, tab: "routines" });

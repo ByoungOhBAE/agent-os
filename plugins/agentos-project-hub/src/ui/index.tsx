@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 // 작업 제목 표시(경로 작게 · 이름 굵게)는 통합 관제와 같은 컴포넌트를 쓴다.
 import { TaskTitle, TASK_TITLE_CSS } from "../../../agentos-control/src/ui/task-title-view.js";
+import { GitView, GIT_CSS } from "./git-view.js";
 import {
   useHostContext, useHostLocation, useHostNavigation,
   type PluginPageProps, type PluginSidebarProps,
@@ -64,6 +65,7 @@ const TAB_ICON: Record<HubTab, () => ReactNode> = {
   kanban: () => <Svg><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M8 7v7" /><path d="M12 7v4" /><path d="M16 7v9" /></Svg>,
   plan: () => <Svg><rect width="8" height="4" x="8" y="2" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></Svg>,
   routines: () => <Svg><path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" /></Svg>,
+  git: () => <Svg><circle cx="12" cy="12" r="3" /><line x1="3" x2="9" y1="12" y2="12" /><line x1="15" x2="21" y1="12" y2="12" /></Svg>,
   outputs: () => <Svg><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" /><path d="M12 22V12" /><polyline points="3.29 7 12 12 20.71 7" /><path d="m7.5 4.27 9 5.15" /></Svg>,
 };
 
@@ -190,12 +192,13 @@ export function ProjectHubPage(_props: PluginPageProps) {
   else if (all || tab === "kanban") body = <KanbanView companyId={companyId} projectId={selectedId} projects={projects} />;
   else if (tab === "plan") body = <PlanView project={project} unassigned={unassigned} />;
   else if (tab === "routines") body = <RoutinesView companyId={companyId} projectId={selectedId} />;
+  else if (tab === "git") body = <GitView project={project} unassigned={unassigned} />;
   else body = <OutputsView companyId={companyId} projectId={selectedId} />;
 
   const cwd = project?.primaryWorkspace?.cwd ?? null;
   return (
     <div className="aph-root" data-agentos-project-hub="page" data-aph-project={selectedId ?? ""} data-aph-tab={tab}>
-      <style>{PAGE_CSS + TASK_TITLE_CSS}</style>
+      <style>{PAGE_CSS + TASK_TITLE_CSS + GIT_CSS}</style>
       <header className="aph-top">
         <div className="aph-top-text">
           <p className="aph-eyebrow">프로젝트 허브</p>
