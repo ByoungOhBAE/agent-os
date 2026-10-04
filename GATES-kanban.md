@@ -48,3 +48,6 @@ Scope: Paperclip(3100) 조직 대시보드에 '칸반'(읽기·생성·이동)�
   CHECK: node scripts/gates/check-cron-refresh.mjs
   EXPECT: G9_CRON_REFRESH_OK
   EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\tahar\orca\workspaces\agent os; path=9da69b64fde4/55 entries; EXPECT=matched; output-sha256=5ccbc822af93f64aeae6249dd8b34727b00c619f5e16553df4eb24ea2b87974b; output-bytes=99
+
+ABANDON: G4 2026-10-04 사장님 결정으로 업무 › 칸반의 Hermes Kanban 인페이지 보드(읽기·생성·이동)를 폐기하고 전체 프로젝트 칸반 링크로 대체함. 후속 검증은 GATES-kanban-redesign-deploy.md D4·D6.
+ABANDON: G6 같은 결정으로 칸반 패널 자체가 없어짐. 반응형 확인은 GATES-kanban-redesign-deploy.md D6(1440/768/390)으로 이관.

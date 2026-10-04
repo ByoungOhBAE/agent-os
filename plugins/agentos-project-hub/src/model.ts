@@ -2,6 +2,8 @@
 
 export const HUB_ROUTE = "project-hub";
 export const UNASSIGNED = "none";
+/** Every project plus 미분류 on one board (the 업무 › 칸반 menu opens this). */
+export const ALL_PROJECTS = "all";
 
 export type HubTab = "kanban" | "plan" | "routines" | "outputs";
 export const TABS: Array<{ id: HubTab; label: string }> = [
@@ -69,6 +71,7 @@ export function activeProjectId(pathname: string, search: string, projects: Proj
   if (segments.includes(HUB_ROUTE)) {
     const { project } = parseHubSearch(search);
     if (project === UNASSIGNED) return UNASSIGNED;
+    if (project === ALL_PROJECTS) return ALL_PROJECTS;
     return project && projects.some((p) => p.id === project) ? project : null;
   }
   const at = segments.indexOf("projects");
@@ -154,8 +157,8 @@ export function shortAgentName(name: string): string {
   return rest || name;
 }
 
-export type BoardFilter = { q: string; assignee: string; status: string };
-export const EMPTY_FILTER: BoardFilter = { q: "", assignee: "", status: "" };
+export type BoardFilter = { q: string; assignee: string; status: string; project?: string };
+export const EMPTY_FILTER: BoardFilter = { q: "", assignee: "", status: "", project: "" };
 
 /** Text (title or HER-id, case-insensitive), assignee ("" all · "none" unassigned · agent id) and status filters. */
 export function filterIssues<T extends IssueLite>(issues: T[], f: BoardFilter): T[] {
@@ -165,12 +168,14 @@ export function filterIssues<T extends IssueLite>(issues: T[], f: BoardFilter): 
     if (f.assignee === "none" && i.assigneeAgentId) return false;
     if (f.assignee && f.assignee !== "none" && i.assigneeAgentId !== f.assignee) return false;
     if (f.status && i.status !== f.status) return false;
+    if (f.project === UNASSIGNED && i.projectId) return false;
+    if (f.project && f.project !== UNASSIGNED && i.projectId !== f.project) return false;
     return true;
   });
 }
 
 export function isFiltered(f: BoardFilter): boolean {
-  return !!(f.q.trim() || f.assignee || f.status);
+  return !!(f.q.trim() || f.assignee || f.status || f.project);
 }
 
 /** "방금 전 / N분 전 / N시간 전 / N일 전", then a calendar date. Absolute time stays in fmtDate. */
@@ -189,7 +194,14 @@ export function relTime(iso: string | null | undefined, now = Date.now()): strin
 }
 
 export function issuesForProject<T extends IssueLite>(issues: T[], projectId: string): T[] {
+  if (projectId === ALL_PROJECTS) return issues.slice();
   return projectId === UNASSIGNED ? issues.filter((i) => !i.projectId) : issues.filter((i) => i.projectId === projectId);
+}
+
+/** Project label for a card on the all-projects board. */
+export function projectLabel(issue: IssueLite, projects: ProjectLite[] | null | undefined): string {
+  if (!issue.projectId) return "미분류";
+  return projects?.find((p) => p.id === issue.projectId)?.name ?? "알 수 없는 프로젝트";
 }
 
 /** `/mnt/c/Users/x`, `C:\Users\x`, `c:/users/x/` → `c:/users/x` (case-insensitive Windows paths). */

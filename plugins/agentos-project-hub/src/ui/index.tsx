@@ -6,9 +6,9 @@ import {
   type PluginPageProps, type PluginSidebarProps,
 } from "@paperclipai/plugin-sdk/ui";
 import {
-  ARTIFACT_KINDS, EMPTY_FILTER, NO_ASSIGNEE, PRIORITY_LABEL, STATUS_COLUMNS, TABS, UNASSIGNED, UNKNOWN_AGENT,
+  ALL_PROJECTS, ARTIFACT_KINDS, EMPTY_FILTER, NO_ASSIGNEE, PRIORITY_LABEL, STATUS_COLUMNS, TABS, UNASSIGNED, UNKNOWN_AGENT,
   activeProjectId, artifactKindLabel, artifactsQuery, assigneeName, boardSummary, filterIssues, fmtDate, hubPath,
-  isFiltered, issuesForProject, lastFinished, matchFolder, parseHubSearch, planBuckets, planDetail, relTime,
+  isFiltered, issuesForProject, lastFinished, matchFolder, parseHubSearch, planBuckets, planDetail, projectLabel, relTime,
   routineSummary, routinesForProject, shortAgentName, sidebarProjects, splitBoard,
   type AgentLite, type BoardFilter, type ClosedKey, type HubTab, type IssueLite, type PlanFolder, type PlanItem,
   type ProjectLite, type RoutineLite,
@@ -177,16 +177,17 @@ export function ProjectHubPage(_props: PluginPageProps) {
   const projectsLoad = useProjects(companyId);
   const { project: projectParam, tab } = parseHubSearch(location.search);
   const projects = useMemo(() => sidebarProjects(projectsLoad.data ?? []), [projectsLoad.data]);
-  const project = projectParam === UNASSIGNED ? null : projects.find((p) => p.id === projectParam) ?? null;
+  const all = projectParam === ALL_PROJECTS;
+  const project = projectParam === UNASSIGNED || all ? null : projects.find((p) => p.id === projectParam) ?? null;
   const unassigned = projectParam === UNASSIGNED;
-  const selectedId = unassigned ? UNASSIGNED : project?.id ?? null;
+  const selectedId = unassigned ? UNASSIGNED : all ? ALL_PROJECTS : project?.id ?? null;
 
   let body: ReactNode;
   if (!companyId) body = <Notice>회사를 먼저 선택하세요.</Notice>;
   else if (projectsLoad.error) body = <Notice tone="bad">프로젝트 목록을 불러오지 못했습니다 ({projectsLoad.error}). <Retry onClick={projectsLoad.reload} /></Notice>;
   else if (!projectsLoad.data) body = <Notice>불러오는 중…</Notice>;
   else if (!selectedId) body = <ProjectPicker projects={projects} invalid={!!projectParam} />;
-  else if (tab === "kanban") body = <KanbanView companyId={companyId} projectId={selectedId} />;
+  else if (all || tab === "kanban") body = <KanbanView companyId={companyId} projectId={selectedId} projects={projects} />;
   else if (tab === "plan") body = <PlanView project={project} unassigned={unassigned} />;
   else if (tab === "routines") body = <RoutinesView companyId={companyId} projectId={selectedId} />;
   else body = <OutputsView companyId={companyId} projectId={selectedId} />;
@@ -198,13 +199,13 @@ export function ProjectHubPage(_props: PluginPageProps) {
       <header className="aph-top">
         <div className="aph-top-text">
           <p className="aph-eyebrow">프로젝트 허브</p>
-          <h1 className="aph-title">{unassigned ? "미분류" : project?.name ?? "프로젝트 선택"}</h1>
+          <h1 className="aph-title">{all ? "전체 프로젝트 칸반" : unassigned ? "미분류" : project?.name ?? "프로젝트 선택"}</h1>
           <p className="aph-sub">
-            {unassigned ? "프로젝트가 지정되지 않은 작업과 루틴입니다." : cwd ? <>작업 폴더 <code>{windowsPath(cwd)}</code></> : project ? "작업 폴더가 지정되지 않았습니다." : "왼쪽 메뉴나 아래 목록에서 프로젝트를 고르세요."}
+            {all ? "모든 프로젝트와 미분류 작업을 한 보드에서 봅니다." : unassigned ? "프로젝트가 지정되지 않은 작업과 루틴입니다." : cwd ? <>작업 폴더 <code>{windowsPath(cwd)}</code></> : project ? "작업 폴더가 지정되지 않았습니다." : "왼쪽 메뉴나 아래 목록에서 프로젝트를 고르세요."}
           </p>
         </div>
       </header>
-      {selectedId && (
+      {selectedId && !all && (
         <nav className="aph-tabs" aria-label="프로젝트 보기">
           {TABS.map((t) => {
             const Icon = TAB_ICON[t.id];
@@ -284,9 +285,10 @@ function When({ iso, now }: { iso: string | null | undefined; now: number }) {
   return <time className="aph-when" dateTime={iso ?? undefined} title={fmtDate(iso)}>{relTime(iso, now)}</time>;
 }
 
-function KanbanView({ companyId, projectId }: { companyId: string; projectId: string }) {
+function KanbanView({ companyId, projectId, projects }: { companyId: string; projectId: string; projects?: ProjectLite[] }) {
+  const isAll = projectId === ALL_PROJECTS;
   const navigation = useHostNavigation();
-  const qs = projectId === UNASSIGNED ? "limit=1000" : `projectId=${encodeURIComponent(projectId)}&limit=1000`;
+  const qs = projectId === UNASSIGNED || isAll ? "limit=1000" : `projectId=${encodeURIComponent(projectId)}&limit=1000`;
   const load = useJson<IssueLite[]>(`/api/companies/${encodeURIComponent(companyId)}/issues?${qs}`);
   const agentsLoad = useJson<AgentLite[]>(`/api/companies/${encodeURIComponent(companyId)}/agents`);
   const [filter, setFilter] = useState<BoardFilter>(EMPTY_FILTER);
@@ -307,11 +309,13 @@ function KanbanView({ companyId, projectId }: { companyId: string; projectId: st
   const who = (issue: IssueLite) => (agentsLoad.error ? "담당 정보 없음" : !agents ? "…" : assigneeName(issue, agents));
   const assigneeIds = [...new Set(issues.map((i) => i.assigneeAgentId).filter((x): x is string => !!x))];
   const hasUnassigned = issues.some((i) => !i.assigneeAgentId);
+  const projectIds = isAll ? [...new Set(issues.map((i) => i.projectId ?? UNASSIGNED))] : [];
+  const where = (issue: IssueLite) => (isAll ? <span className="aph-proj" data-aph-proj={issue.projectId ?? UNASSIGNED}>{projectLabel(issue, projects)}</span> : null);
   const fullCount = (key: string) => full.active.find((c) => c.key === key)?.items.length ?? 0;
   const set = (patch: Partial<BoardFilter>) => setFilter((f) => ({ ...f, ...patch }));
   const issueLink = (issue: IssueLite) => navigation.linkProps(`/issues/${encodeURIComponent(issue.identifier || issue.id)}`);
 
-  if (total === 0) return <div data-aph-kanban-total={0}><Notice>이 프로젝트에 작업이 아직 없습니다. 비서실장에게 요청하면 여기에 나타납니다.</Notice></div>;
+  if (total === 0) return <div data-aph-kanban-total={0}><Notice>{isAll ? "작업이 아직 없습니다." : "이 프로젝트에 작업이 아직 없습니다."} 비서실장에게 요청하면 여기에 나타납니다.</Notice></div>;
 
   const card = (issue: IssueLite) => (
     <li key={issue.id}>
@@ -319,6 +323,7 @@ function KanbanView({ companyId, projectId }: { companyId: string; projectId: st
         {(issue.priority === "critical" || issue.priority === "high") && (
           <span className="aph-chip" data-priority={issue.priority}>{PRIORITY_LABEL[issue.priority]}</span>
         )}
+        {where(issue)}
         <TaskTitle className="aph-issue-title" title={issue.title} />
         <span className="aph-foot">
           <Who name={who(issue)} />
@@ -362,6 +367,15 @@ function KanbanView({ companyId, projectId }: { companyId: string; projectId: st
             {hasUnassigned && <option value="none">{NO_ASSIGNEE}</option>}
           </select>
         </label>
+        {isAll && (
+          <label className="aph-field">
+            <span>프로젝트</span>
+            <select name="kanban-project" value={filter.project ?? ""} onChange={(e) => set({ project: e.target.value })}>
+              <option value="">전체</option>
+              {projectIds.map((id) => <option key={id} value={id}>{id === UNASSIGNED ? "미분류" : projects?.find((p) => p.id === id)?.name ?? "알 수 없는 프로젝트"}</option>)}
+            </select>
+          </label>
+        )}
         {filtered && <button type="button" className="aph-btn aph-clear" onClick={() => setFilter(EMPTY_FILTER)}>필터 지우기</button>}
       </div>
 
@@ -421,6 +435,7 @@ function KanbanView({ companyId, projectId }: { companyId: string; projectId: st
                         <span className="aph-row-ico" data-tone={issue.status}><StatusIcon status={issue.status} /></span>
                         <TaskTitle className="aph-row-title" title={issue.title} />
                         <span className="aph-row-meta">
+                          {where(issue)}
                           <Who name={who(issue)} />
                           <When iso={issue.completedAt ?? issue.cancelledAt ?? issue.updatedAt} now={now} />
                           <span className="aph-id" translate="no">{issue.identifier ?? "—"}</span>
@@ -800,6 +815,9 @@ button.aph-plan-item:focus-visible{outline:2px solid var(--ring,var(--primary));
 .aph-issue[data-status="blocked"]{border-color:color-mix(in oklab,var(--destructive,#e5484d) 55%,var(--border));box-shadow:inset 3px 0 0 var(--destructive,#e5484d)}
 .aph-issue[data-status="in_review"]{box-shadow:inset 3px 0 0 var(--agentos-brass,#d6bd91)}
 .aph-issue .aph-chip{align-self:flex-start}
+.aph-proj{align-self:flex-start;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;padding:1px 8px;border-radius:6px;
+  background:color-mix(in oklab,var(--agentos-lamp,var(--primary)) 14%,transparent);color:var(--foreground)}
+.aph-row-meta .aph-proj{max-width:160px}
 .aph-foot{display:flex;align-items:center;gap:8px;min-width:0;font-size:12px;color:var(--muted-foreground)}
 .aph-who{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--foreground);font-weight:500}
 .aph-when{flex:none;white-space:nowrap}

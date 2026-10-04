@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  ACTIVE_COLUMNS, EMPTY_FILTER, NO_ASSIGNEE, UNKNOWN_AGENT,
-  assigneeName, boardSummary, shortAgentName, filterIssues, isFiltered, lastFinished, relTime, splitBoard,
+  ACTIVE_COLUMNS, ALL_PROJECTS, EMPTY_FILTER, UNASSIGNED, NO_ASSIGNEE, UNKNOWN_AGENT,
+  activeProjectId, assigneeName, boardSummary, issuesForProject, projectLabel, shortAgentName, filterIssues, isFiltered, lastFinished, relTime, splitBoard,
   type AgentLite, type IssueLite,
 } from "../src/model.js";
 
@@ -97,5 +97,26 @@ describe("shortAgentName", () => {
     expect(shortAgentName("비서실장")).toBe("비서실장");
     expect(shortAgentName("_x")).toBe("_x");
     expect(shortAgentName("부서_")).toBe("부서_");
+  });
+});
+
+describe("all-projects board", () => {
+  const P = [{ id: "p1", name: "academy-homepage" }];
+  const mixed: IssueLite[] = [
+    { id: "a", title: "x", status: "todo", projectId: "p1" },
+    { id: "b", title: "y", status: "done", projectId: null },
+    { id: "c", title: "z", status: "done", projectId: "gone" },
+  ];
+  it("keeps every issue for the all scope and resolves the hub selection", () => {
+    expect(issuesForProject(mixed, ALL_PROJECTS).map((i) => i.id)).toEqual(["a", "b", "c"]);
+    expect(activeProjectId("/HER/project-hub", "?project=all&tab=kanban", [])).toBe(ALL_PROJECTS);
+  });
+  it("labels each card with its project, 미분류, or an honest unknown", () => {
+    expect(mixed.map((i) => projectLabel(i, P))).toEqual(["academy-homepage", "미분류", "알 수 없는 프로젝트"]);
+  });
+  it("filters by project including 미분류", () => {
+    expect(filterIssues(mixed, { ...EMPTY_FILTER, project: "p1" }).map((i) => i.id)).toEqual(["a"]);
+    expect(filterIssues(mixed, { ...EMPTY_FILTER, project: UNASSIGNED }).map((i) => i.id)).toEqual(["b"]);
+    expect(isFiltered({ ...EMPTY_FILTER, project: "p1" })).toBe(true);
   });
 });
