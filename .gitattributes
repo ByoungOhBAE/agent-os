@@ -3,3 +3,4 @@
 
 # Git hooks are run by WSL bash too; a CRLF shebang blocks the push there.
 scripts/git-hooks/* text eol=lf
+scripts/start-hermes-gateway.vbs binary
