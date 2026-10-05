@@ -7,6 +7,7 @@ import { codexRequest } from "./codex.mjs";
 import { readJsonCli } from "./cli-read.mjs";
 import { readHermesBots } from "./hermes-bots.mjs";
 import { listBotWorkspaces, setBotWorkspace, WorkspaceError } from "./bot-workspace.mjs";
+import { decide as decideKnowledge, KnowledgeError, overview as knowledgeOverview, startJob as startKnowledgeJob } from "./bot-knowledge.mjs";
 import { createControlRoutes } from "./control.mjs";
 import { createRoomRoutes } from "./rooms.mjs";
 import { createAcademyContentRoutes } from "./academy-content.mjs";
@@ -668,6 +669,27 @@ async function route(req, res, url) {
     return json(res, 200, result);
   }
   const workspaceOf = pathname.match(/^\/api\/hermes\/workspaces\/([^/]+)$/);
+  // Bot knowledge (org-chart plugin): memory usage, unclassified memory, decisions, skill presets.
+  if (pathname === "/api/hermes/knowledge" && method === "GET") {
+    try {
+      return json(res, 200, knowledgeOverview());
+    } catch (error) {
+      if (error instanceof KnowledgeError) throw new HttpError(error.status, error.message);
+      throw new HttpError(500, `기억·스킬 현황을 읽지 못했습니다: ${error instanceof Error ? error.message.slice(0, 200) : "알 수 없음"}`);
+    }
+  }
+  if (pathname.startsWith("/api/hermes/knowledge/") && ["PUT", "POST"].includes(method)) {
+    const input = await body(req);
+    try {
+      if (pathname === "/api/hermes/knowledge/decisions" && method === "PUT") return json(res, 200, await decideKnowledge(input));
+      // writes over every bot run as a background job (Paperclip action RPC times out at 30 s); poll GET .job
+      if (pathname === "/api/hermes/knowledge/apply" && method === "POST") return json(res, 202, { job: startKnowledgeJob("apply", input).job });
+      if (pathname === "/api/hermes/knowledge/skills/apply" && method === "POST") return json(res, 202, { job: startKnowledgeJob("skills", input).job });
+    } catch (error) {
+      if (error instanceof KnowledgeError) throw new HttpError(error.status, error.message);
+      throw new HttpError(502, `기억·스킬 정리 실패: ${error instanceof Error ? error.message.slice(0, 200) : "알 수 없음"}`);
+    }
+  }
   if (workspaceOf && method === "PATCH") {
     const input = await body(req);
     if (input.cwd !== null && input.cwd !== undefined && typeof input.cwd !== "string")

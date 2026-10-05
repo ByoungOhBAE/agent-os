@@ -91,14 +91,38 @@ export function scopeLine(reg, bot) {
 const IDENTITY = [/^나는 Paperclip 봇 /, /^I am the Paperclip bot /, /^I am the Hermes bot /, /^My knowledge scopes: /];
 export const isGeneratedLine = (text) => IDENTITY.some((re) => re.test(text));
 
-/** Hashes a bot file may contain that are already covered by the registry (source hashes + rendered text). */
+/**
+ * Hashes a bot file may contain that are already covered by the registry (source hashes + rendered text),
+ * plus retired hashes (memory entries the owner chose to delete; the originals stay in backups).
+ */
 export function knownHashes(reg) {
   const known = new Set();
   for (const e of reg.entries ?? []) {
     known.add(entryHash(e.en));
     for (const f of e.from ?? []) { const h = String(f).split("#")[1]; if (h) known.add(h); }
   }
+  for (const r of reg.retired ?? []) if (r?.hash) known.add(r.hash);
   return known;
+}
+
+/**
+ * Private overlay (kept OUTSIDE the public repo): extra entries + retired hashes. The public registry keeps
+ * projects/bots; the overlay only adds facts. Merged view = what every read path (plan/apply/status) uses.
+ * Writes of the public file must use the un-merged registry, or private entries would leak into git.
+ */
+export function mergeLocal(pub, local) {
+  const entries = [...(pub.entries ?? []).map((e) => ({ ...e })), ...((local?.entries ?? []).map((e) => ({ ...e, private: true })))];
+  return { ...pub, entries, retired: [...(pub.retired ?? []), ...(local?.retired ?? [])] };
+}
+
+export const LOCAL_ID = /^loc-[a-z0-9-]{1,60}$/;
+/** Overlay-only rules on top of validateRegistry(merged): ids are `loc-*` so they can never collide with public ids. */
+export function validateLocal(local) {
+  const errors = [];
+  if (!local || typeof local !== "object") return ["overlay is not an object"];
+  for (const e of local.entries ?? []) if (!LOCAL_ID.test(String(e?.id ?? ""))) errors.push(`overlay entry id must match loc-*: ${e?.id}`);
+  for (const r of local.retired ?? []) if (!/^[0-9a-f]{12}$/.test(String(r?.hash ?? ""))) errors.push(`bad retired hash: ${r?.hash}`);
+  return errors;
 }
 
 /** Entries in a current file that are not in the registry: kept so nothing a bot learned is lost. */

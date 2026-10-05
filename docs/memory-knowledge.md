@@ -55,6 +55,32 @@ node scripts/memory-knowledge.mjs add-project --key <key> --name "<English>" --n
 봇은 Hermes 기억 도구로 자기 `MEMORY.md`/`USER.md`에 계속 저장한다. `apply`는 분류표에 없는 항목을 지우지 않고 그대로 옮긴다.
 주기적으로 `plan`의 `carried:` 목록을 보고 공통/프로젝트/봇으로 분류해 `registry.json`에 옮긴 뒤 `apply` + `translate` 한다.
 
+## 비공개 덧붙임 (저장소 밖)
+
+봇이 일하며 배운 기억을 지식으로 옮길 때는 공개 `registry.json`이 아니라 **`%LOCALAPPDATA%/agentos/knowledge/`**에 둔다
+(agent-os는 공개 저장소). 위치는 `AGENTOS_KNOWLEDGE_DIR`로 바꿀 수 있다.
+
+| 파일 | 내용 |
+|---|---|
+| `registry.local.json` | `entries`(id `loc-*`, scope·kind·en·from) + `retired`(지운 기억의 해시) |
+| `ko.local.json` | 공개 registry 밖 모든 문장(봇 기억·덧붙임)의 한국어 표시 문구 |
+| `decisions.json` | 조직도 화면에서 고른 분류 결정(옮김/남김/지움) — 적용 전 초안 |
+| `backups/` | 적용·스킬 정리 직전 백업 |
+
+- 모든 읽기(`check/plan/apply/status`, BFF, 기억 은하)는 공개 + 덧붙임을 **합친** 분류표를 쓴다. `registry.json`에 쓰는 명령(`add-project`, `register`)은 공개 부분만 쓴다.
+- `translate`는 공개 `ko.json`에 **공개 registry 문장의 번역만** 남기고 나머지는 `ko.local.json`으로 옮긴다.
+- `apply` 백업(`.unlazy/memory-knowledge/backup-*/_local/`)에 덧붙임 파일도 함께 들어간다.
+
+## 조직도에서 정리하기 (Paperclip › 조직 배치도)
+
+- 카드마다 `기억 NN%` 배지(70% 주황, 85% 빨강)와 `분류 대기 N`.
+- 아래 「봇 기억·스킬 정리」: 봇별 기억 막대(지금 → 결정 반영 후), 분류 대기, 스킬 수·프리셋 상태. 행을 누르면 상세.
+  - **기억 탭**: 미분류 기억마다 처리(옮김/남김/지움)와 옮길 곳(공통·프로젝트·이 봇 전용)을 고른다. 고르기만 하면 초안(`decisions.json`)이고 봇 파일은 안 바뀐다.
+  - 「옮김 적용」: 백업 → 덧붙임 갱신 → `memory-knowledge.mjs apply` → 다시 읽어 「옮긴 항목 N/N개가 기억에서 빠지고 스킬에 들어감」을 보여 준다. 지움은 「지움 포함 적용…」에서 목록 확인 뒤에만.
+  - **스킬 탭**: 역할 프리셋(`knowledge/data/skill-presets.json`)을 적용하면 `skills.disabled`로 무관한 스킬을 목록에서 숨긴다(파일은 지우지 않음). 자동 로드·SOUL이 부르는 스킬·그 봇에만 설치된 스킬은 항상 유지. 적용 전 `config.yaml` 백업, 적용 후 다시 읽어 다른 설정 영역이 바뀌었으면 되돌린다. 「모두 다시 켜기」로 원래대로.
+- 쓰기는 CEO와 비서실장만. 적용은 BFF에서 한 번에 하나씩 백그라운드로 돌고(플러그인 호출 30초 제한), 화면이 2초마다 결과를 다시 읽는다.
+- 화면 게이트: `node scripts/gates/org-knowledge-ui.mjs`(읽기 전용, 기대값은 `status/plan`을 따로 실행해 얻음).
+
 ## 대시보드
 
 Hermes 보기 → **02 / 기억 은하**: 공통(가운데) → 프로젝트 → 봇 순서의 3D 은하. 15초마다 다시 읽어 새 기억이 반짝이며 나타난다.

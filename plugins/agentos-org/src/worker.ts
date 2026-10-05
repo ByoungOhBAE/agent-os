@@ -18,6 +18,14 @@ export type OrgBff = {
   workspaces(): Promise<{ default?: unknown; bots?: Array<{ profile?: unknown; cwd?: unknown }> }>;
   /** cwd null → BFF default. Resolves with the value re-read from the profile config. */
   setWorkspace(profile: string, cwd: string | null): Promise<{ cwd?: unknown; changed?: unknown }>;
+  /** Bot memory/skill overview (read-only). */
+  knowledge?(): Promise<Record<string, unknown>>;
+  /** Draft classification decisions; touches no bot file. */
+  knowledgeDecide?(body: Record<string, unknown>): Promise<unknown>;
+  /** Apply decisions (backup → overlay → memory-knowledge apply → read-back). */
+  knowledgeApply?(body: Record<string, unknown>): Promise<unknown>;
+  /** Apply/clear a bot's role skill preset (skills.disabled), verified by re-reading config.yaml. */
+  skillsApply?(body: Record<string, unknown>): Promise<unknown>;
 };
 
 type ActionContext = { actor?: { type?: string; userId?: string | null; agentId?: string | null } | null; companyId?: string | null } | null;
@@ -35,7 +43,7 @@ export function bffOrigin(raw: unknown) {
 }
 
 export function createBff(origin = DEFAULT_ORIGIN, fetcher: typeof fetch = fetch): OrgBff {
-  async function call(path: string, init: { method?: string; body?: unknown } = {}) {
+  async function call(path: string, init: { method?: string; body?: unknown; timeoutMs?: number } = {}) {
     let response: Response;
     try {
       response = await fetcher(origin + path, {
@@ -43,7 +51,7 @@ export function createBff(origin = DEFAULT_ORIGIN, fetcher: typeof fetch = fetch
         headers: init.body === undefined ? {} : { "Content-Type": "application/json" },
         body: init.body === undefined ? undefined : JSON.stringify(init.body),
         redirect: "error",
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(init.timeoutMs ?? 10000),
       });
     } catch {
       throw new Error("로컬 AgentOS BFF에 연결할 수 없습니다.");
@@ -63,6 +71,11 @@ export function createBff(origin = DEFAULT_ORIGIN, fetcher: typeof fetch = fetch
       if (!BOT_PROFILE.test(profile)) throw new Error("봇 프로필 이름이 올바르지 않습니다.");
       return call(`/api/hermes/workspaces/${encodeURIComponent(profile)}`, { method: "PATCH", body: { cwd } });
     },
+    knowledge: () => call("/api/hermes/knowledge", { timeoutMs: 20000 }),
+    knowledgeDecide: (body) => call("/api/hermes/knowledge/decisions", { method: "PUT", body }),
+    // apply runs memory-knowledge.mjs apply over every bot (backup + skills + memory), so allow minutes
+    knowledgeApply: (body) => call("/api/hermes/knowledge/apply", { method: "POST", body, timeoutMs: 300000 }),
+    skillsApply: (body) => call("/api/hermes/knowledge/skills/apply", { method: "POST", body, timeoutMs: 90000 }),
   };
 }
 
@@ -343,7 +356,72 @@ export function createOrgService(ctx: PluginContext, deps: Deps = {}) {
     });
   }
 
-  return { view, apply, resync, load, emptyOrg };
+  // ---------- bot memory / skills (read for everyone who can open the page; writes for CEO + chief only) ----------
+  const canEditOrg = (org: Org, actor: Actor) => actor.kind === "ceo" || (actor.kind === "agent" && !!org.chiefAgentId && org.chiefAgentId === actor.agentId);
+
+  async function knowledge(params: Record<string, unknown>, context: ActionContext) {
+    const companyId = companyOf(params ?? {}, context);
+    const [org, m] = await Promise.all([load(companyId), members(companyId)]);
+    const actor = actorOf(org, context, m.list);
+    const bff = await bffFor(companyId);
+    if (!bff.knowledge) throw new OrgError("BFF가 기억·스킬 조회를 지원하지 않습니다.", 503);
+    const data = await bff.knowledge();
+    const byAgent = new Map<string, string | null>(m.rows.map((a) => [a.id, profileOfAgent(a)]));
+    const memberProfiles: Record<string, string> = {};
+    for (const x of m.list) {
+      const p = x.kind === "hermes" ? x.ref : byAgent.get(x.ref) ?? null;
+      if (p) memberProfiles[x.id] = p;
+    }
+    return { ...data, members: memberProfiles, canEdit: canEditOrg(org, actor), viewer: actor.label };
+  }
+
+  async function guardWrite(params: Record<string, unknown>, context: ActionContext) {
+    const companyId = companyOf(params ?? {}, context);
+    const [org, m] = await Promise.all([load(companyId), members(companyId)]);
+    const actor = actorOf(org, context, m.list);
+    if (!canEditOrg(org, actor)) throw new OrgError("봇 기억·스킬 정리는 CEO와 비서실장만 할 수 있습니다.", 403);
+    return { companyId, actor, bff: await bffFor(companyId) };
+  }
+
+  async function knowledgeDecide(params: Record<string, unknown>, context: ActionContext) {
+    const { actor, bff } = await guardWrite(params, context);
+    const items = Array.isArray(params?.items) ? (params.items as unknown[]).slice(0, 200) : [];
+    if (!items.length) throw new OrgError("결정할 항목이 없습니다.");
+    const clean = items.map((raw) => {
+      const it = (raw ?? {}) as Record<string, unknown>;
+      const action = it.action === null ? null : String(it.action ?? "");
+      return {
+        profile: String(it.profile ?? ""), hash: String(it.hash ?? ""), action,
+        ...(typeof it.scope === "string" ? { scope: it.scope.slice(0, 80) } : {}),
+        ...(typeof it.group === "string" ? { group: it.group.slice(0, 90) } : {}),
+        ...(typeof it.reason === "string" ? { reason: it.reason.slice(0, 200) } : {}),
+      };
+    });
+    if (!bff.knowledgeDecide) throw new OrgError("BFF가 지원하지 않습니다.", 503);
+    return bff.knowledgeDecide({ items: clean, by: actor.label });
+  }
+
+  async function knowledgeApply(params: Record<string, unknown>, context: ActionContext) {
+    const { companyId, actor, bff } = await guardWrite(params, context);
+    if (!bff.knowledgeApply) throw new OrgError("BFF가 지원하지 않습니다.", 503);
+    const allowDrop = params?.allowDrop === true;
+    const result = await bff.knowledgeApply({ allowDrop, by: actor.label });
+    await ctx.activity.log({ companyId, message: `봇 기억 정리 적용 시작 (${actor.label}${allowDrop ? ", 지움 포함" : ""})`, entityType: "company", entityId: companyId, metadata: { allowDrop } }).catch(() => {});
+    return result;
+  }
+
+  async function skillsApply(params: Record<string, unknown>, context: ActionContext) {
+    const { companyId, actor, bff } = await guardWrite(params, context);
+    const profile = String(params?.profile ?? "");
+    if (!BOT_PROFILE.test(profile)) throw new OrgError("봇 프로필 이름이 올바르지 않습니다.");
+    if (!bff.skillsApply) throw new OrgError("BFF가 지원하지 않습니다.", 503);
+    const clear = params?.clear === true;
+    const result = await bff.skillsApply({ profile, clear, by: actor.label });
+    await ctx.activity.log({ companyId, message: `봇 스킬 ${clear ? "모두 다시 켜기" : "프리셋 적용"} 시작: ${profile} (${actor.label})`, entityType: "company", entityId: companyId, metadata: { profile, clear } }).catch(() => {});
+    return result;
+  }
+
+  return { view, apply, resync, load, emptyOrg, knowledge, knowledgeDecide, knowledgeApply, skillsApply };
 }
 
 function wrap<A extends unknown[], T>(fn: (...args: A) => Promise<T>) {
@@ -364,6 +442,10 @@ export const plugin = definePlugin({
     ctx.actions.register("view", wrap((p, c) => org.view(p, c)));
     ctx.actions.register("apply", wrap((p, c) => org.apply(p, c)));
     ctx.actions.register("resync", wrap((p, c) => org.resync(p, c)));
+    ctx.actions.register("knowledge", wrap((p, c) => org.knowledge(p, c)));
+    ctx.actions.register("knowledgeDecide", wrap((p, c) => org.knowledgeDecide(p, c)));
+    ctx.actions.register("knowledgeApply", wrap((p, c) => org.knowledgeApply(p, c)));
+    ctx.actions.register("skillsApply", wrap((p, c) => org.skillsApply(p, c)));
   },
   async onHealth() {
     return { status: "ok", message: "조직 배치도 준비됨" };

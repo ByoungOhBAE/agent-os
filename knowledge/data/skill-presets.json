@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "about": "Role skill presets (names only, no secrets). A preset lists what a bot KEEPS visible; every other local or shared (external_dirs) skill goes to skills.disabled. Always kept regardless of preset: the bot's auto_load skills, skills its SOUL.md names, and Hermes essentials. Applied per bot from the org chart, never automatically.",
+  "always": {
+    "categories": ["agentos", "paperclip", "unlazy"],
+    "skills": ["hermes-agent", "blocked-page-recovery", "grounded-citations", "omh-routing", "omh-meta-router", "omh-terminal", "omh-files"]
+  },
+  "presets": {
+    "content": {
+      "label": "콘텐츠 작성",
+      "categories": [],
+      "skills": ["humanizer", "academy-content-generator", "document-to-action-items", "omh-content-operator", "omh-ai-slop-cleaner", "omh-legal-compliance-review", "omh-localization-review", "omh-media-input"]
+    },
+    "media-analysis": {
+      "label": "영상·자료 분석",
+      "categories": ["media", "research"],
+      "skills": ["humanizer", "academy-content-generator", "pdf", "omh-content-operator", "omh-media-input", "omh-research-brief", "omh-source-finder", "omh-paper-learning", "omh-data-analysis"]
+    },
+    "development": {
+      "label": "개발",
+      "categories": ["software-development", "devops", "autonomous-ai-agents", "reviewer", "planner", "ultrawork", "handoff-guide"],
+      "skills": ["claude-design", "design-taste-frontend", "interface-design", "popular-web-designs", "figma-mcp-design", "design-md", "nextjs-development", "omh-browser", "omh-frontend", "omh-visual-qa", "omh-build-failure-triage", "omh-deploy-and-monitor", "omh-idea-to-deploy", "omh-workspace-audit", "omh-agent-debug"]
+    },
+    "design": {
+      "label": "화면 디자인",
+      "categories": [],
+      "skills": ["architecture-diagram", "baoyu-infographic", "claude-design", "design-md", "design-taste-frontend", "figma-mcp-design", "interface-design", "popular-web-designs", "p5js", "dogfood", "inspecting-hermes-desktop-dom", "omh-browser", "omh-frontend", "omh-design-orchestration", "omh-design-quality-gate", "omh-visual-qa", "omh-accessibility-audit", "omh-image-cards"]
+    },
+    "review": {
+      "label": "검수",
+      "categories": ["reviewer"],
+      "skills": ["requesting-code-review", "systematic-debugging", "dogfood", "codebase-inspection", "humanizer", "academy-content-generator", "omh-browser", "omh-visual-qa", "omh-ai-slop-cleaner", "omh-agent-ops-review", "omh-decision-recall"]
+    },
+    "planning": {
+      "label": "기획·지휘",
+      "categories": ["planner", "ultrawork", "tracker", "multi-bot-orchestration"],
+      "skills": ["agent-pipeline-diagnosis", "multi-agent-control-plane", "omh-decide", "omh-ops-review", "omh-research-brief", "omh-agent-board", "omh-agent-ops-review", "omh-decision-recall", "omh-design-orchestration", "omh-deliverable-package", "omh-meeting-brief", "weekly-review-planning", "document-to-action-items"]
+    },
+    "skill-scout": {
+      "label": "스킬 탐색",
+      "categories": ["research"],
+      "skills": ["find-skills", "hermes-agent-skill-authoring", "omh-skill", "omh-skill-scout", "omh-skill-health", "omh-toolbelt-readiness", "omh-source-finder", "omh-best-practice-research"]
+    },
+    "test": {
+      "label": "연결 시험",
+      "categories": [],
+      "skills": []
+    }
+  },
+  "bots": {
+    "pc-ebb0943f": "planning",
+    "pc-26df4505": "design",
+    "pc-59bd3c1d": "development",
+    "pc-adfb6817": "skill-scout",
+    "pc-2e6cbe27": "test",
+    "pc-8ca245c2": "content",
+    "pc-7686fab2": "content",
+    "pc-c2b2f67e": "content",
+    "pc-3656a1bc": "content",
+    "pc-5910516a": "media-analysis",
+    "pc-a2d59386": "review",
+    "uacc4-ud68d-uc218-ub9bd-uac00": "planning",
+    "uac1c-ubc1c-uc790": "development",
+    "uac80-uc218---uac80-ud1a0-uc790": "review",
+    "ub514-uc790-uc774-ub108": "design"
+  }
+}

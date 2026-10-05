@@ -10,7 +10,7 @@ import type { GalaxyData, GalaxyEdge, GalaxyGroup, GalaxyNode } from "./galaxy.j
 export interface RegistryProject { key: string; name: string; nameKo?: string; workspace?: string }
 export interface RegistryBot { profile: string; agentId?: string; name: string; room?: string; projects?: string[] }
 export interface RegistryEntry { id: string; scope: string; kind: "user" | "knowledge" | "core"; en: string; from?: string[] }
-export interface Registry { projects: RegistryProject[]; bots: RegistryBot[]; entries: RegistryEntry[] }
+export interface Registry { projects: RegistryProject[]; bots: RegistryBot[]; entries: RegistryEntry[]; retired?: { hash: string }[] }
 /** Korean display store: content hash of the English text -> Korean text. Generated once by the subscription model. */
 export interface KoStore { items: Record<string, { ko: string; en?: string }> }
 export interface BotFiles { profile: string; memory: string[]; user: string[]; skills: string[] }
@@ -47,9 +47,11 @@ export function koLookup(ko: KoStore): KoLookup {
   };
 }
 
-/** Worker only: the Korean store written by `memory-knowledge.mjs translate`. Missing/broken file -> no Korean. */
-export function readKoStore(repo = REPO): KoStore {
-  try { const k = readSmall(path.join(repo, "knowledge", "data", "ko.json")); return k ? JSON.parse(k) : { items: {} }; } catch { return { items: {} }; }
+/** Worker only: the Korean store written by `memory-knowledge.mjs translate` — public ko.json + private ko.local.json
+ *  (translations of bot memory and private overlay entries live outside the public repo). Missing/broken -> no Korean. */
+export function readKoStore(repo = REPO, local = LOCAL): KoStore {
+  const read = (file: string) => { try { const k = readSmall(file); return k ? (JSON.parse(k).items ?? {}) : {}; } catch { return {}; } };
+  return { items: { ...read(path.join(repo, "knowledge", "data", "ko.json")), ...read(path.join(local, "ko.local.json")) } };
 }
 
 const MAX_TEXT = 1200;
@@ -91,6 +93,8 @@ export function buildGalaxy(reg: Registry, ko: KoStore, bots: BotFiles[], genera
     for (const f of e.from ?? []) { const h = String(f).split("#")[1]; if (h) known.add(h); }
     add(`entry:${e.id}`, e.scope, e.kind === "knowledge" ? "knowledge" : e.kind === "user" ? "user" : "memory", e.en);
   }
+  // memory entries the owner deleted (originals kept in backups) are not live learnings any more
+  for (const r of reg.retired ?? []) if (r?.hash) known.add(r.hash);
   // live learnings the bot saved since the last build (not in the registry yet)
   for (const b of bots) {
     if (!botKeys.has(b.profile)) continue;
@@ -114,6 +118,8 @@ export function buildGalaxy(reg: Registry, ko: KoStore, bots: BotFiles[], genera
 // ---------- I/O (worker) ----------
 const REPO = "/mnt/c/Users/tahar/orca/workspaces/agent os";
 const HERMES = "/mnt/c/Users/tahar/AppData/Local/hermes";
+/** Private knowledge overlay (knowledge/local.mjs): registry.local.json + ko.local.json, outside the public repo. */
+const LOCAL = "/mnt/c/Users/tahar/AppData/Local/agentos/knowledge";
 const PROFILE = /^[\w.-]{1,64}$/;
 const MAX_FILE = 400_000;
 
@@ -127,12 +133,18 @@ function roleSkills(hermes: string, profile: string): string[] {
 
 export type GalaxyResult = { status: "available"; data: GalaxyData; translated: number; pending: number } | { status: "unavailable"; message: string };
 
-export function readGalaxy(roots = { repo: REPO, hermes: HERMES }): GalaxyResult {
+export function readGalaxy(roots: { repo: string; hermes: string; local?: string } = { repo: REPO, hermes: HERMES, local: LOCAL }): GalaxyResult {
   const regRaw = readSmall(path.join(roots.repo, "knowledge", "data", "registry.json"));
   if (!regRaw) return { status: "unavailable", message: "기억 분류표(knowledge/data/registry.json)를 읽을 수 없습니다." };
   let reg: Registry, ko: KoStore = { items: {} };
   try { reg = JSON.parse(regRaw); } catch { return { status: "unavailable", message: "기억 분류표 형식이 올바르지 않습니다." }; }
-  ko = readKoStore(roots.repo);
+  // merge the private overlay the same way knowledge/lib.mjs mergeLocal does (a broken overlay is ignored, never guessed)
+  try {
+    const raw = readSmall(path.join(roots.local ?? LOCAL, "registry.local.json"));
+    const local = raw ? JSON.parse(raw) : null;
+    if (local) reg = { ...reg, entries: [...(reg.entries ?? []), ...(Array.isArray(local.entries) ? local.entries : [])], retired: Array.isArray(local.retired) ? local.retired : [] };
+  } catch { /* keep the public registry only */ }
+  ko = readKoStore(roots.repo, roots.local ?? LOCAL);
   const bots: BotFiles[] = (reg.bots ?? []).filter(b => PROFILE.test(b.profile)).map(b => {
     const mem = path.join(roots.hermes, "profiles", b.profile, "memories");
     return { profile: b.profile, memory: splitEntries(readSmall(path.join(mem, "MEMORY.md")) ?? ""), user: splitEntries(readSmall(path.join(mem, "USER.md")) ?? ""), skills: roleSkills(roots.hermes, b.profile) };

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import { useHostContext, useHostNavigation, usePluginAction, type PluginPageProps } from "@paperclipai/plugin-sdk/ui";
 import { ICONS, type Icon, type OrgOp } from "../org.js";
 import { splitDepartments } from "../layout.js";
+import { botOfMember, type Knowledge } from "../knowledge.js";
+import { KnBadge, KnowledgeDialog, KnowledgeSection, KN_CSS, type DecideItem } from "./knowledge.js";
 
 type Member = { id: string; kind: "paperclip" | "hermes"; ref: string; name: string; runtime: string; model: string | null; status: string };
 
@@ -83,6 +85,49 @@ export function OrgChartPage(_props: PluginPageProps) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ tone: "ok" | "bad"; text: string } | null>(null);
   const [editing, setEditing] = useState<Editing>(null);
+  const knowledgeAction = usePluginAction("knowledge");
+  const decideAction = usePluginAction("knowledgeDecide");
+  const knApplyAction = usePluginAction("knowledgeApply");
+  const skillsAction = usePluginAction("skillsApply");
+  const [kn, setKn] = useState<Knowledge | null>(null);
+  const [knError, setKnError] = useState("");
+  const [knBusy, setKnBusy] = useState(false);
+  const [knOpen, setKnOpen] = useState<string | null>(null);
+  const [knNotice, setKnNotice] = useState("");
+
+  const loadKn = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      setKn((await knowledgeAction({ companyId })) as Knowledge);
+      setKnError("");
+    } catch (error) {
+      setKnError(errorText(error));
+    }
+  }, [companyId, knowledgeAction]);
+  useEffect(() => { void loadKn(); }, [loadKn]);
+  // a background apply is running on the BFF: poll until it finishes, then the list shows re-read files
+  const jobRunning = kn?.job?.state === "running";
+  useEffect(() => {
+    if (!jobRunning) return;
+    const t = setInterval(() => { void loadKn(); }, 2000);
+    return () => clearInterval(t);
+  }, [jobRunning, loadKn]);
+
+  async function knCall(fn: () => Promise<unknown>) {
+    setKnBusy(true);
+    setKnNotice("");
+    try {
+      await fn();
+    } catch (error) {
+      setKnNotice(errorText(error));
+    } finally {
+      await loadKn();
+      setKnBusy(false);
+    }
+  }
+  const decide = (items: DecideItem[]) => knCall(() => decideAction({ companyId, items }));
+  const applyKn = (allowDrop: boolean) => knCall(() => knApplyAction({ companyId, allowDrop }));
+  const applySkills = (profile: string, clear: boolean) => knCall(() => skillsAction({ companyId, profile, clear }));
 
   const load = useCallback(async () => {
     if (!companyId) return;
@@ -188,6 +233,7 @@ export function OrgChartPage(_props: PluginPageProps) {
               <p className="o-role">비서실장</p>
               <p className="o-name">{view.chief ? view.chief.name : view.chiefMissing ? "연결 끊김" : "미지정"}</p>
               {view.chief && <Chip member={view.chief} />}
+              {view.chief && <KnBadge bot={botOfMember(kn, view.chief.id)} />}
               {view.chief && (
                 <p className={view.chiefCanConfigure ? "o-perm" : "o-hint"}>
                   {view.chiefCanConfigure ? "부서·구성원 편집 · 에이전트 설정 편집 권한" : "에이전트 설정 권한이 아직 없습니다 — ‘Paperclip 다시 맞추기’로 부여"}
@@ -205,13 +251,13 @@ export function OrgChartPage(_props: PluginPageProps) {
             <div className="o-side" role="group" aria-labelledby="o-side-label">
               <p id="o-side-label" className="o-group-label o-side-label">CEO 직속</p>
               <ul className="o-side-deps">
-                {ceoDeps.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={setEditing} workspaces={view.workspaces} />)}
+                {ceoDeps.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={setEditing} workspaces={view.workspaces} kn={kn} />)}
               </ul>
             </div>
           )}
         </div>
 
-        <DepartmentGroup title="비서실장 산하" departments={chiefDeps} can={can} busy={busy} onEdit={setEditing} workspaces={view.workspaces} />
+        <DepartmentGroup title="비서실장 산하" departments={chiefDeps} can={can} busy={busy} onEdit={setEditing} workspaces={view.workspaces} kn={kn} />
         {view.departments.length === 0 && (
           <div className="o-empty">
             <p className="o-empty-title">아직 부서가 없습니다</p>
@@ -236,6 +282,7 @@ export function OrgChartPage(_props: PluginPageProps) {
                 <div className="o-member-main">
                   <span className="o-member-name">{m.name}</span>
                   <Chip member={m} />
+                  <KnBadge bot={botOfMember(kn, m.id)} />
                 </div>
                 {can && view.departments.length > 0 && (
                   <button type="button" className="o-btn o-btn-small" onClick={() => setEditing({ type: "member", id: m.id })} disabled={busy} aria-label={`${m.name} 배치`}>배치</button>
@@ -245,6 +292,17 @@ export function OrgChartPage(_props: PluginPageProps) {
           </ul>
         )}
       </section>
+
+      <KnowledgeSection kn={kn} error={knError || knNotice} busy={knBusy} onOpen={setKnOpen} onApply={(allowDrop) => void applyKn(allowDrop)} onReload={() => void loadKn()} />
+
+      {kn && knOpen && kn.bots.find((b) => b.profile === knOpen) && (
+        <KnowledgeDialog
+          bot={kn.bots.find((b) => b.profile === knOpen)!} kn={kn} busy={knBusy} error={knNotice}
+          onClose={() => setKnOpen(null)}
+          onDecide={(items) => void decide(items)}
+          onSkills={(clear) => void applySkills(knOpen, clear)}
+        />
+      )}
 
       {editing && (
         <Editor
@@ -257,19 +315,19 @@ export function OrgChartPage(_props: PluginPageProps) {
   );
 }
 
-function DepartmentGroup({ title, departments, can, busy, onEdit, workspaces }: { title: string; departments: Department[]; can: boolean; busy: boolean; onEdit: (e: Editing) => void; workspaces?: Workspaces }) {
+function DepartmentGroup({ title, departments, can, busy, onEdit, workspaces, kn }: { title: string; departments: Department[]; can: boolean; busy: boolean; onEdit: (e: Editing) => void; workspaces?: Workspaces; kn: Knowledge | null }) {
   if (departments.length === 0) return null;
   return (
     <div className="o-group">
       <p className="o-group-label">{title}</p>
       <ul className="o-deps">
-        {departments.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={onEdit} workspaces={workspaces} />)}
+        {departments.map((d) => <DepartmentCard key={d.id} department={d} can={can} busy={busy} onEdit={onEdit} workspaces={workspaces} kn={kn} />)}
       </ul>
     </div>
   );
 }
 
-function DepartmentCard({ department: d, can, busy, onEdit, workspaces }: { department: Department; can: boolean; busy: boolean; onEdit: (e: Editing) => void; workspaces?: Workspaces }) {
+function DepartmentCard({ department: d, can, busy, onEdit, workspaces, kn }: { department: Department; can: boolean; busy: boolean; onEdit: (e: Editing) => void; workspaces?: Workspaces; kn: Knowledge | null }) {
   return (
     <li className="o-dep">
       <div className="o-dep-head">
@@ -300,6 +358,7 @@ function DepartmentCard({ department: d, can, busy, onEdit, workspaces }: { depa
                   </span>
                   <span className="o-member-title">{m.title ?? (m.missing ? "연결이 끊긴 구성원" : "직함 없음")}</span>
                   {m.duty && <span className="o-member-duty">{m.duty}</span>}
+                  {botOfMember(kn, m.id) && <span className="o-member-kn"><KnBadge bot={botOfMember(kn, m.id)} /></span>}
                 </span>
                 <Chip member={m} />
               </button>
@@ -441,7 +500,7 @@ export function OrgChartSidebarLink() {
   );
 }
 
-const CSS = `
+const CSS = KN_CSS + `
 .o-root .agentos-seal{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:10px;background:var(--agentos-paper-hi,#1f2a27);border:1px solid var(--agentos-edge-strong,rgba(216,232,213,.2));color:var(--agentos-ink-3,#829185);font-size:14px;font-weight:700;line-height:1}
 .o-root .agentos-seal[data-size="sm"]{width:26px;height:26px;border-radius:8px;font-size:12px}
 .o-root .agentos-seal[data-lamp="on"]{color:var(--agentos-lamp,#bdd1aa);border-color:rgba(189,209,170,.4);box-shadow:0 0 10px -2px var(--agentos-lamp-glow,rgba(189,209,170,.35))}
@@ -526,6 +585,7 @@ color:var(--o-text);max-width:1320px;margin:0 auto;-webkit-font-smoothing:antial
 .o-bench-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
 .o-bench-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px dashed var(--o-line-strong);border-radius:8px;min-width:0}
 .o-bench-item .o-member-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.o-bench-item .o-chip{max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .o-btn{min-height:40px;padding:0 14px;border:1px solid var(--o-line-strong);border-radius:6px;background:transparent;color:var(--o-text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s cubic-bezier(.23,1,.32,1),background-color .15s;white-space:nowrap}
 .o-btn-small{min-height:36px;padding:0 12px;font-size:12px}
 .o-btn:hover:not(:disabled){background:var(--o-raised)}

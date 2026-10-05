@@ -116,11 +116,6 @@
       "en": "Hermes /journey memory cards are translated to Korean only in the display layer (learning_graph.py view); never change the source text, IDs, cursor, or edit behaviour.",
       "source": "claude-subscription"
     },
-    "f2b22f7876e1": {
-      "ko": "academy-homepage는 단일 git 저장소(브랜치 main, GitHub ByoungOhBAE/academy-homepage)이며 경로는 C:/Users/tahar/orca/workspaces/academy homepage입니다. 2026-10-03에 옛 워크트리(C:/Users/tahar/academy homepage의 master, 홈페이지제작 등)를 통합하고 삭제했으니 여기서 작업합니다.",
-      "en": "academy-homepage is a single git repo (branch main, origin GitHub ByoungOhBAE/academy-homepage) at C:/Users/tahar/orca/workspaces/academy homepage. On 2026-10-03 the old worktrees (master at C:/Users/tahar/academy homepage, 홈페이지제작, etc.) were consolidated and removed; work here.",
-      "source": "claude-subscription"
-    },
     "dfbf35cbbad8": {
       "ko": "academy-homepage(Next.js)는 NAS에서 docker-compose로 실행됩니다: app(포트 3080, 도메인 kmastercook.com) + cloudflared 터널 'academy' + 백업 컨테이너. PC에서는 절대 compose up을 실행하지 마세요(프로덕션 터널을 가로채게 됩니다). 배포 절차: PC에서 이미지를 빌드(2GB NAS는 빌드 불가) -> SSH로 docker save/load -> academy 서비스만 재생성. 프로젝트 경로 /volume1/docker/academy; docker 바이너리 /var/packages/ContainerManager/target/usr/bin/docker; 비밀번호 없는 sudo는 그 바이너리에만 적용됩니다. ./data(db.sqlite, uploads, originals)를 보존하고, 배포 전후로 행 수와 파일 수를 비교하세요. 배포 전에 migrate deploy와 seed를 검토하세요. SSH 자격증명: nas-docker-deployment 스킬의 references/academy-ssh.md(DPAPI로 암호화됨; 복호화된 값은 절대 저장하거나 출력하지 마세요).",
       "en": "academy-homepage (Next.js) runs on the NAS with docker-compose: app (port 3080, domain kmastercook.com) + cloudflared tunnel 'academy' + backup container. Never run compose up on the PC (it would hijack the production tunnel). Deploy: build the image on the PC (the 2 GB NAS cannot build) -> docker save/load over SSH -> recreate only the academy service. Project /volume1/docker/academy; docker binary /var/packages/ContainerManager/target/usr/bin/docker; passwordless sudo covers only that binary. Preserve ./data (db.sqlite, uploads, originals) and compare row and file counts before and after. Review migrate deploy and seed before deploying. SSH credentials: nas-docker-deployment skill references/academy-ssh.md (DPAPI-encrypted; never store or print decrypted values).",
@@ -201,76 +196,6 @@
       "en": "The AgentOS BFF (127.0.0.1:4200) serves read-only GETs: /api/hermes/bots, /api/hermes/learning/graph?profile=, /api/hermes/skills?profile=. Hermes profile ids encode Hangul as uXXXX, so use bots[].title for names.",
       "source": "claude-subscription"
     },
-    "6ed30ef93620": {
-      "ko": "academy-homepage는 단일 git 저장소(브랜치 main, GitHub ByoungOhBAE/academy-homepage)이며 경로는 C:/Users/tahar/orca/workspaces/academy homepage입니다. 2026-10-03에 옛 워크트리(C:/Users/tahar/academy homepage의 master, 홈페이지제작 등)를 통합하고 삭제했으니 여기서 작업합니다.",
-      "en": "academy-homepage is a single git repo (branch main, origin GitHub ByoungOhBAE/academy-homepage) at C:/Users/tahar/orca/workspaces/academy homepage. On 2026-10-03 the old worktrees (master at C:/Users/tahar/academy homepage, 홈페이지제작, etc.) were consolidated and removed; work here.",
-      "source": "already-korean"
-    },
-    "0f9efcfc1ef6": {
-      "ko": "사용자는 짧은 한국어 답변을 선호한다. 홈페이지 UI는 실제 사용자 눈높이와 반응형 화면에서 위치·크기·가독성을 확인해야 하며, 합성 QA를 운영 증거로 과장하지 않길 기대한다. 배포 전후 DB·사진 보존 검증을 중시한다.",
-      "en": "사용자는 짧은 한국어 답변을 선호한다. 홈페이지 UI는 실제 사용자 눈높이와 반응형 화면에서 위치·크기·가독성을 확인해야 하며, 합성 QA를 운영 증거로 과장하지 않길 기대한다. 배포 전후 DB·사진 보존 검증을 중시한다.",
-      "source": "already-korean"
-    },
-    "0819ac9b7d8b": {
-      "ko": "Hermes `/journey` 메모리 카드는 MEMORY.md 원문을 보존한 채 learning_graph.py의 표시 계층에서 한국어로 변환한다. 원문·ID·커서·편집 동작은 변경하지 않는다.",
-      "en": "Hermes `/journey` 메모리 카드는 MEMORY.md 원문을 보존한 채 learning_graph.py의 표시 계층에서 한국어로 변환한다. 원문·ID·커서·편집 동작은 변경하지 않는다.",
-      "source": "already-korean"
-    },
-    "a4d4757271db": {
-      "ko": "Figma MCP(공식, mcp.figma.com, OAuth)를 Hermes에 설치·활성화함 — Figma 링크를 주면 디자인 컨텍스트 읽기/구현 요청 가능.",
-      "en": "Figma MCP(공식, mcp.figma.com, OAuth)를 Hermes에 설치·활성화함 — Figma 링크를 주면 디자인 컨텍스트 읽기/구현 요청 가능.",
-      "source": "already-korean"
-    },
-    "962cdb130995": {
-      "ko": "academy-homepage: 구독 콘텐츠 생성 strict 무폴백 배포됨(local-worker/strict_subscription.py, 선택 제공사 1회만 호출, fail-closed). Gemini API는 웹 상담 전용(gemini-3.8-flash), 콘텐츠 생성엔 안 씀.\n대문 배너 AI 스튜디오(2880x1125, hero-studio) 배포됨: AI 모델 선택, 흰 캔버스 자유배치+마우스 리사이즈(8방향, 회전 대응), 폴더형 사진선택기(라벨 폴더+축소본), 파츠별 창작/보존 정책. 핵심: src/components/admin/HeroBannerStudio.tsx, HeroPhotoPicker.tsx, src/lib/hero-studio/*, scripts/hero-studio-inspect.mjs(격리 브라우저 QA — UI 바뀌면 셀렉터도 갱신).",
-      "en": "academy-homepage: 구독 콘텐츠 생성 strict 무폴백 배포됨(local-worker/strict_subscription.py, 선택 제공사 1회만 호출, fail-closed). Gemini API는 웹 상담 전용(gemini-3.8-flash), 콘텐츠 생성엔 안 씀.\n대문 배너 AI 스튜디오(2880x1125, hero-studio) 배포됨: AI 모델 선택, 흰 캔버스 자유배치+마우스 리사이즈(8방향, 회전 대응), 폴더형 사진선택기(라벨 폴더+축소본), 파츠별 창작/보존 정책. 핵심: src/components/admin/HeroBannerStudio.tsx, HeroPhotoPicker.tsx, src/lib/hero-studio/*, scripts/hero-studio-inspect.mjs(격리 브라우저 QA — UI 바뀌면 셀렉터도 갱신).",
-      "source": "already-korean"
-    },
-    "f1c0d486dc54": {
-      "ko": "Korean cooking academy (한국조리기능장요리발효학원) at kmastercook.com. Gemini API 키는 웹페이지 AI 상담(챗봇) 전용으로만 사용하고 콘텐츠 생성에는 사용하지 않음 — 별도 Gemini 생성 API 엔드포인트로 분리됨.",
-      "en": "Korean cooking academy (한국조리기능장요리발효학원) at kmastercook.com. Gemini API 키는 웹페이지 AI 상담(챗봇) 전용으로만 사용하고 콘텐츠 생성에는 사용하지 않음 — 별도 Gemini 생성 API 엔드포인트로 분리됨.",
-      "source": "already-korean"
-    },
-    "d596e8333e0f": {
-      "ko": "연결 실패 진단에서는 제공사 장애로 단정하거나 문의를 권하기 전에, 에이전트가 바꾼 설정이 원인인지 실제 요청으로 분리 검증하고 잘못된 이전 설명을 명확히 정정하길 기대한다.",
-      "en": "연결 실패 진단에서는 제공사 장애로 단정하거나 문의를 권하기 전에, 에이전트가 바꾼 설정이 원인인지 실제 요청으로 분리 검증하고 잘못된 이전 설명을 명확히 정정하길 기대한다.",
-      "source": "already-korean"
-    },
-    "8f1b4d71f7ee": {
-      "ko": "Figma 작업 요청 시 \"기존 그림을 바꿔\"는 파일의 해당 프레임(예: 1~11)을 직접 수정하라는 뜻이며, 별도 복제본 제안은 원치 않는다. 이전 결과물은 지우지 말고 추가로 보존하길 원한다.",
-      "en": "Figma 작업 요청 시 \"기존 그림을 바꿔\"는 파일의 해당 프레임(예: 1~11)을 직접 수정하라는 뜻이며, 별도 복제본 제안은 원치 않는다. 이전 결과물은 지우지 말고 추가로 보존하길 원한다.",
-      "source": "already-korean"
-    },
-    "df6f17b1813d": {
-      "ko": "사용자는 작업 하나가 끝나면 매번 git 커밋하길 원한다(별도 확인 불필요). 비밀정보·무관한 파일은 커밋에서 제외.",
-      "en": "사용자는 작업 하나가 끝나면 매번 git 커밋하길 원한다(별도 확인 불필요). 비밀정보·무관한 파일은 커밋에서 제외.",
-      "source": "already-korean"
-    },
-    "bd2906e405a9": {
-      "ko": "사용자는 실행 시간 제한 때문에 작업을 인위적으로 쪼개는 것을 원하지 않으며, 작업 내용에 따른 구분을 선호한다. 진행 상황은 단순한 ‘작업 중’ 표시보다 스킬 로딩·명령 실행·파일 작성 등 실제 활동이 실시간으로 보이기를 기대한다.",
-      "en": "사용자는 실행 시간 제한 때문에 작업을 인위적으로 쪼개는 것을 원하지 않으며, 작업 내용에 따른 구분을 선호한다. 진행 상황은 단순한 ‘작업 중’ 표시보다 스킬 로딩·명령 실행·파일 작성 등 실제 활동이 실시간으로 보이기를 기대한다.",
-      "source": "already-korean"
-    },
-    "df9bb7ea1cdb": {
-      "ko": "academy-homepage(Next.js)는 NAS에서 docker-compose로 서비스돼요: app(포트 3080, 도메인 kmastercook.com) + cloudflared tunnel(이름 'academy') + backup 컨테이너. PC에서는 compose up을 절대 하면 안 돼요(운영 터널이 중복으로 뺏길 수 있음). 배포 방법: PC에서 이미지를 빌드(NAS는 RAM이 2GB라 빌드 불가)한 뒤 → SSH로 docker save/load → academy 서비스만 재생성해요. 프로젝트 경로는 /volume1/docker/academy, docker 바이너리는 /var/packages/ContainerManager/target/usr/bin/docker이고, 비밀번호 없이 쓸 수 있는 sudo 권한은 그 바이너리에만 한정돼요(tee 같은 명령은 여전히 비밀번호가 필요해요). ./data(db.sqlite/uploads/originals)는 반드시 보존해야 하고, 배포 전후로 행 수·파일 수를 대조해야 해요. 배포 전에는 migrate deploy·seed도 검토해야 해요. SSH 자격증명은 nas-docker-deployment 스킬의 references/academy-ssh.md에 있어요(DPAPI로 암호화되어 있고, 복호화한 값은 저장하거나 출력하면 안 돼요).",
-      "en": "academy-homepage(Next.js)는 NAS에서 docker-compose로 서비스: app(port 3080, 도메인 kmastercook.com)+cloudflared tunnel(이름 'academy')+backup 컨테이너. PC에서 compose up 절대 금지(운영 터널 중복 hijack). 배포: PC에서 이미지 빌드(NAS RAM 2GB라 빌드 불가)→docker save/load via SSH→academy 서비스만 재생성. Project /volume1/docker/academy, docker 바이너리 /var/packages/ContainerManager/target/usr/bin/docker, passwordless sudo는 그 바이너리에만 범위 제한(tee 등은 비번 요구). ./data(db.sqlite/uploads/originals) 보존 필수, 배포 전후 행수·파일수 대조. 배포 전 migrate deploy·seed 검토. SSH 자격증명: nas-docker-deployment 스킬 references/academy-ssh.md(DPAPI 암호화, 복호화값 저장/출력 금지).",
-      "source": "claude-subscription"
-    },
-    "fbe1068561bd": {
-      "ko": "academy-homepage 개발 규칙: 에이전트/스킬 정의는 .claude/skills와 .claude/agents(원본)에서만 수정하고, 그 다음 `npm run agents:sync`를 실행하면 .agents/와 .codex/ 사본이 자동으로 다시 생성돼요. `npm run agents:check`는 두 버전이 다르지 않은지(drift=0) 확인하며 pretest 단계에서 자동 실행돼요. 확인할 때는 npm test(node --test), npx tsc --noEmit, npx eslint를 사용하세요. 콘텐츠 생성기 프롬프트는 src/lib/prompt-defaults.ts의 applyGrounding() 함수를 통해서만 조합되며, 서버 액션과 local-worker가 이 함수를 공유해요.",
-      "en": "academy-homepage dev conventions: agent/skill defs are edited ONLY under .claude/skills + .claude/agents (source), then `npm run agents:sync` regenerates the .agents/ and .codex/ mirrors; `npm run agents:check` asserts drift=0 (runs in pretest). Verify with npm test (node --test), npx tsc --noEmit, npx eslint. Content-generator prompts are assembled solely via applyGrounding() in src/lib/prompt-defaults.ts, shared by server actions and local-worker.",
-      "source": "claude-subscription"
-    },
-    "9c302cc478a9": {
-      "ko": "kmastercook.com에서 한국조리기능장요리발효학원 웹사이트를 운영하고 있어요 — 가장 자주 다루는 주요 프로젝트예요.",
-      "en": "Runs a Korean cooking academy website (한국조리기능장요리발효학원) at kmastercook.com — primary recurring project.",
-      "source": "claude-subscription"
-    },
-    "46c19085d544": {
-      "ko": "사장님은 간결한 한국어 명령형으로 말씀하시고, 이전에 합의한 절차를 그대로 지키는지 확인해요 — 커밋/배포 전에는 주장이 아니라 검증된 증거를 요구하고, 기준이 느슨해지면 날카로운 책임 질문을 던지는 편이에요.",
-      "en": "User speaks in terse Korean imperatives and holds the agent to previously agreed procedures — expects verification evidence (not claims) before commit/deploy and asks pointed accountability questions when standards slip.",
-      "source": "claude-subscription"
-    },
     "467c5e1f14e3": {
       "ko": "agent-os는 C:/Users/tahar/orca/workspaces/agent os 에 있는 저장소 하나이고 브랜치는 `main` 하나입니다(원격 GitHub ByoungOhBAE/agent-os, **공개(PUBLIC)** 저장소라 비밀값이나 내부 운영 정보를 커밋하지 마세요). 2026-10-03에 team/memory-visual·team/org-reviewer-side 작업 복사본과 브랜치는 합쳐진 뒤 삭제됐고, agent os-memory-visual 폴더는 더 이상 없습니다.",
       "en": "agent-os is a single repo on branch `main` at C:/Users/tahar/orca/workspaces/agent os (origin GitHub ByoungOhBAE/agent-os, which is PUBLIC: never commit secrets or private operating details). On 2026-10-03 the team/memory-visual and team/org-reviewer-side worktrees and branches were merged and removed; the folder agent os-memory-visual no longer exists.",
@@ -290,7 +215,12 @@
       "ko": "학원 공개 글쓰기 톤은 '전문적이면서도 친근하게'입니다(딱딱한 보고서도, 과장도 아님); 독자는 요리와 발효에 관심 있는 사람들과 입학 예정자입니다. 금지사항: 근거 없는 최상급 표현(최고, 완벽, 특별, 1위), 시험 합격이나 건강 효과(면역력, 다이어트, 효능)에 대한 약속, 가격이나 학비, 주어지지 않은 사실(수업 일정, 가격, 후기, 통계, 수상, 강사 이름). 특정 수업에 대한 모집 문구는 작업에서 그 수업의 세부정보가 주어졌을 때만 허용되며, kmastercook.com/notices의 수상이나 개강 소식은 작업에서 지시하지 않는 한 제목에 사용하지 않습니다. 이 규칙의 출처: C:/Users/tahar/orca/workspaces/academy homepage 의 src/lib/prompt-defaults.ts 와 content-quality-policy.ts.",
       "en": "Academy public writing: tone is 'professional yet friendly' (not a stiff report, not hype); readers are people interested in cooking and fermentation and prospective students. Banned: unfounded superlatives (best, perfect, special, No.1), promises of exam success or health effects (immunity, diet, efficacy), prices or tuition, and facts not given (class dates, prices, reviews, statistics, awards, instructor names). A recruiting line for a specific class is allowed only when the task gives that class's details; award or opening news from kmastercook.com/notices is not used in titles unless the task says so. Source of these rules: src/lib/prompt-defaults.ts and content-quality-policy.ts in C:/Users/tahar/orca/workspaces/academy homepage.",
       "source": "hermes-manual-2026-10-05"
+    },
+    "c8972e6f83c1": {
+      "ko": "academy-homepage는 단일 git 저장소(브랜치 main, origin GitHub ByoungOhBAE/academy-homepage)이며 위치는 C:/Users/tahar/orca/workspaces/academy homepage입니다. 2026-10-03에 예전 워크트리(C:/Users/tahar/academy homepage의 master, 홈페이지제작 등)를 하나로 합치고 삭제했으니 작업은 여기서 하세요.",
+      "en": "academy-homepage is a single git repo (branch main, origin GitHub ByoungOhBAE/academy-homepage) at C:/Users/tahar/orca/workspaces/academy homepage. On 2026-10-03 the old worktrees (master at C:/Users/tahar/academy homepage, 홈페이지제작, etc.) were consolidated and removed; work here.",
+      "source": "claude-subscription"
     }
   },
-  "generatedAt": "2026-09-28T19:04:21.621Z"
+  "generatedAt": "2026-10-05T20:08:25.375Z"
 }

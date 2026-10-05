@@ -18,16 +18,19 @@ import { fileURLToPath } from "node:url";
 import {
   allSkillScopes, charCount, entryHash, isMostlyKorean, MEMORY_LIMIT, renderMemory, renderSkill, renderUser,
   scopesForBot, skillName, splitEntries, unclassified, USER_LIMIT, validateRegistry, entriesFor, isGeneratedLine, findDuplicates,
+  mergeLocal, validateLocal,
 } from "../knowledge/lib.mjs";
+import { loadKoLocal, loadLocalRegistry, localDir, saveKoLocal } from "../knowledge/local.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = path.join(REPO, "knowledge", "data");
-const REG_FILE = path.join(DATA, "registry.json");
-const KO_FILE = path.join(DATA, "ko.json");
-const SKILLS_OUT = path.join(REPO, "knowledge", "skills");
+// env overrides exist for isolated tests (fixture registry/skills/backups); production uses the repo paths
+const REG_FILE = process.env.AGENTOS_REGISTRY_JSON || path.join(DATA, "registry.json");
+const KO_FILE = process.env.AGENTOS_KO_JSON || path.join(DATA, "ko.json");
+const SKILLS_OUT = process.env.AGENTOS_GENERATED_SKILLS || path.join(REPO, "knowledge", "skills");
 const HOME = process.env.HERMES_ROOT || path.join(process.env.LOCALAPPDATA || "C:/Users/tahar/AppData/Local", "hermes");
 const HERMES_BIN = path.join(HOME, "hermes-agent", "venv", "Scripts", "hermes.exe");
-const BACKUPS = path.join(REPO, ".unlazy", "memory-knowledge");
+const BACKUPS = process.env.AGENTOS_KNOWLEDGE_BACKUPS || path.join(REPO, ".unlazy", "memory-knowledge");
 
 const argv = process.argv.slice(2);
 const cmd = argv[0];
@@ -48,7 +51,7 @@ function botsOf(reg) {
 }
 
 function checkOrDie(reg) {
-  const errors = validateRegistry(reg);
+  const errors = [...validateRegistry(reg), ...validateLocal(LOCAL)];
   for (const b of reg.bots ?? []) {
     const user = renderUser(reg, b.profile);
     if (charCount(user) > USER_LIMIT * 0.8) errors.push(`USER.md for ${b.profile} would be ${charCount(user)} chars (> 80% of ${USER_LIMIT})`);
@@ -114,6 +117,11 @@ function backup(bots) {
     cpSync(path.join(home, "config.yaml"), path.join(to, "config.yaml"));
     if (existsSync(path.join(home, "skills", "agentos"))) cpSync(path.join(home, "skills", "agentos"), path.join(to, "skills-agentos"), { recursive: true });
   }
+  // the private overlay lives outside git, so it is backed up with the profiles it shapes
+  for (const f of ["registry.local.json", "ko.local.json", "decisions.json"]) {
+    const src = path.join(localDir(), f);
+    if (existsSync(src)) { mkdirSync(path.join(dir, "_local"), { recursive: true }); cpSync(src, path.join(dir, "_local", f)); }
+  }
   return dir;
 }
 
@@ -142,6 +150,7 @@ function printDuplicates(reg, dups) {
 
 function status(reg) {
   const ko = loadKo();
+  const kol = loadKoLocal();
   let drift = 0;
   for (const b of reg.bots) {
     const home = profileHome(b.profile);
@@ -164,7 +173,7 @@ function status(reg) {
     console.log(`${problems.length ? "DRIFT" : "ok   "} ${b.name} ${b.profile} projects=[${(b.projects ?? []).join(",")}] memory=${charCount(mem)}/${MEMORY_LIMIT} user=${charCount(user)}/${USER_LIMIT} skills=${p.skills.length}${problems.length ? " · " + problems.join("; ") : ""}`);
   }
   const texts = collectTexts(reg);
-  const done = texts.filter((t) => ko.items?.[entryHash(t)]?.ko).length;
+  const done = texts.filter((t) => ko.items?.[entryHash(t)]?.ko || kol.items?.[entryHash(t)]?.ko).length;
   console.log(`translation ${done}/${texts.length}${done === texts.length ? " KO_COMPLETE" : ""}`);
   const dups = findDuplicates(reg, holdings(reg, { all: false }));
   if (dups.length) { printDuplicates(reg, dups); drift++; }
@@ -199,16 +208,27 @@ function claudeBin() {
 /** Dashboard wording: the owner is always 사장님 (matches every bot's SOUL.md). */
 const normalizeKo = (s) => String(s).trim().replace(/(이 )?대표님/g, "사장님");
 
-/** One subscription call: Korean display text for every missing item. English source is never modified. */
+/** One subscription call: Korean display text for every missing item. English source is never modified.
+ *  ko.json (public repo) keeps ONLY translations of public registry entries; every other text (overlay entries,
+ *  live bot memory) goes to the private ko.local.json. Old memory translations found in ko.json are moved there. */
 function translate(reg) {
   const ko = loadKo();
+  const kol = loadKoLocal();
   ko.items ??= {};
-  for (const v of Object.values(ko.items)) if (v?.ko) v.ko = normalizeKo(v.ko);
+  kol.items ??= {};
+  const publicSet = new Set((PUB.entries ?? []).map((e) => entryHash(e.en)));
+  for (const [h, v] of Object.entries(ko.items)) {
+    if (publicSet.has(h)) continue;
+    if (!kol.items[h]?.ko) kol.items[h] = v;
+    delete ko.items[h];
+  }
+  for (const store of [ko, kol]) for (const v of Object.values(store.items)) if (v?.ko) v.ko = normalizeKo(v.ko);
+  const storeOf = (h) => (publicSet.has(h) ? ko : kol);
   const texts = collectTexts(reg);
-  const missing = texts.filter((t) => !ko.items[entryHash(t)]?.ko);
+  const missing = texts.filter((t) => !storeOf(entryHash(t)).items[entryHash(t)]?.ko);
   // Korean-only live entries need no translation: show them as-is
   const direct = missing.filter((t) => isMostlyKorean(t));
-  for (const t of direct) ko.items[entryHash(t)] = { ko: t, en: t, source: "already-korean" };
+  for (const t of direct) storeOf(entryHash(t)).items[entryHash(t)] = { ko: t, en: t, source: "already-korean" };
   const todo = missing.filter((t) => !isMostlyKorean(t)).map((t) => ({ id: entryHash(t), en: t }));
   console.log(`texts=${texts.length} have=${texts.length - missing.length} already_korean=${direct.length} to_translate=${todo.length}`);
   if (flag("--dry-run")) return;
@@ -232,7 +252,7 @@ function translate(reg) {
     for (const { id, en } of todo) {
       const k = typeof map[id] === "string" ? normalizeKo(map[id]) : "";
       // code-heavy items stay mostly ASCII after translation: require some Hangul, not a Korean majority
-      if (k && /[\uac00-\ud7a3]/.test(k)) { ko.items[id] = { ko: k, en, source: "claude-subscription" }; added++; }
+      if (k && /[\uac00-\ud7a3]/.test(k)) { storeOf(id).items[id] = { ko: k, en, source: "claude-subscription" }; added++; }
       else console.log(`   rejected ${id}: ${String(map[id]).slice(0, 80)}`);
     }
     console.log(`translated=${added}/${todo.length} model=${Object.keys(envelope.modelUsage ?? {}).join(",") || "?"} cost_field=${envelope.total_cost_usd ?? "?"}`);
@@ -241,15 +261,21 @@ function translate(reg) {
   // drop translations whose English text no longer exists (source changed → retranslate next time)
   const live = new Set(texts.map(entryHash));
   for (const h of Object.keys(ko.items)) if (!live.has(h)) delete ko.items[h];
-  ko.generatedAt = new Date().toISOString();
+  for (const h of Object.keys(kol.items)) if (!live.has(h)) delete kol.items[h];
+  ko.generatedAt = kol.generatedAt = new Date().toISOString();
   writeFileSync(KO_FILE, JSON.stringify(ko, null, 2) + "\n");
+  saveKoLocal(kol);
 }
 
 // ---------- commands ----------
-const reg = loadRegistry();
+// PUB = public repo registry (projects, bots, shared facts). LOCAL = private overlay outside git.
+// Every read path uses the merged view; writes of registry.json only ever write PUB.
+const PUB = loadRegistry();
+const LOCAL = loadLocalRegistry();
+const reg = mergeLocal(PUB, LOCAL);
 if (cmd === "check") {
   checkOrDie(reg);
-  console.log(`entries=${reg.entries.length} projects=${reg.projects.length} bots=${reg.bots.length} skills=${allSkillScopes(reg).length} REGISTRY_OK`);
+  console.log(`entries=${reg.entries.length} (private ${LOCAL.entries?.length ?? 0}, retired ${LOCAL.retired?.length ?? 0}) projects=${reg.projects.length} bots=${reg.bots.length} skills=${allSkillScopes(reg).length} REGISTRY_OK`);
 } else if (cmd === "plan") {
   checkOrDie(reg);
   for (const b of botsOf(reg)) {
@@ -308,25 +334,25 @@ if (cmd === "check") {
   // add-project --key k --name "English name" --name-ko "한국어 이름" [--workspace C:/path] [--paperclip-project <id>]
   const key = flag("--key"), name = flag("--name");
   if (typeof key !== "string" || typeof name !== "string") fail("--key and --name are required");
-  if (reg.projects.some((p) => p.key === key)) fail(`project exists: ${key}`);
-  reg.projects.push({ key, name, nameKo: typeof flag("--name-ko") === "string" ? flag("--name-ko") : name,
+  if (PUB.projects.some((p) => p.key === key)) fail(`project exists: ${key}`);
+  PUB.projects.push({ key, name, nameKo: typeof flag("--name-ko") === "string" ? flag("--name-ko") : name,
     paperclipProjectId: typeof flag("--paperclip-project") === "string" ? flag("--paperclip-project") : null,
     workspace: typeof flag("--workspace") === "string" ? flag("--workspace") : null });
-  checkOrDie(reg);
-  writeFileSync(REG_FILE, JSON.stringify(reg, null, 2) + "\n");
+  checkOrDie(mergeLocal(PUB, LOCAL));
+  writeFileSync(REG_FILE, JSON.stringify(PUB, null, 2) + "\n");
   console.log(`PROJECT_ADDED ${key}`);
 } else if (cmd === "register") {
   // register --bot <profile> --agent <id> --name <bot name> --projects a,b   (used by hermes-bots.mjs hire/convert)
   const profile = flag("--bot"), agentId = flag("--agent"), name = flag("--name");
   const projects = String(flag("--projects") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   if (typeof profile !== "string" || typeof agentId !== "string" || typeof name !== "string") fail("--bot, --agent and --name are required");
-  const unknown = projects.filter((k) => !reg.projects.some((p) => p.key === k));
-  if (unknown.length) fail(`unknown project(s): ${unknown.join(",")} — known: ${reg.projects.map((p) => p.key).join(",")}`);
+  const unknown = projects.filter((k) => !PUB.projects.some((p) => p.key === k));
+  if (unknown.length) fail(`unknown project(s): ${unknown.join(",")} — known: ${PUB.projects.map((p) => p.key).join(",")}`);
   const bot = { profile, agentId, name, projects };
-  const i = reg.bots.findIndex((b) => b.profile === profile);
-  if (i >= 0) reg.bots[i] = { ...reg.bots[i], ...bot }; else reg.bots.push(bot);
-  checkOrDie(reg);
-  writeFileSync(REG_FILE, JSON.stringify(reg, null, 2) + "\n");
+  const i = PUB.bots.findIndex((b) => b.profile === profile);
+  if (i >= 0) PUB.bots[i] = { ...PUB.bots[i], ...bot }; else PUB.bots.push(bot);
+  checkOrDie(mergeLocal(PUB, LOCAL));
+  writeFileSync(REG_FILE, JSON.stringify(PUB, null, 2) + "\n");
   console.log(`REGISTERED ${name} ${profile} projects=[${projects.join(",")}]`);
 } else {
   console.error("usage: check | plan [--bot p] | apply [--bot p] | translate [--dry-run] | status | duplicates [--registered] | add-project ... | register ...");
