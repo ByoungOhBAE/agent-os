@@ -91,21 +91,6 @@
       "en": "Knowledge is split by scope: agentos-common (every bot), agentos-project-<key> (only bots assigned to that project), agentos-bot-<profile> (one bot's specialist notes). The source is knowledge/data/registry.json in the AgentOS repo; generated skills must not be edited by hand. Store memory entries in English; the dashboard shows a Korean translation.",
       "source": "claude-subscription"
     },
-    "917e8ad95038": {
-      "ko": "대시보드 팀의 워크트리는 agent os/.worktrees/memory-visual(브랜치 team/memory-visual, 이미 main에 병합됨)입니다. 예전에 있던 형제 폴더 agent os-memory-visual은 더 이상 존재하지 않습니다.",
-      "en": "The dashboard team's worktree is agent os/.worktrees/memory-visual (branch team/memory-visual, already merged into main). The old sibling folder agent os-memory-visual no longer exists.",
-      "source": "claude-subscription"
-    },
-    "e7e2ebf1a313": {
-      "ko": "워크트리는 main의 최신 커밋에서 생성하세요: 생성 직전에 `git log -1 main`을 다시 확인하고, main이 움직였으면 보고하세요. 원래 체크아웃의 커밋되지 않은 변경사항(특히 server/index.mjs)을 워크트리나 커밋에 절대 가져오지 마세요.",
-      "en": "Create a worktree from the latest main commit: re-check `git log -1 main` right before creating it and report if main moved. Never carry the original checkout's uncommitted changes (especially server/index.mjs) into a worktree or a commit.",
-      "source": "claude-subscription"
-    },
-    "74c5b913a0db": {
-      "ko": "요청받은 폴더 안에서만 작업하세요. 루트의 src/App.tsx와 src/styles.css에는 다른 사람의 커밋되지 않은 작업이 있으니, 요청받지 않는 한 건드리지 마세요.",
-      "en": "Keep work inside the requested folder. Root src/App.tsx and src/styles.css hold other people's uncommitted work; do not touch them unless asked.",
-      "source": "claude-subscription"
-    },
     "5ca6a1279af0": {
       "ko": "agentos-hermes 플러그인은 React 19 + TypeScript + vitest이며 Tailwind, 차트 라이브러리, Testing Library, react-dom이 없습니다. 모든 CSS는 src/ui/index.tsx의 `styles` 문자열 안에 `.agentos-hermes` 접두사로 들어 있습니다(별도 CSS 파일 없음); 토큰은 --h-* (background #101716, card #161e1c, accent #bdd1aa)입니다. 순수 함수를 src/*.ts로 분리해서 로직을 테스트하세요.",
       "en": "The agentos-hermes plugin is React 19 + TypeScript + vitest with no Tailwind, chart library, Testing Library, or react-dom. All CSS lives in the `styles` string of src/ui/index.tsx under the `.agentos-hermes` prefix (no CSS file is loaded); tokens --h-* (background #101716, card #161e1c, accent #bdd1aa). Test logic by extracting pure functions into src/*.ts.",
@@ -154,11 +139,6 @@
     "5d1962cf8de4": {
       "ko": "홈페이지 UI는 반응형 너비에서 실제 사용자 눈높이 기준으로(위치, 크기, 가독성) 확인하세요. 모든 배포 전후로 DB 행과 사진 파일이 보존되는지 확인하세요.",
       "en": "Check the homepage UI at real user eye level on responsive widths (position, size, readability). Verify that DB rows and photo files are preserved before and after every deploy.",
-      "source": "claude-subscription"
-    },
-    "6c2fadb4f358": {
-      "ko": "학원 공개 글쓰기 톤은 '전문적이면서도 친근하게'입니다(딱딱한 보고서도, 과장도 아님); 독자는 요리와 발효에 관심 있는 사람들과 입학 예정자입니다. 금지사항: 근거 없는 최상급 표현(최고, 완벽, 특별, 1위), 시험 합격이나 건강 효과(면역력, 다이어트, 효능)에 대한 약속, 가격이나 학비, 주어지지 않은 사실(수업 일정, 가격, 후기, 통계, 수상, 강사 이름). 특정 수업에 대한 모집 문구는 작업에서 그 수업의 세부정보가 주어졌을 때만 허용되며, kmastercook.com/notices의 수상이나 개강 소식은 작업에서 지시하지 않는 한 제목에 사용하지 않습니다. 이 규칙의 출처는 academy homepage/홈페이지제작의 src/lib/prompt-defaults.ts와 content-quality-policy.ts입니다.",
-      "en": "Academy public writing: tone is 'professional yet friendly' (not a stiff report, not hype); readers are people interested in cooking and fermentation and prospective students. Banned: unfounded superlatives (best, perfect, special, No.1), promises of exam success or health effects (immunity, diet, efficacy), prices or tuition, and facts not given (class dates, prices, reviews, statistics, awards, instructor names). A recruiting line for a specific class is allowed only when the task gives that class's details; award or opening news from kmastercook.com/notices is not used in titles unless the task says so. Source of these rules: academy homepage/홈페이지제작 src/lib/prompt-defaults.ts and content-quality-policy.ts.",
       "source": "claude-subscription"
     },
     "db36f9c71179": {
@@ -290,6 +270,26 @@
       "ko": "사장님은 간결한 한국어 명령형으로 말씀하시고, 이전에 합의한 절차를 그대로 지키는지 확인해요 — 커밋/배포 전에는 주장이 아니라 검증된 증거를 요구하고, 기준이 느슨해지면 날카로운 책임 질문을 던지는 편이에요.",
       "en": "User speaks in terse Korean imperatives and holds the agent to previously agreed procedures — expects verification evidence (not claims) before commit/deploy and asks pointed accountability questions when standards slip.",
       "source": "claude-subscription"
+    },
+    "467c5e1f14e3": {
+      "ko": "agent-os는 C:/Users/tahar/orca/workspaces/agent os 에 있는 저장소 하나이고 브랜치는 `main` 하나입니다(원격 GitHub ByoungOhBAE/agent-os, **공개(PUBLIC)** 저장소라 비밀값이나 내부 운영 정보를 커밋하지 마세요). 2026-10-03에 team/memory-visual·team/org-reviewer-side 작업 복사본과 브랜치는 합쳐진 뒤 삭제됐고, agent os-memory-visual 폴더는 더 이상 없습니다.",
+      "en": "agent-os is a single repo on branch `main` at C:/Users/tahar/orca/workspaces/agent os (origin GitHub ByoungOhBAE/agent-os, which is PUBLIC: never commit secrets or private operating details). On 2026-10-03 the team/memory-visual and team/org-reviewer-side worktrees and branches were merged and removed; the folder agent os-memory-visual no longer exists.",
+      "source": "hermes-manual-2026-10-05"
+    },
+    "8cb2e4eb3bb8": {
+      "ko": "코드나 문서를 바꿀 때는 작업마다 최신 main에서 작업 복사본을 만드세요: 직전에 `git log -1 main`을 다시 확인한 뒤 `git worktree add -b team/<주제> .worktrees/<주제> main`, main이 움직였으면 보고합니다. 원본 폴더에서는 고치거나 커밋하지 않습니다. main 합치기(`git merge --ff-only team/<주제>`)는 작업에 그렇게 적혀 있을 때만 하고, 끝나면 작업 복사본과 브랜치를 지웁니다.",
+      "en": "For a code or document change, make a per-task worktree from the latest main: re-check `git log -1 main` right before, then `git worktree add -b team/<topic> .worktrees/<topic> main`, and report if main moved. Never edit or commit in the original checkout. Merge into main (`git merge --ff-only team/<topic>`) only when the task asks for it, then remove the worktree and the branch.",
+      "source": "hermes-manual-2026-10-05"
+    },
+    "29ed3f633c30": {
+      "ko": "요청받은 폴더와 파일 안에서만 작업하세요. 시작 전에 `git status --porcelain`을 실행합니다: 이미 바뀌어 있는 것은 다른 사람의 작업이니 스테이지·이동·커밋하지 않습니다.",
+      "en": "Keep work inside the requested folder and files. Run `git status --porcelain` before starting: anything already changed belongs to someone else, so never stage, move or commit it.",
+      "source": "hermes-manual-2026-10-05"
+    },
+    "0843747a724b": {
+      "ko": "학원 공개 글쓰기 톤은 '전문적이면서도 친근하게'입니다(딱딱한 보고서도, 과장도 아님); 독자는 요리와 발효에 관심 있는 사람들과 입학 예정자입니다. 금지사항: 근거 없는 최상급 표현(최고, 완벽, 특별, 1위), 시험 합격이나 건강 효과(면역력, 다이어트, 효능)에 대한 약속, 가격이나 학비, 주어지지 않은 사실(수업 일정, 가격, 후기, 통계, 수상, 강사 이름). 특정 수업에 대한 모집 문구는 작업에서 그 수업의 세부정보가 주어졌을 때만 허용되며, kmastercook.com/notices의 수상이나 개강 소식은 작업에서 지시하지 않는 한 제목에 사용하지 않습니다. 이 규칙의 출처: C:/Users/tahar/orca/workspaces/academy homepage 의 src/lib/prompt-defaults.ts 와 content-quality-policy.ts.",
+      "en": "Academy public writing: tone is 'professional yet friendly' (not a stiff report, not hype); readers are people interested in cooking and fermentation and prospective students. Banned: unfounded superlatives (best, perfect, special, No.1), promises of exam success or health effects (immunity, diet, efficacy), prices or tuition, and facts not given (class dates, prices, reviews, statistics, awards, instructor names). A recruiting line for a specific class is allowed only when the task gives that class's details; award or opening news from kmastercook.com/notices is not used in titles unless the task says so. Source of these rules: src/lib/prompt-defaults.ts and content-quality-policy.ts in C:/Users/tahar/orca/workspaces/academy homepage.",
+      "source": "hermes-manual-2026-10-05"
     }
   },
   "generatedAt": "2026-09-28T19:04:21.621Z"

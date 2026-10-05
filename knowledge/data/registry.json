@@ -339,7 +339,7 @@
       "from": [
         "pc-ebb0943f/MEMORY.md#fa1920c5f335"
       ],
-      "en": "The dashboard team's worktree is agent os/.worktrees/memory-visual (branch team/memory-visual, already merged into main). The old sibling folder agent os-memory-visual no longer exists."
+      "en": "agent-os is a single repo on branch `main` at C:/Users/tahar/orca/workspaces/agent os (origin GitHub ByoungOhBAE/agent-os, which is PUBLIC: never commit secrets or private operating details). On 2026-10-03 the team/memory-visual and team/org-reviewer-side worktrees and branches were merged and removed; the folder agent os-memory-visual no longer exists."
     },
     {
       "id": "a-worktree-from-main",
@@ -349,7 +349,7 @@
         "pc-ebb0943f/MEMORY.md#0073027a73aa",
         "pc-ebb0943f/MEMORY.md#277ba7f8c685"
       ],
-      "en": "Create a worktree from the latest main commit: re-check `git log -1 main` right before creating it and report if main moved. Never carry the original checkout's uncommitted changes (especially server/index.mjs) into a worktree or a commit."
+      "en": "For a code or document change, make a per-task worktree from the latest main: re-check `git log -1 main` right before, then `git worktree add -b team/<topic> .worktrees/<topic> main`, and report if main moved. Never edit or commit in the original checkout. Merge into main (`git merge --ff-only team/<topic>`) only when the task asks for it, then remove the worktree and the branch."
     },
     {
       "id": "a-narrow-scope",
@@ -358,7 +358,7 @@
       "from": [
         "pc-ebb0943f/MEMORY.md#fa67a6761c6e"
       ],
-      "en": "Keep work inside the requested folder. Root src/App.tsx and src/styles.css hold other people's uncommitted work; do not touch them unless asked."
+      "en": "Keep work inside the requested folder and files. Run `git status --porcelain` before starting: anything already changed belongs to someone else, so never stage, move or commit it."
     },
     {
       "id": "a-plugin-stack",
@@ -472,7 +472,7 @@
         "pc-8ca245c2/MEMORY.md#45a168a6b40d",
         "pc-ebb0943f/MEMORY.md#c70eff00e719"
       ],
-      "en": "Academy public writing: tone is 'professional yet friendly' (not a stiff report, not hype); readers are people interested in cooking and fermentation and prospective students. Banned: unfounded superlatives (best, perfect, special, No.1), promises of exam success or health effects (immunity, diet, efficacy), prices or tuition, and facts not given (class dates, prices, reviews, statistics, awards, instructor names). A recruiting line for a specific class is allowed only when the task gives that class's details; award or opening news from kmastercook.com/notices is not used in titles unless the task says so. Source of these rules: academy homepage/홈페이지제작 src/lib/prompt-defaults.ts and content-quality-policy.ts."
+      "en": "Academy public writing: tone is 'professional yet friendly' (not a stiff report, not hype); readers are people interested in cooking and fermentation and prospective students. Banned: unfounded superlatives (best, perfect, special, No.1), promises of exam success or health effects (immunity, diet, efficacy), prices or tuition, and facts not given (class dates, prices, reviews, statistics, awards, instructor names). A recruiting line for a specific class is allowed only when the task gives that class's details; award or opening news from kmastercook.com/notices is not used in titles unless the task says so. Source of these rules: src/lib/prompt-defaults.ts and content-quality-policy.ts in C:/Users/tahar/orca/workspaces/academy homepage."
     },
     {
       "id": "r-mirror-ledger",

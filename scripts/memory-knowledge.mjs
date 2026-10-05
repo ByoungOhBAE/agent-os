@@ -278,6 +278,21 @@ if (cmd === "check") {
     console.log(`applied ${b.name} ${b.profile} skills=${plan.skills.length} memory=${charCount(plan.memory)} user=${charCount(plan.user)}`);
   }
   console.log(`built ${skills.length} skills · backup ${path.relative(REPO, dir)}`);
+} else if (cmd === "apply-skills") {
+  // Refresh ONLY the generated agentos-* skills (+ auto_load) from the registry. MEMORY.md / USER.md are not read
+  // or written, so this works while bot memories are over the plan budget (full `apply` refuses then).
+  checkOrDie(reg);
+  const bots = botsOf(reg);
+  for (const b of bots) if (!existsSync(profileHome(b.profile))) fail(`profile missing: ${b.profile}`);
+  const dir = backup(bots);
+  const skills = buildSkills(reg);
+  for (const b of bots) {
+    const want = scopesForBot(reg, b.profile).filter((s) => entriesFor(reg, [s], "knowledge").length).map(skillName);   // same rule as planBot
+    installBotSkills(b.profile, want);
+    if (JSON.stringify(autoLoad(b.profile)) !== JSON.stringify(want)) setAutoLoad(b.profile, want);
+    console.log(`skills ${b.name} ${b.profile} ${want.join(",")}`);
+  }
+  console.log(`built ${skills.length} skills · memory untouched · backup ${path.relative(REPO, dir)}`);
 } else if (cmd === "translate") {
   checkOrDie(reg);
   translate(reg);
