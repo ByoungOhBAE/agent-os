@@ -25,7 +25,7 @@ const DELEGATION = `## 운영자 대리 수락 근거
 사장님이 2026-10-07 채팅에서 "완전히 결과가 나올 때까지 허가받지 않아도 되니 작업을 모두 완료하면 보고만 하라"고 이번 점검·관제센터 샘플 작업 전체를 미리 위임하셨습니다.
 그래서 Hermes 운영자가 이 승인 카드를 대신 수락합니다. 범위는 미리보기 샘플(운영 배포 없음, 채용 없음)에 한정합니다.`;
 
-let downSince = null, accepted = new Set(), lastSig = "";
+let downSince = null, accepted = new Set(), lastSig = "", blockedSince = {};
 for (;;) {
   if (Date.now() > deadline) { log({ event: "deadline" }); process.exit(2); }
   if (!(await gwUp())) {
@@ -62,6 +62,10 @@ for (;;) {
   }
   if (["done", "cancelled"].includes(parent.status)) { log({ event: "parent_terminal", status: parent.status }); process.exit(0); }
   // A parent blocked by its own children (blockedBy dependency) is the normal waiting state; only a blocked CHILD needs attention.
-  if (kids.some((k) => k.status === "blocked")) { log({ event: "child_blocked", kids: kids.filter((k) => k.status === "blocked").map((k) => k.identifier) }); process.exit(6); }
+  // A child going blocked normally wakes the chief; only exit (notify the operator) if it stays blocked 20+ min.
+  for (const k of kids.filter((k) => k.status === "blocked")) blockedSince[k.identifier] ??= Date.now();
+  for (const id of Object.keys(blockedSince)) if (!kids.some((k) => k.identifier === id && k.status === "blocked")) delete blockedSince[id];
+  const stuck = Object.entries(blockedSince).filter(([, t]) => Date.now() - t > 20 * 60e3).map(([id]) => id);
+  if (stuck.length) { log({ event: "child_blocked_20min", kids: stuck }); process.exit(6); }
   await sleep(60e3);
 }

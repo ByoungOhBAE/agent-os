@@ -1,0 +1,135 @@
+{
+ "summary": "사례 조사(32건) → find-skills로 디자인·대시보드 스킬 5개 검토·설치 → 비서실장이 대시보드개선 봇 3명에게 나눠 맡김(채용 없음) → 검수 봇이 반려 6번으로 품질을 끌어올림 → 미리보기 브랜치 preview/control-center(9fc0931)에만 커밋. 운영 화면·main 브랜치는 그대로(운영 번들 해시 5개 작업 전과 동일, 운영자 독립 확인). 봇 실행 32회·토큰 약 2,354만·약 2시간 5분.",
+ "panels": [
+  {
+   "name": "① 오늘 사장님이 할 일",
+   "why": "Paperclip 사용자들의 최대 불만 '결정할 일을 못 찾음'(GitHub #3821, PR #8638, Decisions 문서). 실제로 방치된 HER-108(막힘)·HER-110(실패)이 바로 떠오름"
+  },
+  {
+   "name": "② 봇 상태 신호등 + 봇 서버 상태 띠",
+   "why": "모든 관제 화면의 첫 줄(Paperclip Dashboard·TenacitOS·Claude Squad). 점검에서 '봇 서버가 꺼져도 아무도 모름'(T65)이 확인돼 서버 상태 띠를 추가"
+  },
+  {
+   "name": "③ 봇별 사용량(토큰)",
+   "why": "Grafana Claude Code·n8n Insights의 7일 비교. 구독 인증이라 금액은 '집계 안 됨'으로 정직하게 표시(T68)"
+  },
+  {
+   "name": "④ 검수 현황판",
+   "why": "Langfuse 점수·builderz 품질 게이트. 점검에서 '검수 없이 완료'가 다수 확인(T53·T57) → 주황 경고로 표시"
+  }
+ ],
+ "skills": [
+  {
+   "name": "kpi-dashboard-design",
+   "src": "wshobson/agents @46891e7",
+   "use": "KPI 5~7개 제한·비교 표시·계산식 공개 규칙(명세·설계 체크리스트)"
+  },
+  {
+   "name": "web-accessibility-wcag",
+   "src": "addyosmani/web-quality-skills @afa8da9",
+   "use": "색+글자 병기·대비 4.5:1·키보드(설계·검수 기준)"
+  },
+  {
+   "name": "build-dashboard",
+   "src": "anthropics/knowledge-work-plugins @8444efc",
+   "use": "이 보고서의 레이아웃(요약 카드→차트→표)"
+  },
+  {
+   "name": "data-visualization",
+   "src": "anthropics/knowledge-work-plugins @8444efc",
+   "use": "보고서 차트 종류 선택(누적 막대·히트맵)"
+  },
+  {
+   "name": "vercel-composition-patterns",
+   "src": "vercel-labs/agent-skills @063bee9",
+   "use": "React 구성 검토 참고(설치만, 이번 구현엔 직접 지시 안 함)"
+  }
+ ],
+ "issues": [
+  {
+   "id": "HER-111",
+   "bot": "비서실장",
+   "what": "계획서·승인 카드·3개로 분배·최종 보고",
+   "result": "최종 보고 반려 1회(밝은 테마 예외 누락·시험 설명 혼동) → 수정 후 승인"
+  },
+  {
+   "id": "HER-112",
+   "bot": "대시보드개선_스킬탐색",
+   "what": "데이터 출처(API 필드)·디자인 체크리스트 조사",
+   "result": "반려 1회 → 승인"
+  },
+  {
+   "id": "HER-113",
+   "bot": "대시보드개선_화면디자인",
+   "what": "4개 패널 화면 설계(26,000자 문서)",
+   "result": "반려 2회·막힘 2회 — 명세의 색 규칙 모순을 찾아 보고(명세 작성자 실수, 운영자가 정정) → 승인"
+  },
+  {
+   "id": "HER-114",
+   "bot": "대시보드개선_코드구현",
+   "what": "관제센터 탭 구현(새 코드 약 1,500줄·시험 289줄)·3개 폭 캡처·게이트 4개",
+   "result": "반려 2회(마지막은 문서 숫자 552→1006 불일치) → 승인"
+  }
+ ],
+ "gates": [
+  {
+   "id": "G1",
+   "what": "운영 화면 번들 5개 해시 = 작업 전 기록값",
+   "ok": true,
+   "evidence": "served-bundles-baseline.txt 와 diff 0 (운영자)"
+  },
+  {
+   "id": "G2",
+   "what": "main 브랜치 그대로",
+   "ok": true,
+   "evidence": "main = origin/main = d158045, 샘플은 preview/control-center 9fc0931 에만"
+  },
+  {
+   "id": "G3",
+   "what": "새 작업트리에서 타입검사·시험·빌드",
+   "ok": true,
+   "evidence": "tsc 통과, vitest 75개 통과, PROJECT_HUB_PREVIEW_BUILD_OK (운영자 재실행)"
+  },
+  {
+   "id": "G4",
+   "what": "실제 3100 데이터로 3개 폭 표시·넘침 0·쓰기 요청 0",
+   "ok": true,
+   "evidence": "operator-check.json: 1440/768/390 overflowX 0, 비GET 0, 4패널 문구 모두 표시, 페이지 오류 0"
+  },
+  {
+   "id": "G5",
+   "what": "화면 숫자가 실제와 맞는가(표본)",
+   "ok": true,
+   "evidence": "완료 34건·토큰 8,815만(7일)을 API로 따로 계산해 일치"
+  },
+  {
+   "id": "G6",
+   "what": "채용 0·조직 변경 0",
+   "ok": true,
+   "evidence": "Paperclip 봇 14개 그대로"
+  }
+ ],
+ "shots": [
+  {
+   "path": "docs/evidence/control-center-preview/operator/operator-1440.png",
+   "caption": "1440px · 어두운 테마 · 운영자 직접 캡처(실제 데이터: 막힌 HER-108, 실패한 HER-110이 '오늘 할 일'에 뜸)"
+  },
+  {
+   "path": "docs/evidence/control-center-preview/operator/operator-390-strip.png",
+   "caption": "390px 휴대폰 · 화면을 위→아래 4줄로 나눠 붙임(운영자 캡처)"
+  },
+  {
+   "path": "docs/evidence/control-center-preview/operator/bot-light-1440.png",
+   "caption": "밝은 테마(봇 캡처) — 초록·주황은 글자·모양으로 대체"
+  },
+  {
+   "path": "docs/evidence/control-center-preview/operator/bot-error-runs-1440.png",
+   "caption": "읽기 실패 시험(봇 캡처) — 데이터를 못 읽으면 '확인 못 함'으로 정직하게 표시"
+  }
+ ],
+ "notes": [
+  "'10018% 나빠짐'처럼 지난주 값이 아주 작을 때 비율이 과하게 커 보임 → 운영 반영 전 '새로 활동'으로 표시하도록 다듬을 것",
+  "샘플 실행 32회 중 16회는 '취소'로 찍혔지만 모두 issue_reassigned — 검수 단계에서 담당자가 봇↔검수봇으로 바뀔 때 대기 중 실행이 정리된 것(실패 아님)",
+  "검수 봇이 자기 프로필 scratch에 git worktree 2개를 남김(review-her114-*) — 정리 필요"
+ ]
+}

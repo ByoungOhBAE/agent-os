@@ -1,0 +1,80 @@
+{
+  "project": "에이전트 os web dashboard",
+  "shots": [
+    {
+      "w": 1440,
+      "overflowX": 0,
+      "file": "docs/evidence/control-center-preview/operator/operator-1440.png",
+      "hasTitle": true,
+      "panels": [
+        [
+          "오늘 사장님이 할 일",
+          true
+        ],
+        [
+          "봇 상태",
+          true
+        ],
+        [
+          "사용량",
+          true
+        ],
+        [
+          "검수",
+          true
+        ]
+      ]
+    },
+    {
+      "w": 768,
+      "overflowX": 0,
+      "file": "docs/evidence/control-center-preview/operator/operator-768.png",
+      "hasTitle": true,
+      "panels": [
+        [
+          "오늘 사장님이 할 일",
+          true
+        ],
+        [
+          "봇 상태",
+          true
+        ],
+        [
+          "사용량",
+          true
+        ],
+        [
+          "검수",
+          true
+        ]
+      ]
+    },
+    {
+      "w": 390,
+      "overflowX": 0,
+      "file": "docs/evidence/control-center-preview/operator/operator-390.png",
+      "hasTitle": true,
+      "panels": [
+        [
+          "오늘 사장님이 할 일",
+          true
+        ],
+        [
+          "봇 상태",
+          true
+        ],
+        [
+          "사용량",
+          true
+        ],
+        [
+          "검수",
+          true
+        ]
+      ]
+    }
+  ],
+  "nonGet": [],
+  "bundleHits": 3,
+  "pageErrors": []
+}
