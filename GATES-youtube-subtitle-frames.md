@@ -37,7 +37,7 @@ Scope: 봇(pc-5910516a)에 subtitle-change-frames 스킬을 넣고 grounded-vide
 - [x] G7: 증거와 게이트가 커밋되어 origin/main과 같다
   CHECK: node scripts/gates/youtube-subtitle-frames.mjs push
   EXPECT: PUSH_OK
-  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\tahar\orca\workspaces\agent os; path=9da69b64fde4/55 entries; EXPECT=matched; output-sha256=5fa6172cd7752652c749d5959c159faaa692f6146f3cc7a117ebbe33bc54996c; output-bytes=50
+  EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\tahar\orca\workspaces\agent os; path=9da69b64fde4/55 entries; EXPECT=matched; output-sha256=cf5e52a7814af60ebc98fadbb665964b6f3450046f439ce7192c8af252766107; output-bytes=50
 
 - [x] G8: 봇 보고서 내용이 자막 띠 덕분에 자막만으로는 틀리거나 없던 사실을 바로잡거나 더했는지 사람이 읽고 확인
   EVIDENCE: 운영자가 봇 보고서(HER-110 문서 sample-report)를 읽음: 자막 띠 판독 10곳이 [화면] 근거로 쓰임. 말에는 없고 화면에만 있는 글자(「[점주의 주장입니다]」 04:11, 「(메가MGC커피 본사 입장은 이거겠죠~)」 04:37, 개선안 「광고비 동의는 온라인으로 받기」 04:54, 「2. 찬성, 반대, 기권 / 3개 항목으로 체크박스 구성」 04:56)가 보고서에 들어감. 한계란에 RECALL 20/23과 놓친 시각 기재 확인.
