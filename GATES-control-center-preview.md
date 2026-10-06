@@ -44,7 +44,7 @@ Scope: 프로젝트 허브에 「관제센터」 탭(패널 4개 + 한눈 요약
 |---|---|---|---|
 | C1 | `src/model.ts` TABS 에 control/관제센터, 뷰는 `src/ui/control-view.tsx` 신규 | 통과 | `git diff main...preview/control-center -- plugins/agentos-project-hub/src/model.ts` (`{ id: "control", label: "관제센터" }`), 새 파일 `src/ui/control-view.tsx`. vitest 「TABS 에 control/관제센터 가 있고 주소로 열 수 있다」 |
 | C2 | 패널 4개 명세 순서, 한 화면 KPI 5~7개 | 통과 (KPI 6개) | G4: 3개 폭 모두 `kpis=6`, `panelsInOrder = kpi,todo,bots,usage,review`, h2 = 한눈 요약 / ① 오늘 사장님이 할 일 / ② 봇 상태 신호등 / ③ 봇별 사용량 (토큰) / ④ 검수 현황판. `control-center-1440.png` |
-| C3 | 같은 출처 GET 만, POST/PUT/PATCH/DELETE 0건 | 통과 | G4 가 컨텍스트의 모든 요청을 가로채 GET/HEAD/OPTIONS 밖은 막고 기록: `nonGetBlocked: []`, 같은 출처 요청 552건 모두 GET(`control-center-preview-result.json` → `requests`). 코드 `method:` 는 `"GET"` 1곳뿐. 빌드 스크립트의 NON_GET_IN_BUNDLE 검사 통과 |
+| C3 | 같은 출처 GET 만, POST/PUT/PATCH/DELETE 0건 | 통과 | G4 가 컨텍스트의 모든 요청을 가로채 GET/HEAD/OPTIONS 밖은 막고 기록: `nonGetBlocked: []`, 같은 출처 요청 **1006건** 모두 GET(`control-center-preview-result.json` → `requests.total` = 1006 = `requests.byPath` 의 GET 합, `gate-preview.txt` 마지막 줄 `requests=1006 nonGET=0`). 이 1006건은 G4 한 번 실행 전체(390/768/1440 정상 화면 + 키보드·팝업·새로 고침 + 읽기 실패 시험 2개 + 경보 카드 모양 시험)의 합입니다. 읽기 실패 시험에서 검사 브라우저가 일부러 실패시킨 GET 22건(`injectedFailures`)은 서버로 나가지 않아 이 수에 들어가지 않습니다. (첫 제출 때의 552건은 읽기 실패 시험을 더하기 전 실행의 수라 지금 증거와 맞지 않아 고쳤습니다.) 코드 `method:` 는 `"GET"` 1곳뿐. 빌드 스크립트의 NON_GET_IN_BUNDLE 검사 통과 |
 | C4 | `worker.ts`·매니페스트 변경 0줄 | 통과 | `git diff main...preview/control-center -- plugins/agentos-project-hub/src/worker.ts plugins/agentos-project-hub/src/manifest.ts \| wc -l` → 0 |
 | C5 | 운영 번들 sha256 이 작업 전과 같음 | 통과 | G6 (`e5a1efc0…` = 작업 전, 3100 제공본·main dist 둘 다) |
 | C6 | tsc·vitest 통과 | 통과 | G2 exit=0, G3 exit=0 (75개 시험, 그중 관제센터 29개) |
@@ -91,7 +91,7 @@ Scope: 프로젝트 허브에 「관제센터」 탭(패널 4개 + 한눈 요약
 6. **검수 통과율(K5)**: 반려 후 고쳐서 통과한 작업도 통과로 센다. 계산 방법 줄에 「(반려 후 통과 포함)」.
 7. **승인 대기**: `/approvals?status=pending` 을 읽는다(오늘 0건, 200).
 8. **② 봇 서버 띠**: 설계는 「문제 있을 때만 눌림」이지만, 정상일 때도 최근 5건 내용을 볼 수 있게 [자세히] 단추를 항상 두었다(읽기 전용 팝업).
-9. **▲▼ 기호의 색**: screen-design 2-1 대로 기호(아이콘 취급)에만 의미 색을 칠했다. 이 기호도 글자 대비 측정 대상에 넣었고 최저 5.07:1 로 4.5 이상이다.
+9. **▲▼ 기호의 색**: screen-design 2-1 대로 기호(아이콘 취급)에만 의미 색을 칠했다. 이 기호도 글자 대비 측정 대상에 넣었고, 최신 G4 기준 화면 전체 최저가 어두운 테마 6.39:1·밝은 테마 4.74:1 로 4.5 이상이다(반려 #1-3 수정 뒤 「나빠짐」 강조 바탕은 기호를 빼고 글자에만 둠).
 
 ## 확인하지 못한 것
 
@@ -107,3 +107,9 @@ Scope: 프로젝트 허브에 「관제센터」 탭(패널 4개 + 한눈 요약
 | 1 | 실행 기록 GET 실패를 0 으로 표시, `Failed to fetch` 영어 노출 | `control-model.ts` `kpis()` 가 못 읽은 목록을 null 로 받아 해당 카드를 「읽을 수 없음」(+`unread`), `readError()` 로 「HTTP n / 연결 실패」만 표시. `control-view.tsx` 가 `snap.*.data`(null 가능)를 그대로 넘김 | vitest 「실행 기록을 못 읽으면…」「봇 목록을…」「작업 기록을…」「화면에 보일 읽기 실패 이유…」, G4 ⓐ |
 | 2 | 반려 기록을 못 읽은 작업을 통과로 분류 | `classifyReview(detail|null, activity|null)` → 「확인 못 함(unknown)」, `reviewBoard()` 가 unknown 을 따로 세고 비율 분모에서 뺌, KPI 에 「기록을 읽지 못한 작업 n건은 빼고 셈」, ④ 패널에 안내·봇별 「확인 못 함 n」·띠 칸 | vitest 「상세를 못 읽거나…」「확인 못 한 작업은…」, G4 ⓑ |
 | 3 | 밝은 테마 경보 카드 설명 글자 3.695:1 | `control-css.ts`: 경보·읽을 수 없음 카드와 오류 상자 안 글자 전부 `--foreground`(아이콘 svg 만 제외), 「나빠짐」 강조 바탕은 글자 부분에만 | vitest 「강조 바탕… 위 글자는 모두 --foreground」, G4 두 테마 대비(정상·팝업·읽기 실패·경보 카드 모양) 미달 0 |
+
+## 반려 #2 (검수_작업검수 댓글 a945bf52) 수정 내역
+
+| # | 반려 | 고친 곳 | 확인 |
+|---|---|---|---|
+| 1 | C3 칸의 요청 수 552건이 최신 증거(1006건)와 다름 | 이 문서 C3 칸을 `requests.total` = 1006 으로 고치고 무엇을 센 수인지(G4 한 번 실행 전체, 일부러 실패시킨 GET 22건 제외) 적음. 같은 이유로 남아 있던 「명세·설계와 다른 점」 9번의 옛 대비 값 5.07:1 도 최신 값(어두운 6.39·밝은 4.74)으로 맞춤 | `control-center-preview-result.json` 의 `requests.total`·`requests.byPath` GET 합·`injectedFailures`, `gate-preview.txt` 마지막 줄을 다시 읽어 대조. 코드·증거 파일은 바꾸지 않음 |
