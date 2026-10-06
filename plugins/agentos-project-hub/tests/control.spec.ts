@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DAY_MS, botCards, classifyReview, compactKo, deltaView, detailTargets, errorText, gatewayBand, kpis, needsActivity,
-  prevCoverageDays, reviewBoard, shortName, stateCounts, todoItems, usage, waited, workerOf,
+  prevCoverageDays, readError, reviewBoard, shortName, stateCounts, todoItems, usage, waited, workerOf, UNREAD,
   type CcAgent, type CcIssue, type CcIssueDetail, type CcRun, type ReviewedIssue,
 } from "../src/control-model.js";
 import { CC_ALLOWED_TOKENS, CONTROL_CSS } from "../src/control-css.js";
@@ -105,7 +105,7 @@ describe("④ 검수 구분 (data-map ④)", () => {
     expect(b7.rows.map((r) => r.agentId)).toEqual(["a1", "a2"]);
     expect(b7.rows[0]).toMatchObject({ done: 1, none: 1, nonePct: 100 });
     expect(b7.rows[1]).toMatchObject({ done: 2, passed: 1, rework: 1, passedPct: 50 });
-    expect(b7.total).toEqual({ done: 3, passed: 1, rework: 1, none: 1 });
+    expect(b7.total).toEqual({ done: 3, passed: 1, rework: 1, none: 1, unknown: 0 });
     expect(b7.passRate).toBe(67);
     expect(b7.idle).toEqual(["검수_작업검수", "콘텐츠_SNS문구"]);
     expect(reviewBoard(items, AGENTS, NOW, 30).total.done).toBe(4);
@@ -227,5 +227,63 @@ describe("색 규칙 (명세 d158045 정정)", () => {
     const rules = [...CONTROL_CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
     const semanticText = rules.filter(([, sel, body]) => /(?<![-a-z])color:var\(--(destructive|agentos-lamp|agentos-brass)/.test(body) && !/\.aph-ico|\.aph-cc-arrow/.test(sel));
     expect(semanticText.map(([, sel]) => sel.trim())).toEqual([]);
+  });
+});
+
+describe("반려 #1 수정: 읽기 실패를 0·통과로 바꾸지 않는다", () => {
+  const issues: CcIssue[] = [{ id: "d1", title: "x", status: "done", completedAt: ago(1) }];
+  const runs = [run("a1", ago(1)), run("a2", ago(1), "failed")];
+  const reviewed: ReviewedIssue[] = [{ id: "d1", identifier: null, title: "x", completedAt: ago(1), workerId: "a1", kind: "passed", reason: "" }];
+  it("실행 기록을 못 읽으면(null) 일한 봇·성공률·토큰은 0 이 아니라 「읽을 수 없음」, 비교도 내지 않는다", () => {
+    const list = kpis({ issues, runs: null, agents: AGENTS, reviewed, now: NOW, coverage: 7 });
+    for (const id of ["bots", "success", "tokens"]) {
+      const k = list.find((x) => x.id === id)!;
+      expect(k).toMatchObject({ value: UNREAD, unread: true });
+      expect(k.delta.text).toBe("비교 자료 없음");
+      expect(k.status.startsWith(UNREAD)).toBe(true);
+    }
+    expect(list.find((x) => x.id === "done")).toMatchObject({ value: "1건", unread: false });
+  });
+  it("봇 목록을 못 읽으면 일한 봇은 「읽을 수 없음」", () => {
+    expect(kpis({ issues, runs, agents: null, reviewed, now: NOW, coverage: 7 }).find((x) => x.id === "bots")).toMatchObject({ value: UNREAD, unread: true });
+  });
+  it("작업 기록을 못 읽으면 완료·검수 카드 3개가 「읽을 수 없음」", () => {
+    const list = kpis({ issues: null, runs, agents: AGENTS, reviewed, now: NOW, coverage: 7 });
+    expect(list.filter((k) => k.unread).map((k) => k.id)).toEqual(["done", "passRate", "noReview"]);
+  });
+  it("상세를 못 읽거나, 승인된 작업의 반려 기록을 못 읽으면 「확인 못 함」(통과로 단정하지 않음)", () => {
+    expect(classifyReview(null, null).kind).toBe("unknown");
+    const approved = { id: "i", title: "t", status: "done", executionPolicy: { stages: [{ type: "review" }] }, executionState: { lastDecisionOutcome: "approved" } } as CcIssueDetail;
+    expect(classifyReview(approved, null)).toEqual({ kind: "unknown", reason: "반려 기록을 읽지 못해 확인 못 함" });
+    expect(classifyReview(approved, []).kind).toBe("passed");
+    expect(workerOf(null, "a3")).toBe("a3");
+  });
+  it("확인 못 한 작업은 세 칸 어디에도 넣지 않고 비율의 분모에서도 뺀다", () => {
+    const items: ReviewedIssue[] = [
+      { id: "1", identifier: "HER-1", title: "a", completedAt: ago(1), workerId: "a2", kind: "passed", reason: "" },
+      { id: "2", identifier: "HER-2", title: "b", completedAt: ago(1), workerId: "a2", kind: "none", reason: "" },
+      { id: "3", identifier: "HER-3", title: "c", completedAt: ago(1), workerId: "a2", kind: "unknown", reason: "반려 기록을 읽지 못해 확인 못 함" },
+      { id: "4", identifier: "HER-4", title: "d", completedAt: ago(1), workerId: "a2", kind: "unknown", reason: "" },
+    ];
+    const b = reviewBoard(items, AGENTS, NOW, 7);
+    expect(b.total).toEqual({ done: 4, passed: 1, rework: 0, none: 1, unknown: 2 });
+    expect(b.known).toBe(2);
+    expect(b.passRate).toBe(50);
+    expect(b.rows[0]).toMatchObject({ done: 4, known: 2, unknown: 2, passedPct: 50, nonePct: 50 });
+    expect(b.rows[0].unknownIssues.map((i) => i.identifier)).toEqual(["HER-3", "HER-4"]);
+    const k = kpis({ issues: [], runs: [], agents: AGENTS, reviewed: items, now: NOW, coverage: 7 });
+    expect(k.find((x) => x.id === "passRate")).toMatchObject({ value: "50%", note: "기록을 읽지 못한 작업 2건은 빼고 셈" });
+    expect(k.find((x) => x.id === "noReview")).toMatchObject({ value: "1건", note: "기록을 읽지 못한 작업 2건은 빼고 셈" });
+    expect(reviewBoard([items[2]], AGENTS, NOW, 7).passRate).toBeNull();
+  });
+  it("화면에 보일 읽기 실패 이유는 「HTTP 번호」 아니면 「연결 실패」(영어 오류 문구를 내지 않음)", () => {
+    expect(readError("HTTP 403")).toBe("HTTP 403");
+    expect(readError("Failed to fetch")).toBe("연결 실패");
+    expect(readError("")).toBe("연결 실패");
+  });
+  it("강조 바탕(경보·읽을 수 없음) 위 글자는 모두 --foreground, 나빠짐 강조 바탕은 글자 부분에만", () => {
+    expect(CONTROL_CSS).toContain('.aph-cc-card[data-level="alert"] :not(svg):not(svg *),.aph-cc-card[data-level="unread"] :not(svg):not(svg *),.aph-cc-state[data-unread] :not(svg):not(svg *){color:var(--foreground)}');
+    expect(CONTROL_CSS).toMatch(/\.aph-cc-delta\[data-tone="bad"\] \.aph-cc-dtext\{[^}]*background:/);
+    expect(CONTROL_CSS).not.toMatch(/\.aph-cc-delta\[data-tone="bad"\] b\{[^}]*background:/);
   });
 });

@@ -59,11 +59,15 @@ const requests = [];
 const blocked = [];
 const errors = [];
 let bundleHits = 0;
+/** 읽기 실패 시험용: 이 정규식에 맞는 GET 을 검사 브라우저 안에서만 실패시킨다(서버는 그대로). null 이면 끔. */
+let failPattern = null;
+const injected = [];
 page.on("pageerror", (e) => errors.push(e.message));
 await ctx.route("**/*", (route) => {
   const req = route.request();
   const m = req.method();
   if (!["GET", "HEAD", "OPTIONS"].includes(m)) { blocked.push(`${m} ${req.url().replace(PC, "")}`); return route.abort("blockedbyclient"); }
+  if (failPattern && failPattern.test(req.url())) { injected.push(new URL(req.url()).pathname); return route.abort("failed"); }
   if (req.url().startsWith(PC)) requests.push(`${m} ${new URL(req.url()).pathname}`);
   if (new RegExp(`/_plugins/${PLUGIN}/ui/index\\.js`).test(req.url())) {
     bundleHits += 1;
@@ -74,6 +78,41 @@ await ctx.route("**/*", (route) => {
 
 const url = `${PC}/HER/project-hub?project=${project.id}&tab=control`;
 const results = { at: new Date(now).toISOString(), url: url.replace(PC, ""), bundleSha256: bundleSha, expected, widths: {} };
+
+/** 호스트는 html.dark 로 어두운 테마를 쓴다. 밝은 테마 검사는 이 검사 브라우저에서만 class 를 떼서 호스트의 :root(밝은) 토큰으로 그린다. */
+async function setTheme(theme) {
+  await page.evaluate((t) => { document.documentElement.classList.toggle("dark", t === "dark"); }, theme);
+  await page.waitForTimeout(150);
+  return page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--card").trim());
+}
+
+/** scope 안의 보이는 글자 전부의 실제 글자색 대 실제 바탕(조상 바탕 겹침) 대비. 기준은 크기와 상관없이 4.5:1. */
+async function contrastIn(scope, skipDialog = true) {
+  return page.evaluate(({ scope, skipDialog }) => {
+    const root = document.querySelector(scope);
+    if (!root) return { missing: true, checked: 0, min: 0, low: [] };
+    const canvas = document.createElement("canvas"); canvas.width = canvas.height = 1;
+    const g = canvas.getContext("2d", { willReadFrequently: true });
+    const rgba = (css) => { g.clearRect(0, 0, 1, 1); g.fillStyle = "rgba(0,0,0,0)"; g.fillStyle = css; g.fillRect(0, 0, 1, 1); const d = g.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+    const over = (top, bot) => [0, 1, 2].map((k) => top[k] * top[3] + bot[k] * (1 - top[3])).concat(1);
+    const bgOf = (el) => { const chain = []; let e = el; while (e) { chain.push(rgba(getComputedStyle(e).backgroundColor)); e = e.parentElement; } let acc = [255, 255, 255, 1]; for (const c of chain.reverse()) acc = over(c, acc); return acc; };
+    const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const low = []; let checked = 0; let min = 99;
+    for (const el of [root, ...root.querySelectorAll("*")]) {
+      if (el.closest("style") || (skipDialog && el.closest("dialog") && !root.closest("dialog"))) continue;
+      const own = [...el.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim());
+      if (!own || (el.offsetParent === null && getComputedStyle(el).position !== "fixed")) continue;
+      const cs = getComputedStyle(el);
+      if (Number(cs.opacity) < 1) { low.push(`opacity ${cs.opacity}`); continue; }
+      const bg = bgOf(el); const fg = over(rgba(cs.color), bg); const k = ratio(fg, bg);
+      checked += 1; min = Math.min(min, k);
+      if (k < 4.5) low.push(`${k.toFixed(2)} "${el.textContent.trim().slice(0, 24)}"`);
+    }
+    return { checked, min: Number(min.toFixed(2)), low };
+  }, { scope, skipDialog });
+}
+const contrastOk = (tag, what, c) => check(!c.missing && c.checked > 0 && c.low.length === 0, `${tag} ${what} 대비 4.5:1 미달 ${c.low?.length ?? "?"}건(검사 ${c.checked}): ${(c.low ?? []).slice(0, 4).join(" / ")}`);
 
 /** 화면 안에서 재는 것들(넘침·한 글자 줄바꿈·대비·제목·KPI·숫자). */
 async function measure() {
@@ -222,6 +261,15 @@ for (const w of widths) {
   check(m.dataStart, `${tag} 자료 시작일 표시 없음`);
   check(m.smallTargets.length === 0, `${tag} 24px 미만 클릭 영역: ${m.smallTargets.join(", ")}`);
   await fullShot(path.join(OUT, `control-center-${w}.png`));
+  {
+    const lightCard = await setTheme("light");
+    const light = await contrastIn("[data-cc-root]");
+    results.widths[w].contrastLight = { card: lightCard, ...light };
+    contrastOk(tag, "밝은 테마 화면", light);
+    if (w === 1440) await fullShot(path.join(OUT, `control-center-light-${w}.png`));
+    await setTheme("dark");
+  }
+  console.log(`${tag} lightContrastMin=${results.widths[w].contrastLight.min}(${results.widths[w].contrastLight.checked})`);
   console.log(`${tag} kpis=${m.kpis} bots=${m.bots} overflow=${m.overflowPage} outside=${m.outsideCount} orphans=${m.orphans.length} contrastMin=${m.contrast.min}(${m.contrast.checked}) band=${m.band}`);
 
   // 키보드: [새로 고침] 에서 Tab 으로 ① 할 일 카드까지 → Enter 로 팝업 → Esc 로 닫고 초점이 돌아오는지
@@ -256,6 +304,14 @@ for (const w of widths) {
         check(dlg.h3.includes("무엇인가요?") && dlg.h3.includes("왜 지금 필요한가요?") && dlg.meta.includes("상태") && dlg.meta.includes("출처") && dlg.status && dlg.source,
           `${tag} 팝업 형식(무엇·왜·상태·출처) 부족: ${JSON.stringify(dlg)}`);
         await page.screenshot({ path: path.join(OUT, `control-center-dialog-${w}.png`) });
+        const dDark = await contrastIn("dialog[open][data-cc-dialog]", false);
+        await setTheme("light");
+        const dLight = await contrastIn("dialog[open][data-cc-dialog]", false);
+        if (w === 1440) await page.screenshot({ path: path.join(OUT, `control-center-dialog-light-${w}.png`) });
+        await setTheme("dark");
+        results.widths[w].dialogContrast = { dark: dDark, light: dLight };
+        contrastOk(tag, "상세 팝업(어두운)", dDark);
+        contrastOk(tag, "상세 팝업(밝은)", dLight);
         await page.keyboard.press("Escape");
         await page.waitForTimeout(300);
         const after = await page.evaluate(() => ({ open: !!document.querySelector("dialog[open]"), label: document.activeElement?.getAttribute("aria-label") }));
@@ -292,6 +348,73 @@ for (const w of widths) {
     await page.evaluate(() => document.querySelectorAll("style").forEach((s) => { if (s.textContent === "html{filter:grayscale(1)}") s.remove(); }));
   }
 }
+// --- 읽기 실패 시험 (검사 브라우저 안에서만 해당 GET 을 실패시킴, 서버는 그대로) -------------------------------
+// 반려 #1-1: 실행 기록을 못 읽으면 0 이 아니라 「읽을 수 없음」, 영어 오류 문구 없음, 두 테마 대비.
+if (!process.env.CC_WIDTHS) {
+  const tag = "[실패:실행 기록]";
+  await page.setViewportSize({ width: 1440, height: 900 });
+  failPattern = new RegExp(`/api/companies/${CO}/heartbeat-runs`);
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+  await page.waitForSelector("[data-cc-ready]", { timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(600);
+  const r = await page.evaluate(() => {
+    const root = document.querySelector("[data-cc-root]");
+    const kpi = Object.fromEntries([...root.querySelectorAll("[data-kpi]")].map((k) => [k.getAttribute("data-kpi"), { value: k.querySelector(".aph-cc-num")?.textContent ?? "", unread: !!k.querySelector("[data-cc-kpi-unread]") }]));
+    const states = Object.fromEntries([...root.querySelectorAll("[data-cc-panel]")].map((p) => [p.getAttribute("data-cc-panel"), p.querySelector(".aph-cc-state[data-unread]")?.textContent ?? null]));
+    return { kpi, states, english: (root.innerText.match(/Failed to fetch|TypeError|NetworkError|net::ERR\w*/g) ?? []) };
+  });
+  results.failureRuns = r;
+  for (const id of ["bots", "success", "tokens"]) check(r.kpi[id]?.value === "읽을 수 없음" && r.kpi[id]?.unread, `${tag} KPI ${id} = "${r.kpi[id]?.value}" (읽을 수 없음 이어야 함)`);
+  check(r.kpi.done?.value !== "읽을 수 없음", `${tag} 실행 기록과 무관한 「완료한 작업」까지 읽을 수 없음으로 바뀜`);
+  for (const p of ["todo", "bots", "usage"]) check(/읽을 수 없음 — .*\(연결 실패\)/.test(r.states[p] ?? ""), `${tag} ${p} 패널 오류 안내: ${r.states[p]}`);
+  check(r.english.length === 0, `${tag} 화면에 영어 오류 문구: ${r.english.join(", ")}`);
+  await fullShot(path.join(OUT, "control-center-error-runs-1440.png"));
+  const cd = await contrastIn("[data-cc-root]"); await setTheme("light"); const cl = await contrastIn("[data-cc-root]"); await setTheme("dark");
+  results.failureRuns.contrast = { dark: cd, light: cl };
+  contrastOk(tag, "어두운 테마", cd); contrastOk(tag, "밝은 테마", cl);
+  console.log(`${tag} kpi=${JSON.stringify(Object.fromEntries(Object.entries(r.kpi).map(([k, v]) => [k, v.value])))} contrast dark=${cd.min} light=${cl.min}`);
+
+  // 반려 #1-2: 반려 기록(activity)을 못 읽으면 통과로 단정하지 않고 「확인 못 함」으로 따로 둔다.
+  const tag2 = "[실패:반려 기록]";
+  failPattern = /\/api\/issues\/[^/]+\/activity/;
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+  await page.waitForSelector("[data-cc-ready]", { timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(600);
+  const r2 = await page.evaluate(() => {
+    const root = document.querySelector("[data-cc-root]");
+    const p = root.querySelector('[data-cc-panel="review"]');
+    return {
+      unknownNote: Number(p.querySelector("[data-cc-review-unknown]")?.getAttribute("data-cc-review-unknown") ?? 0),
+      rework: p.querySelector("[data-cc-rework]")?.getAttribute("data-cc-rework") ?? null,
+      rowUnknown: [...p.querySelectorAll("[data-cc-unknown]")].reduce((n, e) => n + Number(e.getAttribute("data-cc-unknown")), 0),
+      passNote: root.querySelector('[data-kpi="passRate"] [data-cc-kpi-note]')?.textContent ?? "",
+    };
+  });
+  results.failureActivity = { ...r2, abortedActivityGets: injected.filter((x) => /\/activity$/.test(x)).length };
+  check(results.failureActivity.abortedActivityGets > 0, `${tag2} 반려 기록 요청을 하나도 막지 못함`);
+  check(r2.unknownNote > 0 && r2.unknownNote === r2.rowUnknown, `${tag2} 「확인 못 함」 안내 ${r2.unknownNote}건, 봇별 합 ${r2.rowUnknown}건`);
+  check(/기록을 읽지 못한 작업 \d+건은 빼고 셈/.test(r2.passNote), `${tag2} 검수 통과율 카드에 빼고 셌다는 안내 없음 ("${r2.passNote}")`);
+  await page.locator('[data-cc-panel="review"]').screenshot({ path: path.join(OUT, "control-center-error-activity-1440.png") });
+  console.log(`${tag2} ${JSON.stringify(results.failureActivity)}`);
+  failPattern = null;
+
+  // 반려 #1-3: 경보(오류) 봇 카드 모양의 대비. 지금 실제 자료에는 오류 봇이 없으므로, 실제 봇 카드 하나에 경보 모양 속성만 붙여 두 테마에서 잰다
+  // (자료를 꾸민 것이 아니라 CSS 모양 시험 — 증거 화면으로 쓰지 않음).
+  const tag3 = "[모양 시험:경보 카드]";
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+  await page.waitForSelector("[data-cc-bot]", { timeout: 60000 }).catch(() => {});
+  await page.evaluate(() => {
+    const card = document.querySelector("[data-cc-bot]");
+    card.setAttribute("data-level", "alert"); card.setAttribute("data-cc-probe", "alert");
+    card.querySelector(".aph-cc-pill")?.setAttribute("data-state", "error");
+  });
+  const pd = await contrastIn('[data-cc-probe="alert"]'); await setTheme("light"); const pl = await contrastIn('[data-cc-probe="alert"]'); await setTheme("dark");
+  results.alertProbe = { dark: pd, light: pl };
+  contrastOk(tag3, "어두운 테마", pd); contrastOk(tag3, "밝은 테마", pl);
+  console.log(`${tag3} dark=${pd.min}(${pd.checked}) light=${pl.min}(${pl.checked})`);
+}
+results.injectedFailures = injected.length;
+
 await ctx.close();
 await browser.close();
 

@@ -201,30 +201,38 @@ export function earliest(isos: Array<string | null | undefined>): string | null 
 
 // --- ④ 검수 구분 (data-map ④) -------------------------------------------------------------------
 
-export type ReviewKind = "passed" | "rework" | "none";
+/** unknown = 상세나 반려 기록을 읽지 못해 확인하지 못함. 통과·재작업·검수 없이 어느 쪽으로도 세지 않는다. */
+export type ReviewKind = "passed" | "rework" | "none" | "unknown";
 
-/** 완료 작업 1건의 검수 구분. activity 는 검수 단계가 있는 작업만 읽는다(없으면 null). */
-export function classifyReview(detail: CcIssueDetail, activity: CcActivity[] | null): { kind: ReviewKind; reason: string } {
+/**
+ * 완료 작업 1건의 검수 구분. detail = GET /api/issues/:id 결과(못 읽었으면 null).
+ * activity = 반려 기록(GET /api/issues/:id/activity). 승인된 작업인데 기록을 못 읽었으면(null) 「확인 못 함」 — 반려 없음으로 단정하지 않는다.
+ */
+export function classifyReview(detail: CcIssueDetail | null, activity: CcActivity[] | null): { kind: ReviewKind; reason: string } {
+  if (!detail) return { kind: "unknown", reason: "작업 상세를 읽지 못해 확인 못 함" };
   const stages = detail.executionPolicy?.stages ?? null;
   if (!detail.executionPolicy) return { kind: "none", reason: "검수 단계 없이 완료" };
   const hasReview = !stages || stages.some((s) => s?.type === "review");
   const outcome = detail.executionState?.lastDecisionOutcome ?? null;
   if (!hasReview || !outcome) return { kind: "none", reason: "검수 단계는 있었지만 검수 결정 없이 완료" };
   if (outcome !== "approved") return { kind: "none", reason: "검수 통과 결정 없이 완료" };
-  const reworked = (activity ?? []).some((a) => a.details?.changes?.executionState?.to?.lastDecisionOutcome === "changes_requested");
+  if (activity === null) return { kind: "unknown", reason: "반려 기록을 읽지 못해 확인 못 함" };
+  const reworked = activity.some((a) => a.details?.changes?.executionState?.to?.lastDecisionOutcome === "changes_requested");
   return reworked ? { kind: "rework", reason: "반려된 뒤 고쳐서 통과" } : { kind: "passed", reason: "검수 통과" };
 }
 
 /** 검수를 거치면 담당이 검수 봇으로 바뀌므로, 실제로 일한 봇 = returnAssignee 가 있으면 그 봇. */
-export function workerOf(detail: CcIssueDetail): string | null {
+export function workerOf(detail: CcIssueDetail | null, fallbackAssignee: string | null = null): string | null {
+  if (!detail) return fallbackAssignee;
   return detail.executionState?.returnAssignee?.agentId ?? detail.assigneeAgentId ?? null;
 }
 
 export type ReviewedIssue = { id: string; identifier: string | null; title: string; completedAt: string | null; workerId: string | null; kind: ReviewKind; reason: string };
 
 export type ReviewRow = {
-  agentId: string; name: string; done: number; passed: number; rework: number; none: number;
-  passedPct: number; reworkPct: number; nonePct: number; noneIssues: ReviewedIssue[];
+  agentId: string; name: string; done: number; passed: number; rework: number; none: number; unknown: number;
+  /** 비율의 분모 = 확인된 완료 건수(done − unknown). */
+  known: number; passedPct: number; reworkPct: number; nonePct: number; noneIssues: ReviewedIssue[]; unknownIssues: ReviewedIssue[];
 };
 
 export function reviewBoard(items: ReviewedIssue[], agents: CcAgent[], now: number, days: number) {
@@ -233,19 +241,26 @@ export function reviewBoard(items: ReviewedIssue[], agents: CcAgent[], now: numb
   const nameOf = (id: string | null) => (id ? agents.find((a) => a.id === id)?.name ?? "알 수 없는 봇" : "담당 없음");
   for (const it of inRange) {
     const key = it.workerId ?? "none";
-    const row = by.get(key) ?? { agentId: key, name: nameOf(it.workerId), done: 0, passed: 0, rework: 0, none: 0, passedPct: 0, reworkPct: 0, nonePct: 0, noneIssues: [] };
+    const row = by.get(key) ?? { agentId: key, name: nameOf(it.workerId), done: 0, passed: 0, rework: 0, none: 0, unknown: 0, known: 0,
+      passedPct: 0, reworkPct: 0, nonePct: 0, noneIssues: [], unknownIssues: [] };
     row.done += 1;
     row[it.kind] += 1;
     if (it.kind === "none") row.noneIssues.push(it);
+    if (it.kind === "unknown") row.unknownIssues.push(it);
     by.set(key, row);
   }
   const pct = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0);
-  const rows = [...by.values()].map((r) => ({ ...r, passedPct: pct(r.passed, r.done), reworkPct: pct(r.rework, r.done), nonePct: pct(r.none, r.done) }))
-    .sort((a, b) => b.none / b.done - a.none / a.done || b.rework / b.done - a.rework / a.done || b.done - a.done || a.name.localeCompare(b.name, "ko"));
+  const share = (n: number, d: number) => (d > 0 ? n / d : 0);
+  const rows = [...by.values()].map((r) => {
+    const known = r.done - r.unknown;
+    return { ...r, known, passedPct: pct(r.passed, known), reworkPct: pct(r.rework, known), nonePct: pct(r.none, known) };
+  }).sort((a, b) => share(b.none, b.known) - share(a.none, a.known) || share(b.rework, b.known) - share(a.rework, a.known)
+    || b.done - a.done || a.name.localeCompare(b.name, "ko"));
   const idle = agents.filter((a) => isBot(a) && !by.has(a.id)).map((a) => a.name).sort((a, b) => a.localeCompare(b, "ko"));
-  const total = { done: inRange.length, passed: 0, rework: 0, none: 0 };
+  const total = { done: inRange.length, passed: 0, rework: 0, none: 0, unknown: 0 };
   for (const it of inRange) total[it.kind] += 1;
-  return { rows, idle, total, passRate: total.done ? pct(total.passed + total.rework, total.done) : null };
+  const known = total.done - total.unknown;
+  return { rows, idle, total, known, passRate: known ? pct(total.passed + total.rework, known) : null };
 }
 
 // --- ② 봇 상태 (data-map ② 판정 규칙: 정지 > 오류 > 실행 중 > 대기) -------------------------------
@@ -447,10 +462,31 @@ export type Kpi = {
   id: "done" | "bots" | "success" | "tokens" | "passRate" | "noReview";
   name: string; value: string; valueLabel: string; method: string; delta: DeltaView; warn: boolean; target: string;
   what: string; why: string; status: string; source: string;
+  /** 읽지 못한 자료가 있어 숫자를 내지 않음(「읽을 수 없음」). */
+  unread: boolean;
+  /** 일부를 확인하지 못해 빼고 셌다는 안내(없으면 ""). */
+  note: string;
 };
 
-export function kpis(input: { issues: CcIssue[]; runs: CcRun[]; agents: CcAgent[]; reviewed: ReviewedIssue[] | null; now: number; coverage: number }): Kpi[] {
-  const { issues, runs, agents, reviewed, now, coverage } = input;
+export const UNREAD = "읽을 수 없음";
+
+/** 화면에 보일 읽기 실패 이유: 「HTTP 403」처럼 응답 번호가 있으면 그대로, 그 밖(브라우저의 영어 오류 문구 등)은 「연결 실패」. */
+export function readError(message: string | null | undefined): string {
+  const m = /^HTTP (\d{3})$/.exec((message ?? "").trim());
+  return m ? `HTTP ${m[1]}` : "연결 실패";
+}
+
+/**
+ * 한눈 요약 6개. issues·runs·agents 는 못 읽었으면 null — 그 자료로 세는 카드는 0 이 아니라 「읽을 수 없음」.
+ * reviewed 안의 「확인 못 함」 작업은 통과·검수 없이 어느 쪽에도 넣지 않고 note 로 알린다.
+ */
+export function kpis(input: { issues: CcIssue[] | null; runs: CcRun[] | null; agents: CcAgent[] | null; reviewed: ReviewedIssue[] | null; now: number; coverage: number }): Kpi[] {
+  const { now, coverage } = input;
+  const issues = input.issues ?? [];
+  const runs = input.runs ?? [];
+  const agents = input.agents ?? [];
+  const reviewed = input.issues ? input.reviewed : null;
+  const noIssues = !input.issues, noRuns = !input.runs, noAgents = !input.agents;
   const cur = (iso: string | null | undefined) => inWindow(iso, now, 7);
   const prv = (iso: string | null | undefined) => inWindow(iso, now, 14, 7);
   const bots = agents.filter(isBot);
@@ -465,8 +501,11 @@ export function kpis(input: { issues: CcIssue[]; runs: CcRun[]; agents: CcAgent[
   const rv = (f: typeof cur) => {
     if (!reviewed) return null;
     const list = reviewed.filter((i) => f(i.completedAt));
-    return { n: list.length, pass: list.filter((i) => i.kind !== "none").length, none: list.filter((i) => i.kind === "none").length };
+    const unknown = list.filter((i) => i.kind === "unknown").length;
+    return { n: list.length - unknown, unknown, pass: list.filter((i) => i.kind === "passed" || i.kind === "rework").length, none: list.filter((i) => i.kind === "none").length };
   };
+  const skipped = (u: number) => (u > 0 ? `기록을 읽지 못한 작업 ${u}건은 빼고 셈` : "");
+  const none: DeltaView = deltaView(null, null, "count", "up-good");
   const pctText = (v: number | null) => (v === null ? "자료 없음" : `${Math.round(v)}%`);
   const d1 = done(cur), d0 = done(prv);
   const b1 = worked(cur), b0 = worked(prv);
@@ -479,36 +518,39 @@ export function kpis(input: { issues: CcIssue[]; runs: CcRun[]; agents: CcAgent[
   const runSrc = "Paperclip 실행 기록을 이 화면이 직접 세었습니다.";
   const issueSrc = "Paperclip 작업 기록을 이 화면이 직접 세었습니다.";
   const reviewSrc = "Paperclip 작업 기록(검수 단계 기록)을 이 화면이 직접 세었습니다.";
-  const unread = "읽을 수 없음";
+  const unread = UNREAD;
   const st = (a: string, b: string, d: DeltaView) => `이번 7일 ${a} · 그 전 7일 ${b} · ${d.text}`;
   const list: Kpi[] = [];
   {
-    const delta = deltaView(d1, d0, "count", "up-good", coverage);
-    list.push({ id: "done", name: "완료한 작업", value: `${d1}건`, valueLabel: `${d1}건`, method: "최근 7일 동안 완료로 끝난 작업 수", delta, warn: false, target: "cc-review",
+    const delta = noIssues ? none : deltaView(d1, d0, "count", "up-good", coverage);
+    list.push({ id: "done", name: "완료한 작업", value: noIssues ? unread : `${d1}건`, valueLabel: noIssues ? unread : `${d1}건`, method: "최근 7일 동안 완료로 끝난 작업 수", delta, warn: false, target: "cc-review",
       what: "최근 7일 동안 「완료」 상태로 끝난 작업의 수입니다.", why: "숫자가 줄면 일이 막혔거나 맡긴 일이 적은지 ① 오늘 할 일에서 확인하세요.",
-      status: st(`${d1}건`, `${d0}건`, delta), source: issueSrc });
+      status: noIssues ? `${unread} — 작업 기록을 불러오지 못했습니다.` : st(`${d1}건`, `${d0}건`, delta), source: issueSrc, unread: noIssues, note: "" });
   }
   {
-    const delta = deltaView(b1, b0, "bots", "up-good", coverage);
-    list.push({ id: "bots", name: "일한 봇", value: `${b1} / ${bots.length}`, valueLabel: `${bots.length}개 중 ${b1}개`, method: "최근 7일 동안 한 번이라도 실행한 봇 수 / 전체 봇 수", delta, warn: false, target: "cc-bots",
+    const no = noRuns || noAgents;
+    const delta = no ? none : deltaView(b1, b0, "bots", "up-good", coverage);
+    list.push({ id: "bots", name: "일한 봇", value: no ? unread : `${b1} / ${bots.length}`, valueLabel: no ? unread : `${bots.length}개 중 ${b1}개`, unread: no, note: "", method: "최근 7일 동안 한 번이라도 실행한 봇 수 / 전체 봇 수", delta, warn: false, target: "cc-bots",
       what: "최근 7일 동안 한 번이라도 실행 기록이 있는 봇의 수입니다(시험용 로컬 봇은 빼고 셉니다).", why: "숫자가 줄면 일을 받지 못하거나 멈춘 봇이 있는지 ② 봇 상태 신호등에서 확인하세요.",
-      status: st(`${b1}개`, `${b0}개`, delta), source: runSrc });
+      status: no ? `${unread} — ${noRuns ? "실행 기록" : "봇 목록"}을 불러오지 못했습니다.` : st(`${b1}개`, `${b0}개`, delta), source: runSrc });
   }
   {
-    const delta = deltaView(s1, s0, "pp", "up-good", coverage);
-    list.push({ id: "success", name: "실행 성공률", value: pctText(s1), valueLabel: s1 === null ? "자료 없음" : `${Math.round(s1)}퍼센트`, method: "최근 7일 끝난 실행 중 성공한 실행의 비율(정상적인 중단은 빼고 셈)", delta: s1 === null ? deltaView(null, null, "pp", "up-good") : delta, warn: false, target: "cc-bots",
+    const delta = noRuns || s1 === null ? none : deltaView(s1, s0, "pp", "up-good", coverage);
+    list.push({ id: "success", name: "실행 성공률", value: noRuns ? unread : pctText(s1), valueLabel: noRuns ? unread : s1 === null ? "자료 없음" : `${Math.round(s1)}퍼센트`, unread: noRuns, note: "",
+      method: "최근 7일 끝난 실행 중 성공한 실행의 비율(정상적인 중단은 빼고 셈)", delta, warn: false, target: "cc-bots",
       what: "최근 7일 동안 끝난 봇 실행 가운데 성공한 실행의 비율입니다. 담당이 바뀌거나 작업이 끝나서 멈춘 정상적인 중단은 빼고 셉니다.", why: "비율이 떨어지면 ② 봇 상태 신호등의 오류 봇과 ① 실패한 실행을 확인하세요.",
-      status: st(pctText(s1), pctText(s0), delta), source: runSrc });
+      status: noRuns ? `${unread} — 실행 기록을 불러오지 못했습니다.` : st(pctText(s1), pctText(s0), delta), source: runSrc });
   }
   {
-    const delta = deltaView(t1, t0, "pct", "up-bad", coverage);
-    list.push({ id: "tokens", name: "토큰 사용량", value: compactKo(t1), valueLabel: `${fullNum(t1)} 토큰`, method: "최근 7일 모든 실행의 입력 + 출력 토큰 합", delta, warn: false, target: "cc-usage",
+    const delta = noRuns ? none : deltaView(t1, t0, "pct", "up-bad", coverage);
+    list.push({ id: "tokens", name: "토큰 사용량", value: noRuns ? unread : compactKo(t1), valueLabel: noRuns ? unread : `${fullNum(t1)} 토큰`, unread: noRuns, note: "", method: "최근 7일 모든 실행의 입력 + 출력 토큰 합", delta, warn: false, target: "cc-usage",
       what: "최근 7일 동안 모든 봇 실행이 읽고 쓴 글의 양(입력 토큰 + 출력 토큰)을 더한 값입니다.", why: "크게 늘었으면 ③ 봇별 사용량의 「가장 큰 실행 5개」를 확인하세요.",
-      status: st(`${fullNum(t1)} 토큰`, `${fullNum(t0)} 토큰`, delta), source: runSrc });
+      status: noRuns ? `${unread} — 실행 기록을 불러오지 못했습니다.` : st(`${fullNum(t1)} 토큰`, `${fullNum(t0)} 토큰`, delta), source: runSrc });
   }
   {
     const delta = pass1 === null ? deltaView(null, null, "pp", "up-good") : deltaView(pass1, pass0, "pp", "up-good", pass0 === null ? 0 : coverage);
     list.push({ id: "passRate", name: "검수 통과율", value: r1 ? pctText(pass1) : unread, valueLabel: r1 ? (pass1 === null ? "자료 없음" : `${Math.round(pass1)}퍼센트`) : unread,
+      unread: !r1, note: skipped(r1?.unknown ?? 0),
       method: "최근 7일 완료된 작업 중 검수를 통과한 작업의 비율(반려 후 통과 포함)", delta, warn: false, target: "cc-review",
       what: "최근 7일 동안 완료된 작업 가운데 검수 봇의 통과 결정을 받은 작업의 비율입니다. 반려된 뒤 고쳐서 통과한 작업도 통과로 셉니다.", why: "비율이 낮으면 ④ 검수 현황판에서 검수 없이 끝난 작업이 많은 봇을 확인하세요.",
       status: r1 ? st(pctText(pass1), pctText(pass0), delta) : unread, source: reviewSrc });
@@ -517,6 +559,7 @@ export function kpis(input: { issues: CcIssue[]; runs: CcRun[]; agents: CcAgent[
     const n1 = r1?.none ?? null; const n0 = r0?.none ?? null;
     const delta = deltaView(n1, n0, "count", "up-bad", coverage);
     list.push({ id: "noReview", name: "검수 없이 완료", value: n1 === null ? unread : `${n1}건`, valueLabel: n1 === null ? unread : `${n1}건`,
+      unread: n1 === null, note: skipped(r1?.unknown ?? 0),
       method: "최근 7일 완료된 작업 중 검수 단계를 거치지 않은 작업 수", delta, warn: (n1 ?? 0) >= 1, target: "cc-review",
       what: "최근 7일 동안 검수 봇의 통과 결정 없이 「완료」로 끝난 작업의 수입니다.", why: "검수 없이 끝난 결과물은 실수가 그대로 남을 수 있습니다. ④ 검수 현황판에서 어느 봇의 작업인지 확인하세요.",
       status: n1 === null ? unread : st(`${n1}건`, `${n0 ?? 0}건`, delta), source: reviewSrc });

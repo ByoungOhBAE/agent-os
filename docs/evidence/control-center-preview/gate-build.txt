@@ -1,15 +1,15 @@
+ ✓ tests/git-activity.spec.ts (14 tests) 6ms
  ✓ tests/model.spec.ts (18 tests) 6ms
- ✓ tests/control.spec.ts (22 tests) 10ms
 
  Test Files  4 passed (4)
-      Tests  68 passed (68)
-   Start at  02:47:15
-   Duration  1.81s (transform 416ms, setup 0ms, collect 712ms, tests 28ms, environment 0ms, prepare 2.36s)
+      Tests  75 passed (75)
+   Start at  03:08:26
+   Duration  2.08s (transform 273ms, setup 0ms, collect 578ms, tests 28ms, environment 1ms, prepare 3.10s)
 
-022186d6c8eb958a695027b7908b12438363f7c2b275f897e301e3ac79269368  preview-dist/ui/index.js
+6ea2ed8d82953b4c8dc491f86f33f10460ddd706f02259c01157074d7aa336ec  preview-dist/ui/index.js
 PROJECT_HUB_PREVIEW_BUILD_OK
 
-control.spec: exit=0 ✓ tests/control.spec.ts (22 tests) 10ms
-unit tests passed: 68
+control.spec: exit=0 ✓ tests/control.spec.ts (29 tests) 11ms
+unit tests passed: 75
 CONTROL_CENTER_PREVIEW_BUILD_OK
 build_gate_exit=0

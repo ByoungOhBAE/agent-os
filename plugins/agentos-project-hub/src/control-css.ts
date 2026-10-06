@@ -43,7 +43,8 @@ export const CONTROL_CSS = `
 .aph-cc-hit::after{content:"";position:absolute;inset:0;border-radius:inherit}
 .aph-cc-hit:focus-visible{outline:none}
 .aph-cc-card[data-level="alert"]{border:2px solid ${BAD};background:${ALERT_BG}}
-.aph-cc-card[data-level="alert"] .aph-cc-muted,.aph-cc-card[data-level="alert"] .aph-cc-method,.aph-cc-card[data-level="alert"] .tt-path{color:var(--foreground)}
+/* 강조 바탕(경보·읽을 수 없음) 위의 글자는 회색 없이 모두 --foreground (설계 5-3 규칙 2: 밝은 테마에서 회색은 이 바탕 위 3.7:1 로 미달). 아이콘(svg)만 제외 */
+.aph-cc-card[data-level="alert"] :not(svg):not(svg *),.aph-cc-card[data-level="unread"] :not(svg):not(svg *),.aph-cc-state[data-unread] :not(svg):not(svg *){color:var(--foreground)}
 .aph-cc-card[data-level="warn"]{border:2px dashed ${WARN}}
 .aph-cc-card[data-level="good"]{box-shadow:inset 3px 0 0 ${GOOD}}
 .aph-cc-card[data-level="paused"]{border-style:dashed}
@@ -57,7 +58,9 @@ export const CONTROL_CSS = `
 .aph-cc-method{margin:0;font-size:12px;line-height:1.45;color:var(--muted-foreground)}
 .aph-cc-delta{display:inline-flex;align-items:baseline;gap:4px;flex-wrap:wrap;font-size:12px;font-variant-numeric:tabular-nums;min-width:0}
 .aph-cc-delta b{white-space:nowrap;font-weight:550;color:var(--foreground)}
-.aph-cc-delta[data-tone="bad"] b{font-weight:700;padding:0 4px;border-radius:4px;background:${ALERT_BG}}
+.aph-cc-delta b{display:inline-flex;align-items:baseline;gap:4px}
+/* 나빠짐: 강조 바탕은 글자 부분에만(빨간 ▲▼ 기호는 카드 바탕 위에 두어 밝은 테마에서도 4.5:1 이상) */
+.aph-cc-delta[data-tone="bad"] .aph-cc-dtext{font-weight:700;padding:0 4px;border-radius:4px;background:${ALERT_BG};color:var(--foreground)}
 .aph-cc-delta[data-tone="none"] b,.aph-cc-delta[data-tone="same"] b{color:var(--muted-foreground);font-weight:500}
 .aph-cc-arrow{font-style:normal}
 .aph-cc-delta[data-tone="good"] .aph-cc-arrow{color:${GOOD}}
@@ -129,6 +132,7 @@ export const CONTROL_CSS = `
 .aph-cc-sw[data-k="rework"],.aph-cc-seg[data-k="rework"]{background:repeating-linear-gradient(0deg,var(--muted-foreground) 0 2px,transparent 2px 4px)}
 .aph-cc-sw[data-k="none"],.aph-cc-seg[data-k="none"]{background:repeating-linear-gradient(45deg,${WARN} 0 3px,transparent 3px 6px)}
 .aph-cc-sw[data-k="none"]{border:1px dashed ${WARN}}
+.aph-cc-sw[data-k="unknown"],.aph-cc-seg[data-k="unknown"]{background:var(--accent);box-shadow:inset 0 0 0 1px var(--muted-foreground)}
 .aph-cc-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
 .aph-cc-bar-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name total" "bar bar" "delta delta";gap:6px 10px;align-items:center}
 .aph-cc-bar-row .aph-cc-hit{grid-area:name;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

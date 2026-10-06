@@ -7,7 +7,7 @@ import { TaskTitle } from "../../../agentos-control/src/ui/task-title-view.js";
 import { CONTROL_CSS } from "../control-css.js";
 import {
   BOT_STATE_LABEL, TODO_FILTERS, TODO_LABEL, botCards, classifyReview, compactKo, detailTargets, earliest, errorText, fullNum,
-  gatewayBand, kpis, needsActivity, prevCoverageDays, reviewBoard, runResultLabel, shortId, shortName, stateCounts, todoItems,
+  gatewayBand, inWindow, kpis, needsActivity, prevCoverageDays, readError, reviewBoard, runResultLabel, shortId, shortName, stateCounts, todoItems,
   usage, waited, workerOf,
   type BotCard, type BotState, type CcActivity, type CcAgent, type CcApproval, type CcIssue, type CcIssueDetail, type CcLiveRun,
   type CcRun, type DeltaView, type Kpi, type ReviewedIssue, type TodoItem,
@@ -197,7 +197,9 @@ function Hit({ label, children, onOpen, className }: { label: string; children: 
 function Delta({ d, short, bare }: { d: DeltaView; short?: boolean; bare?: boolean }) {
   return (
     <span className="aph-cc-delta" data-tone={d.tone} data-cc-delta={d.tone} aria-label={d.label}>
-      <b>{d.arrow && d.text.startsWith(d.arrow) ? <><i className="aph-cc-arrow">{d.arrow}</i>{d.text.slice(d.arrow.length)}</> : d.text}</b>
+      {d.arrow && d.text.startsWith(d.arrow)
+        ? <b><i className="aph-cc-arrow">{d.arrow}</i><span className="aph-cc-dtext">{d.text.slice(d.arrow.length).trim()}</span></b>
+        : <b><span className="aph-cc-dtext">{d.text}</span></b>}
       {!short && d.tone !== "none" && <small>지난주 대비</small>}
       {d.note && !bare && <small>{d.note}</small>}
     </span>
@@ -207,7 +209,7 @@ function Delta({ d, short, bare }: { d: DeltaView; short?: boolean; bare?: boole
 function PanelState({ error, what, onRetry }: { error: string; what: string; onRetry: () => void }) {
   return (
     <p className="aph-cc-state" data-unread="" role="status">
-      읽을 수 없음 — {what}을(를) 불러오지 못했습니다 ({error}).
+      읽을 수 없음 — {what}을(를) 불러오지 못했습니다 ({readError(error)}).
       <button type="button" className="aph-cc-btn" onClick={onRetry}>다시 시도</button>
     </p>
   );
@@ -275,17 +277,20 @@ function Body({ snap, reload, open }: { snap: Snapshot; reload: () => void; open
     if (!snap.issues.data) return null;
     const list: ReviewedIssue[] = [];
     for (const i of issues) {
-      if (i.status !== "done") continue;
-      const d = snap.details.get(i.id);
-      if (!d) continue;
+      // 상세를 읽기로 한 완료 작업(최근 30일)만. 상세·반려 기록을 못 읽은 작업은 「확인 못 함」으로 남긴다(통과로 단정하지 않음).
+      if (i.status !== "done" || !inWindow(i.completedAt, now, 30)) continue;
+      const d = snap.details.get(i.id) ?? null;
       const c = classifyReview(d, snap.activity.get(i.id) ?? null);
-      list.push({ id: i.id, identifier: i.identifier ?? null, title: i.title, completedAt: i.completedAt ?? null, workerId: workerOf(d), kind: c.kind, reason: c.reason });
+      list.push({ id: i.id, identifier: i.identifier ?? null, title: i.title, completedAt: i.completedAt ?? null, workerId: workerOf(d, i.assigneeAgentId ?? null), kind: c.kind, reason: c.reason });
     }
     return list;
-  }, [snap, issues]);
+  }, [snap, issues, now]);
 
-  const kpiList = useMemo(() => kpis({ issues, runs, agents, reviewed, now, coverage }), [issues, runs, agents, reviewed, now, coverage]);
-  const unreadBase = snap.agents.error || snap.issues.error || snap.runs.error;
+  // 못 읽은 목록은 빈 배열이 아니라 null 로 넘긴다 → 그 자료로 세는 카드는 0 대신 「읽을 수 없음」.
+  const kpiList = useMemo(() => kpis({ issues: snap.issues.data ? issues : null, runs: snap.runs.data, agents: snap.agents.data, reviewed, now, coverage }),
+    [snap.issues.data, snap.runs.data, snap.agents.data, issues, reviewed, now, coverage]);
+  const unreadBase = [snap.agents.error && `봇 목록 ${readError(snap.agents.error)}`, snap.issues.error && `작업 기록 ${readError(snap.issues.error)}`,
+    snap.runs.error && `실행 기록 ${readError(snap.runs.error)}`].filter(Boolean).join(", ");
 
   return (
     <>
@@ -311,15 +316,16 @@ function KpiStrip({ list, unread, open }: { list: Kpi[]; unread: string; open: O
             <h3>
               <Hit label={`${k.name} ${k.valueLabel}, ${k.delta.label}`} onOpen={(el) => open({
                 key: `kpi-${k.id}`, chip: "한눈 요약", title: k.name, what: k.what, why: k.why,
-                sections: [{ label: "계산 방법", text: `${k.method}\n지난주 대비 = 최근 7일과 그 전 7일(8~14일 전)을 비교한 값입니다.` }],
+                sections: [{ label: "계산 방법", text: `${k.method}\n지난주 대비 = 최근 7일과 그 전 7일(8~14일 전)을 비교한 값입니다.${k.note ? `\n${k.note}.` : ""}` }],
                 status: k.status, source: k.source, jump: { label: "아래 패널에서 자세히 보기", target: k.target },
               }, el)}>{k.name}</Hit>
             </h3>
             <span className="aph-cc-row1">
-              <span className="aph-cc-num" data-unread={k.value === "읽을 수 없음" || k.value === "자료 없음" ? "" : undefined}>{k.value}</span>
+              <span className="aph-cc-num" data-unread={k.unread || k.value === "자료 없음" ? "" : undefined} data-cc-kpi-unread={k.unread ? "" : undefined}>{k.value}</span>
               {k.warn && <span className="aph-cc-flag"><Warn />확인 필요</span>}
             </span>
             <Delta d={k.delta} short />
+            {k.note && <p className="aph-cc-method" data-cc-kpi-note="">{k.note}</p>}
             <p className="aph-cc-method">{k.method}</p>
           </li>
         ))}
@@ -392,7 +398,7 @@ function TodoPanel({ snap, issues, runs, agents, band, now, reload, open }: {
               );
             })}
           </div>
-          {approvalsUnread && <p className="aph-cc-note">승인 목록은 읽을 수 없음 ({snap.approvals.error})</p>}
+          {approvalsUnread && <p className="aph-cc-note">승인 목록은 읽을 수 없음 ({readError(snap.approvals.error)})</p>}
           {snap.detailErrors > 0 && <p className="aph-cc-note">작업 상세 {snap.detailErrors}건을 읽지 못해 「정리 필요」 판단에서 빠졌을 수 있습니다.</p>}
           {items.length === 0 ? (
             <div className="aph-cc-calm" role="status"><Check /><div><p>지금 사장님이 할 일이 없습니다.</p><p>마지막 확인: {relTime(new Date(now).toISOString(), Date.now())}</p></div></div>
@@ -488,7 +494,7 @@ function BotPanel({ snap, issues, runs, agents, band, now, reload, open }: {
           </div>
           {shown.length === 0 ? <p className="aph-cc-state" role="status">이 상태의 봇이 없습니다.</p> : <ul className="aph-cc-list aph-cc-bots">{shown.map(card)}</ul>}
           {others > 0 && <p className="aph-cc-note">시험용 로컬 에이전트 {others}개는 봇 수에서 뺐습니다.</p>}
-          {snap.live.error && <p className="aph-cc-note">지금 실행 중인 목록은 읽을 수 없음 ({snap.live.error}) — 실행 기록으로만 판단했습니다.</p>}
+          {snap.live.error && <p className="aph-cc-note">지금 실행 중인 목록은 읽을 수 없음 ({readError(snap.live.error)}) — 실행 기록으로만 판단했습니다.</p>}
         </>
       )}
     </section>
@@ -618,7 +624,6 @@ function ReviewPanel({ snap, reviewed, agents, now, reload, open }: {
   const [days, setDays] = useState(7);
   const board = useMemo(() => (reviewed ? reviewBoard(reviewed, agents, now, days) : null), [reviewed, agents, now, days]);
   const error = snap.issues.error;
-  const partial = snap.detailErrors + snap.activityErrors;
   const src = "Paperclip 작업 기록(검수 단계 기록)";
   return (
     <section className="aph-cc-sec" aria-labelledby="cc-review" data-cc-panel="review">
@@ -626,20 +631,24 @@ function ReviewPanel({ snap, reviewed, agents, now, reload, open }: {
       {error || !board ? <PanelState error={error || "자료 없음"} what="작업 기록" onRetry={reload} /> : (
         <>
           <Period days={days} set={setDays} label="검수 현황 기간" />
-          {partial > 0 && <p className="aph-cc-note">작업 상세·기록 {partial}건을 읽지 못해 빠졌습니다.</p>}
+          {board.total.unknown > 0 && (
+            <p className="aph-cc-note" data-cc-review-unknown={board.total.unknown}>
+              작업 상세나 반려 기록을 읽지 못한 완료 작업 {board.total.unknown}건은 「확인 못 함」으로 따로 두고, 통과·재작업·검수 없이 어느 쪽에도 넣지 않았습니다(비율에서도 뺌).
+            </p>
+          )}
           <ul className="aph-cc-list aph-cc-sum3">
             <li className="aph-cc-card" data-cc-review-sum="pass">
               <h3><Hit label={`검수 통과율 ${board.passRate === null ? "자료 없음" : `${board.passRate}퍼센트`}`} onOpen={(el) => open({
-                key: "rv-pass", chip: "검수 현황", title: `검수 통과율 — 최근 ${days}일`, what: `완료 ${board.total.done}건 중 통과 ${board.total.passed} · 재작업 ${board.total.rework} · 검수 없이 완료 ${board.total.none}`,
+                key: "rv-pass", chip: "검수 현황", title: `검수 통과율 — 최근 ${days}일`, what: `완료 ${board.total.done}건 중 통과 ${board.total.passed} · 재작업 ${board.total.rework} · 검수 없이 완료 ${board.total.none}${board.total.unknown ? ` · 확인 못 함 ${board.total.unknown}` : ""}`,
                 why: "통과율은 검수 봇의 통과 결정을 받은 작업(반려 후 통과 포함)의 비율입니다.", status: `통과율 ${board.passRate === null ? "자료 없음" : `${board.passRate}%`}`, source: src }, el)}>검수 통과율</Hit></h3>
               <span className="aph-cc-num" data-unread={board.passRate === null ? "" : undefined}>{board.passRate === null ? "자료 없음" : `${board.passRate}%`}</span>
-              <p className="aph-cc-method">완료된 작업 중 검수 통과 결정을 받은 작업의 비율</p>
+              <p className="aph-cc-method">완료된 작업 중 검수 통과 결정을 받은 작업의 비율{board.total.unknown ? `(확인 못 한 ${board.total.unknown}건 제외)` : ""}</p>
             </li>
             <li className="aph-cc-card" data-cc-review-sum="rework">
               <h3><Hit label={`반려 후 재작업 ${board.total.rework}건`} onOpen={(el) => open({
                 key: "rv-rework", chip: "검수 현황", title: `반려 후 재작업 — 최근 ${days}일`, what: "검수에서 한 번 이상 반려된 뒤 고쳐서 통과한 작업입니다.",
                 why: "반려가 잦은 봇은 지시를 더 분명하게 하거나 검수 기준을 함께 알려 주면 좋습니다.", status: `${board.total.rework}건`, source: src }, el)}>반려 후 재작업</Hit></h3>
-              <span className="aph-cc-num">{board.total.rework}건</span>
+              <span className="aph-cc-num" data-cc-rework={board.total.rework}>{board.total.rework}건</span>
               <p className="aph-cc-method">반려 기록이 있고 마지막에 통과한 작업 수</p>
             </li>
             <li className="aph-cc-card" data-cc-review-sum="none" data-level={board.total.none > 0 ? "warn" : undefined}>
@@ -652,18 +661,21 @@ function ReviewPanel({ snap, reviewed, agents, now, reload, open }: {
               <p className="aph-cc-method">검수 단계를 거치지 않고 끝난 작업입니다.</p>
             </li>
           </ul>
-          <p className="aph-cc-legend"><span><i className="aph-cc-sw" data-k="passed" aria-hidden="true" />통과</span><span><i className="aph-cc-sw" data-k="rework" aria-hidden="true" />반려 후 재작업</span><span><i className="aph-cc-sw" data-k="none" aria-hidden="true" />검수 없이 완료</span></p>
+          <p className="aph-cc-legend"><span><i className="aph-cc-sw" data-k="passed" aria-hidden="true" />통과</span><span><i className="aph-cc-sw" data-k="rework" aria-hidden="true" />반려 후 재작업</span><span><i className="aph-cc-sw" data-k="none" aria-hidden="true" />검수 없이 완료</span>{board.total.unknown > 0 && <span><i className="aph-cc-sw" data-k="unknown" aria-hidden="true" />확인 못 함</span>}</p>
           {board.rows.length === 0 ? <p className="aph-cc-state" role="status">자료 없음 — 최근 {days}일 동안 완료된 작업이 없습니다.</p> : (
             <ul className="aph-cc-list" data-cc-review-rows={board.rows.length}>
               {board.rows.map((r) => (
                 <li key={r.agentId} className="aph-cc-card aph-cc-review" data-cc-review={r.agentId} data-level={r.none > 0 ? "warn" : undefined}>
                   <div className="aph-cc-top">
-                    <h3><Hit label={`${shortName(r.name)}, 완료 ${r.done}건, 통과 ${r.passed}, 재작업 ${r.rework}, 검수 없이 ${r.none}`} onOpen={(el) => open({
+                    <h3><Hit label={`${shortName(r.name)}, 완료 ${r.done}건, 통과 ${r.passed}, 재작업 ${r.rework}, 검수 없이 ${r.none}${r.unknown ? `, 확인 못 함 ${r.unknown}` : ""}`} onOpen={(el) => open({
                       key: `rv-${r.agentId}`, chip: "검수 현황", title: `${shortName(r.name)} — 최근 ${days}일 검수`,
-                      what: `완료 ${r.done}건 중 통과 ${r.passed} · 재작업 ${r.rework} · 검수 없이 완료 ${r.none}`,
+                      what: `완료 ${r.done}건 중 통과 ${r.passed} · 재작업 ${r.rework} · 검수 없이 완료 ${r.none}${r.unknown ? ` · 확인 못 함 ${r.unknown}` : ""}`,
                       why: r.none > 0 ? `검수 단계를 거치지 않고 끝난 작업이 ${r.none}건 있습니다. 결과물을 직접 확인하거나 검수를 다시 요청하세요.` : "검수 없이 끝난 작업이 없습니다.",
-                      sections: r.none > 0 ? [{ label: "검수 없이 완료된 작업 (최대 5개)", list: r.noneIssues.slice(0, 5).map((i) => `${i.identifier ?? ""} ${i.title} — ${i.reason}`.trim()) }] : undefined,
-                      status: `통과율 ${r.done ? Math.round(((r.passed + r.rework) / r.done) * 100) : 0}%`, source: src,
+                      sections: [
+                        ...(r.none > 0 ? [{ label: "검수 없이 완료된 작업 (최대 5개)", list: r.noneIssues.slice(0, 5).map((i) => `${i.identifier ?? ""} ${i.title} — ${i.reason}`.trim()) }] : []),
+                        ...(r.unknown > 0 ? [{ label: "확인 못 한 작업", list: r.unknownIssues.slice(0, 5).map((i) => `${i.identifier ?? ""} ${i.title} — ${i.reason}`.trim()) }] : []),
+                      ],
+                      status: r.known ? `통과율 ${Math.round(((r.passed + r.rework) / r.known) * 100)}%${r.unknown ? ` (확인 못 한 ${r.unknown}건 제외)` : ""}` : "통과율 자료 없음 — 확인된 완료 작업이 없습니다", source: src,
                     }, el)}><span title={r.name}>{shortName(r.name)}</span></Hit></h3>
                     <span className="aph-cc-muted aph-cc-nowrap">완료 {r.done}건</span>
                   </div>
@@ -671,9 +683,11 @@ function ReviewPanel({ snap, reviewed, agents, now, reload, open }: {
                     <span className="aph-cc-seg" data-k="passed" style={{ width: `${(r.passed / r.done) * 100}%` }} />
                     <span className="aph-cc-seg" data-k="rework" style={{ width: `${(r.rework / r.done) * 100}%` }} />
                     <span className="aph-cc-seg" data-k="none" style={{ width: `${(r.none / r.done) * 100}%` }} />
+                    <span className="aph-cc-seg" data-k="unknown" style={{ width: `${(r.unknown / r.done) * 100}%` }} />
                   </span>
                   <p className="aph-cc-counts">
                     <span>통과 <b>{r.passed}</b> ({r.passedPct}%)</span><span>재작업 <b>{r.rework}</b> ({r.reworkPct}%)</span><span>검수 없이 <b>{r.none}</b> ({r.nonePct}%)</span>
+                    {r.unknown > 0 && <span data-cc-unknown={r.unknown}>확인 못 함 <b>{r.unknown}</b></span>}
                     {r.none > 0 && <span className="aph-cc-flag"><Warn />검수 없이 완료 {r.none}건</span>}
                   </p>
                 </li>
