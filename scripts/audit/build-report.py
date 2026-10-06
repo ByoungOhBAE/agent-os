@@ -125,7 +125,7 @@ conf_svg_rows = [(t["id"] + " " + t["title"][:15] + "…", Counter({"high" if t[
 # ops impact
 ops_md = open(os.path.join(D, "ops-impact-log.md"), encoding="utf-8").read()
 ops_rows = [l for l in ops_md.splitlines() if l.startswith("| 10-07")]
-def md_cells(l): return [c.strip() for c in l.strip().strip("|").split("|")]
+def md_cells(l): return [c.strip().replace("**", "").replace("`", "") for c in l.strip().strip("|").split("|")]
 
 # track B
 TB = os.path.join(REPO, "docs/evidence/control-center-preview/trackb.json")
