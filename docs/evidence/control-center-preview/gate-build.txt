@@ -1,0 +1,15 @@
+ ✓ tests/model.spec.ts (18 tests) 6ms
+ ✓ tests/control.spec.ts (22 tests) 10ms
+
+ Test Files  4 passed (4)
+      Tests  68 passed (68)
+   Start at  02:47:15
+   Duration  1.81s (transform 416ms, setup 0ms, collect 712ms, tests 28ms, environment 0ms, prepare 2.36s)
+
+022186d6c8eb958a695027b7908b12438363f7c2b275f897e301e3ac79269368  preview-dist/ui/index.js
+PROJECT_HUB_PREVIEW_BUILD_OK
+
+control.spec: exit=0 ✓ tests/control.spec.ts (22 tests) 10ms
+unit tests passed: 68
+CONTROL_CENTER_PREVIEW_BUILD_OK
+build_gate_exit=0

@@ -1,0 +1,7 @@
+project=에이전트 os web dashboard expected={"bots":11,"approval":0,"blocked":2,"review":0,"failed":1} bundle=022186d6c8eb
+[1440] kpis=6 bots=11 overflow=0 outside=0 orphans=0 contrastMin=5.07(354) band=ok
+[768] kpis=6 bots=11 overflow=0 outside=0 orphans=0 contrastMin=5.07(336) band=ok
+[390] kpis=6 bots=11 overflow=0 outside=0 orphans=0 contrastMin=5.07(336) band=ok
+requests=552 nonGET=0 bundleHits=3 pageErrors=0
+CONTROL_CENTER_PREVIEW_OK
+preview_gate_exit=0
