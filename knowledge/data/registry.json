@@ -305,7 +305,7 @@
       "from": [
         "pc-ebb0943f/MEMORY.md#033dd8abe4ad"
       ],
-      "en": "In this company, agent-hires creates a bot immediately without an approval step. Org-chart apply needs expectedVersion, which rises by 1 per operation."
+      "en": "New bots need board approval: agent-hires only creates a pending hire that the boss approves in Paperclip, and only 비서실장 hires (via scripts/hermes-bots.mjs hire). Org-chart apply needs expectedVersion, which rises by 1 per operation."
     },
     {
       "id": "c-figma-mcp",
@@ -433,7 +433,7 @@
       "from": [
         "hermes-root/MEMORY.md#df9bb7ea1cdb"
       ],
-      "en": "academy-homepage (Next.js) runs on the NAS with docker-compose: app (port 3080, domain kmastercook.com) + cloudflared tunnel 'academy' + backup container. Never run compose up on the PC (it would hijack the production tunnel). Deploy: build the image on the PC (the 2 GB NAS cannot build) -> docker save/load over SSH -> recreate only the academy service. Project /volume1/docker/academy; docker binary /var/packages/ContainerManager/target/usr/bin/docker; passwordless sudo covers only that binary. Preserve ./data (db.sqlite, uploads, originals) and compare row and file counts before and after. Review migrate deploy and seed before deploying. SSH credentials: nas-docker-deployment skill references/academy-ssh.md (DPAPI-encrypted; never store or print decrypted values)."
+      "en": "academy-homepage (Next.js) runs on the NAS with docker-compose: app (port 3080, domain kmastercook.com) + cloudflared tunnel 'academy' + backup container. Never run compose up on the PC (it would hijack the production tunnel). Deploy: build the image on the PC (the 2 GB NAS cannot build) -> docker save/load over SSH -> recreate only the academy service. Project /volume1/docker/academy; docker binary /var/packages/ContainerManager/target/usr/bin/docker; passwordless sudo covers only that binary. Preserve ./data (db.sqlite, uploads, originals) and compare row and file counts before and after. Review migrate deploy and seed before deploying. Bots never deploy to or connect to the NAS; deployment is done only by the boss's own Hermes session."
     },
     {
       "id": "k-dev-conventions",

@@ -845,6 +845,9 @@ class Guard:
         self.inline_python_guard = bool(t.get("inline_python_guard", False))
         self.redirect_guard = bool(t.get("redirect_guard", False))
         self.allow_programs = {str(p).lower() for p in (t.get("allow_programs") or [])}
+        # deny_programs (basic role): same program extraction as the allow list, but only these names are refused, so
+        # a word inside quoted text (`echo "like a Docker build"`) is never mistaken for a program (W4-2 / P-6).
+        self.deny_programs = {str(p).lower() for p in (t.get("deny_programs") or [])}
         self.max_calls = int(((r.get("budget") or {}).get("max_tool_calls")) or 0)
         self._counts: Dict[str, int] = {}
         self._lock = threading.Lock()
@@ -953,7 +956,7 @@ class Guard:
                     continue  # inline program passed its own check; skip the allow list
             if self.term_allow and not any(p.search(shape) or p.search(_resolve_head(shape, quoted)) for p in self.term_allow):
                 return f"{self.role} 역할의 허용 명령 목록에 없습니다: `{seg[:120]}`"
-        if self.allow_programs:
+        if self.allow_programs or self.deny_programs:
             wd = args.get("workdir") if isinstance(args.get("workdir"), str) and args.get("workdir") else self._default_cwd()
             return self._check_programs(cmd, wd, dict(self._env), set())
         return None
@@ -1006,9 +1009,11 @@ class Guard:
             for m in _SUBST_PROG.finditer(dq):  # openings whose closing paren landed in another segment
                 name, known = self._prog_of(m.group(1) or m.group(2), [], env)
                 if not known:
-                    return unknown(m.group(0))
-                if name and name not in self.allow_programs and name not in funcs and name not in _SHELL_SKIP:
-                    return self._not_allowed(name)
+                    if self.allow_programs:
+                        return unknown(m.group(0))
+                    continue
+                if name and name not in funcs and name not in _SHELL_SKIP and (r := self._prog_refused(name)):
+                    return r
             head = re.sub(r"^(?:(?:do|then|else|elif|if|while|until|!|\{|time)\s+)+", "", shape.strip())
             if not head or head.startswith("#"):
                 continue
@@ -1050,7 +1055,10 @@ class Guard:
                 tok = toks[i].lstrip("(")
                 name, known = self._prog_of(tok, quoted, env)
                 if not known:
-                    return unknown(_unshape(tok, quoted))
+                    if self.allow_programs:
+                        return unknown(_unshape(tok, quoted))
+                    name = ""
+                    break
                 if name in _WRAPPERS:
                     if name == "command" and i + 1 < len(toks) and toks[i + 1] in ("-v", "-V"):
                         name = ""
@@ -1070,8 +1078,8 @@ class Guard:
                     if r := self._check_programs(_unshape(" ".join(rest), quoted), cwd, env, funcs, depth + 1):
                         return r
                 continue
-            if name not in self.allow_programs:
-                return self._not_allowed(name)
+            if r := self._prog_refused(name):
+                return r
             if name in (".", "source") and args:
                 self._source_defs(_unshape(args[0], quoted).strip("\"'"), cwd, env, funcs)
             elif name in _SHELLS:
@@ -1086,7 +1094,7 @@ class Guard:
                 elif (h := _HEREDOC_BODY.search(seg)) is not None:
                     if r := self._check_programs(h.group(3), cwd, env, funcs, depth + 1):
                         return r
-                elif not [a for a in args if not a.startswith("-") and not a.startswith("<") and not re.match(r"^\d?[<>]", a)]:
+                elif self.allow_programs and not [a for a in args if not a.startswith("-") and not a.startswith("<") and not re.match(r"^\d?[<>]", a)]:
                     return (f"{self.role} 역할: `{name}`가 받는 명령을 guard가 볼 수 없습니다(파이프·표준입력). "
                             f"스크립트 파일이나 명령을 직접 실행하세요.")
             elif name == "wsl":
@@ -1112,9 +1120,19 @@ class Guard:
                     if a in ("-exec", "-execdir", "-ok", "-okdir") and n + 1 < len(args):
                         sub, known = self._prog_of(args[n + 1], quoted, env)
                         if not known:
-                            return unknown(_unshape(args[n + 1], quoted))
-                        if sub not in self.allow_programs:
-                            return self._not_allowed(sub)
+                            if self.allow_programs:
+                                return unknown(_unshape(args[n + 1], quoted))
+                            continue
+                        if r := self._prog_refused(sub):
+                            return r
+        return None
+
+    def _prog_refused(self, name: str) -> Optional[str]:
+        if name in self.deny_programs:
+            return (f"{self.role} 역할은 원격 접속·컨테이너 도구를 쓸 수 없습니다: `{name[:60]}` — 학원 NAS·Docker 배포는 "
+                    f"사장님 Hermes만 합니다.")
+        if self.allow_programs and name not in self.allow_programs:
+            return self._not_allowed(name)
         return None
 
     def _not_allowed(self, name: str) -> str:

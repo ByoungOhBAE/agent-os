@@ -664,7 +664,8 @@ class SecretReadAllRoles(unittest.TestCase):
             self.assertIsNotNone(t(c), c)
         self.assertIsNotNone(b.evaluate("read_file", {"path": (self.work / "notes.txt").as_posix()}))
         for c in ("rm -rf build", "bash -c 'npm test'", "wsl -d Ubuntu -- bash run.sh", "rm data/test.db", "env | sort",
-                  "git push origin main", "cat README.md", "hermes config set x y", "ls ~/projects/sshtools-notes"):
+                  "git push origin main", "cat README.md", "hermes config set x y", "ls ~/projects/sshtools-notes",
+                  'echo "build like a Docker context"', "echo '--- docker'", "grep -rl --include='*.json' abc docs"):
             self.assertIsNone(t(c), c)
 
     def test_board_only_urls_refused_for_every_bot(self):

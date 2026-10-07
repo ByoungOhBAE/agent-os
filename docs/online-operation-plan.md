@@ -77,8 +77,8 @@ PC를 꺼도 돌아가게 하려면 **화면이 아니라 "일하는 쪽"까지 
 
 사용자: "b를 할수 있게 기록해두고 우선 완료될때까지는 에이로 하자"
 
-- **지금: 방식 A 적용.** Tailscale 사설망 주소 `https://pilt.tail964787.ts.net` (사장님 Tailscale 기기끼리만, 인터넷 비공개·Funnel 꺼짐).
-  - Paperclip 허용 주소에 `pilt.tail964787.ts.net` 추가(설정 백업 `~/.paperclip/backups/config.json.before-tailnet-*`), 모드는 `local_trusted` 그대로.
+- **지금: 방식 A 적용.** Tailscale 사설망 주소 `https://<PC의 Tailscale 주소 — 로컬 메모 참조>` (사장님 Tailscale 기기끼리만, 인터넷 비공개·Funnel 꺼짐).
+  - Paperclip 허용 주소에 `<PC의 Tailscale 주소 — 로컬 메모 참조>` 추가(설정 백업 `~/.paperclip/backups/config.json.before-tailnet-*`), 모드는 `local_trusted` 그대로.
   - PC 전원 연결 시 절전·최대 절전 끔(이전 값: 60분).
   - 점검: `node scripts/check-remote-access.mjs` / `--power`.
 - ~~나중: 방식 B~~ → **취소 (2026-09-27).** Tailscale로 어디서든 접속되므로 서버 이사는 하지 않는다. 기록 `docs/online-migration-runbook-b.md`는 참고용으로 보존.

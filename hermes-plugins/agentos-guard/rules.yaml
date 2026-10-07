@@ -288,8 +288,10 @@ roles:
     terminal:
       shell_escape_guard: false
       allow: ['.*']
+      # P-6: remote shells / containers judged on the program that would run (quotes, path, .exe, case normalised;
+      # bash -c / wsl … / $(…) included), never on words inside quoted text.
+      deny_programs: [ssh, scp, sftp, rsync, plink, pscp, docker, docker-compose, podman, kubectl]
       deny_raw:
-        - '(^|[\s;&|(`"''/\\])(ssh|scp|sftp|rsync|plink|pscp|docker|docker-compose|podman|kubectl)(\.exe)?(\s|$|["''])'   # W6-X1: /usr/bin/ssh, C:\…\ssh.exe too
         - '^(?=.*(-X\s*POST\b|--request\s+POST\b|\s-d\b|\s--data)).*/api/companies/[^/\s"'']+/(agent-hires|agents)\b(?!/)'
         - '/api/approvals/[^/\s"'']+/(approve|request-revision)\b'
         - '^(?=.*(-X\s*(PATCH|PUT|POST)\b|--request\s+(PATCH|PUT|POST)\b)).*/api/agents/[^/\s"'']+/permissions\b'

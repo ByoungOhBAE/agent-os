@@ -16,7 +16,7 @@
 //   verify   [all|<agentId>]              -> VERIFY_ALL_OK
 //   leak-scan                             -> LEAK_SCAN_OK
 //   check-chief                           -> CHIEF_HERMES_DEFAULT_OK
-//   guard    --agent <id>|--profile <p> --role chief|reviewer|worker [--mode warn|block] | --status   install agentos-guard plugin
+//   guard    --agent <id>|--profile <p> --role chief|reviewer|worker|basic [--mode warn|block] | --status   install agentos-guard plugin
 import { createHash, randomBytes } from "node:crypto";
 import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, readlinkSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -35,7 +35,8 @@ const COMPANY = process.env.PAPERCLIP_COMPANY_ID || "db6f5310-0afc-4b67-8ca2-805
 const TEMPLATE = process.env.HERMES_BOT_TEMPLATE || "ub514-uc790-uc774-ub108"; // 디자이너: opus-5-5 subscription, memory on
 const WSL_INSTANCE = "/home/tahar/.paperclip/instances/default";
 const WSL_SKILLS = "/home/tahar/.paperclip/cli/current/node_modules/@paperclipai/server/skills";
-const PAPERCLIP_SKILLS = ["paperclip", "paperclip-create-agent", "paperclip-converting-plans-to-tasks"];
+// paperclip-create-agent is NOT given to new bots: only 비서실장 hires (hermes-bots.mjs hire + board approval, T13).
+const PAPERCLIP_SKILLS = ["paperclip", "paperclip-converting-plans-to-tasks"];
 const PASSTHROUGH = ["PAPERCLIP_API_KEY", "PAPERCLIP_API_URL", "PAPERCLIP_COMPANY_ID", "PAPERCLIP_AGENT_ID"];
 const PREFIX = "pc-";
 const DEFAULT_REASONING = "high"; // new bots; change per bot in 통합 관제 or `node scripts/bot-reasoning.mjs set`
@@ -213,7 +214,7 @@ function setEnv(profile, pairs) {
   }
   writeFileSync(f, text);
 }
-function createProfile(profile, description) {
+function createProfile(profile, description, { gatewayKeyStep = true } = {}) {
   if (existsSync(profileHome(profile))) fail(`profile exists: ${profile}`);
   const step = (label, run) => {
     try { run(); } catch (e) {
@@ -233,7 +234,19 @@ function createProfile(profile, description) {
     hermes(["-p", profile, "config", "set", "agent.reasoning_effort", DEFAULT_REASONING]);
     if (!existsSync(path.join(profileHome(profile), "config.yaml"))) throw new Error("config.yaml missing after create");
   });
-  step("gateway key", () => {
+  // T64: the memory plugin is installed NOW, never lazily on the bot's first run — a lazy install inside the running
+  // gateway froze every bot (2026-10-07, 23 min). Runtime installs stay off for the profile.
+  step("memory plugin", () => {
+    hermes(["-p", profile, "config", "set", "security.allow_lazy_installs", "false"]);
+    if (!existsSync(path.join(profileHome(profile), "plugins", "omh"))) hermes(["-p", profile, "plugins", "install", "omh"]);
+    if (!existsSync(path.join(profileHome(profile), "plugins", "omh"))) throw new Error("omh plugin missing after install");
+    // W2-3: a multiplexed gateway refuses to bind omh without the profile's own store ("OMH home is not configured
+    // for this profile"), and the provider reports unavailable until that folder exists. Never share ~/.omh.
+    const store = path.join(profileHome(profile), "omh").replace(/\\/g, "/");
+    mkdirSync(store, { recursive: true });
+    hermes(["-p", profile, "config", "set", "plugins.entries.omh.settings.omh_home", store]);
+  });
+  if (gatewayKeyStep) step("gateway key", () => {
     execFileSync(process.execPath, [path.join(REPO, "scripts", "provision-hermes-profile-keys.mjs"), "--profiles", profile, "--apply"],
       { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60000, env: ROOT_ENV });
     gatewayKey(profile);
@@ -335,6 +348,22 @@ if (cmd === "baseline") {
     const r = await gw("GET", p, keyOf);
     console.log(`key=${keyOf === "default" ? "default" : "profile"} ${r.status} ${p}`);
   }
+} else if (cmd === "selftest-create") {
+  // W2-4: prove a new bot profile gets its memory plugin at creation (never lazily at first run), then delete it.
+  // No Paperclip bot, no gateway key; the throwaway profile is removed at the end (RETIRE_PENDING if the gateway locks it).
+  const profile = `pc-selftest-${randomBytes(3).toString("hex")}`;
+  createProfile(profile, "selftest (W2-4) — deleted right after", { gatewayKeyStep: false });
+  const get = (k) => hermes(["-p", profile, "config", "get", k]).trim().split(/\r?\n/).pop().trim();
+  const res = { profile, omhPlugin: existsSync(path.join(profileHome(profile), "plugins", "omh")),
+    lazyInstalls: get("security.allow_lazy_installs"), omhHome: get("plugins.entries.omh.settings.omh_home"),
+    omhStore: existsSync(path.join(profileHome(profile), "omh")) };
+  let deleted = "yes";
+  try { hermes(["profile", "delete", profile, "-y"]); } catch { deleted = "no"; }
+  if (existsSync(profileHome(profile))) deleted = "RETIRE_PENDING (locked; restart the gateway, then hermes profile delete)";
+  console.log(JSON.stringify({ ...res, deleted }));
+  const ok = res.omhPlugin && res.lazyInstalls === "false" && res.omhHome.endsWith(`${profile}/omh`) && res.omhStore;
+  console.log(ok ? "SELFTEST_CREATE_OK" : "SELFTEST_CREATE_FAIL");
+  if (!ok) process.exitCode = 1;
 } else if (cmd === "hire") {
   const name = arg("--name"), title = arg("--title") || name, reportsTo = arg("--reports-to"), roleFile = arg("--role-file");
   if (!name || !/^[^\s_]+_[^\s_]+$/.test(name)) fail("--name 은 부서명_담당업무 형식(밑줄 1개, 띄어쓰기 없음)");
@@ -576,7 +605,7 @@ if (cmd === "baseline") {
       console.log(`${p} role=${r} mode=${m} ${hashOf(dir) === hashOf(src) ? "up-to-date" : "STALE"}`);
     }
   } else {
-    if (!["chief", "reviewer", "worker"].includes(role)) fail("--role chief|reviewer|worker 필요");
+    if (!["chief", "reviewer", "worker", "basic"].includes(role)) fail("--role chief|reviewer|worker|basic 필요");
     if (!["warn", "block"].includes(mode)) fail("--mode warn|block");
     let targets;
     if (process.argv.includes("--all-workers")) {

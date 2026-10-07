@@ -76,9 +76,9 @@
       "en": "Paperclip runs expose PAPERCLIP_API_URL and PAPERCLIP_API_KEY but no PAPERCLIP_RUN_ID; use the Run ID from the wake message for X-Paperclip-Run-Id. Send Korean bodies with Python urllib (json.dumps ensure_ascii=False, UTF-8) to avoid broken text.",
       "source": "claude-subscription"
     },
-    "34397ad17920": {
-      "ko": "이 회사에서는 agent-hires가 승인 단계 없이 즉시 봇을 생성합니다. Org-chart apply에는 expectedVersion이 필요하며, 작업마다 1씩 증가합니다.",
-      "en": "In this company, agent-hires creates a bot immediately without an approval step. Org-chart apply needs expectedVersion, which rises by 1 per operation.",
+    "8cd01662563c": {
+      "ko": "새 봇은 사장님 승인이 필요합니다: agent-hires는 사장님이 Paperclip에서 승인할 대기 채용만 만들고, 채용은 비서실장만(scripts/hermes-bots.mjs hire) 합니다. Org-chart apply에는 expectedVersion이 필요하며, 작업마다 1씩 증가합니다.",
+      "en": "New bots need board approval: agent-hires only creates a pending hire that the boss approves in Paperclip, and only 비서실장 hires (via scripts/hermes-bots.mjs hire). Org-chart apply needs expectedVersion, which rises by 1 per operation.",
       "source": "claude-subscription"
     },
     "9c3a9a49ec98": {
@@ -116,9 +116,9 @@
       "en": "Hermes /journey memory cards are translated to Korean only in the display layer (learning_graph.py view); never change the source text, IDs, cursor, or edit behaviour.",
       "source": "claude-subscription"
     },
-    "dfbf35cbbad8": {
-      "ko": "academy-homepage(Next.js)는 NAS에서 docker-compose로 실행됩니다: app(포트 3080, 도메인 kmastercook.com) + cloudflared 터널 'academy' + 백업 컨테이너. PC에서는 절대 compose up을 실행하지 마세요(프로덕션 터널을 가로채게 됩니다). 배포 절차: PC에서 이미지를 빌드(2GB NAS는 빌드 불가) -> SSH로 docker save/load -> academy 서비스만 재생성. 프로젝트 경로 /volume1/docker/academy; docker 바이너리 /var/packages/ContainerManager/target/usr/bin/docker; 비밀번호 없는 sudo는 그 바이너리에만 적용됩니다. ./data(db.sqlite, uploads, originals)를 보존하고, 배포 전후로 행 수와 파일 수를 비교하세요. 배포 전에 migrate deploy와 seed를 검토하세요. SSH 자격증명: nas-docker-deployment 스킬의 references/academy-ssh.md(DPAPI로 암호화됨; 복호화된 값은 절대 저장하거나 출력하지 마세요).",
-      "en": "academy-homepage (Next.js) runs on the NAS with docker-compose: app (port 3080, domain kmastercook.com) + cloudflared tunnel 'academy' + backup container. Never run compose up on the PC (it would hijack the production tunnel). Deploy: build the image on the PC (the 2 GB NAS cannot build) -> docker save/load over SSH -> recreate only the academy service. Project /volume1/docker/academy; docker binary /var/packages/ContainerManager/target/usr/bin/docker; passwordless sudo covers only that binary. Preserve ./data (db.sqlite, uploads, originals) and compare row and file counts before and after. Review migrate deploy and seed before deploying. SSH credentials: nas-docker-deployment skill references/academy-ssh.md (DPAPI-encrypted; never store or print decrypted values).",
+    "7d914d185cd4": {
+      "ko": "academy-homepage(Next.js)는 NAS에서 docker-compose로 실행됩니다: app(포트 3080, 도메인 kmastercook.com) + cloudflared 터널 'academy' + 백업 컨테이너. PC에서는 절대 compose up을 실행하지 마세요(프로덕션 터널을 가로채게 됩니다). 배포 절차: PC에서 이미지를 빌드(2GB NAS는 빌드 불가) -> SSH로 docker save/load -> academy 서비스만 재생성. 프로젝트 경로 /volume1/docker/academy; docker 바이너리 /var/packages/ContainerManager/target/usr/bin/docker; 비밀번호 없는 sudo는 그 바이너리에만 적용됩니다. ./data(db.sqlite, uploads, originals)를 보존하고, 배포 전후로 행 수와 파일 수를 비교하세요. 배포 전에 migrate deploy와 seed를 검토하세요. 봇은 NAS에 배포하거나 접속하지 않습니다. 배포는 사장님의 기본 Hermes 세션만 합니다.",
+      "en": "academy-homepage (Next.js) runs on the NAS with docker-compose: app (port 3080, domain kmastercook.com) + cloudflared tunnel 'academy' + backup container. Never run compose up on the PC (it would hijack the production tunnel). Deploy: build the image on the PC (the 2 GB NAS cannot build) -> docker save/load over SSH -> recreate only the academy service. Project /volume1/docker/academy; docker binary /var/packages/ContainerManager/target/usr/bin/docker; passwordless sudo covers only that binary. Preserve ./data (db.sqlite, uploads, originals) and compare row and file counts before and after. Review migrate deploy and seed before deploying. Bots never deploy to or connect to the NAS; deployment is done only by the boss's own Hermes session.",
       "source": "claude-subscription"
     },
     "574bd31bb86f": {

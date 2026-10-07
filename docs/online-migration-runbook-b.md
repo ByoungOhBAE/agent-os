@@ -58,7 +58,7 @@
 10. **전환 + 방식 A 해제(PC)**
     - `tailscale serve reset` (PC의 대시보드 공유 끄기).
     - PC Paperclip 서비스 중지·자동 시작 해제: `paperclipai service stop`, Startup의 `AgentOS-Paperclip.vbs` 제거.
-    - PC `allowedHostnames`에서 `pilt.tail964787.ts.net` 제거.
+    - PC `allowedHostnames`에서 `<PC의 Tailscale 주소 — 로컬 메모 참조>` 제거.
     - PC 절전 설정은 원래대로 되돌려도 됨(현재 A 적용 전 값: 전원 연결 시 60분 뒤 절전).
 
 ## 3. 되돌리기
