@@ -8,6 +8,11 @@
 //   probe    [profile]                    gateway auth: root, /p/<profile>/ with own key / wrong key / unknown
 //   hire     --name 부서_업무 --title T --reports-to <agentId> --role-file <md> --source-issue <id> --projects <k,k>
 //            [--role-doc role-<english>] [--skills a,b]   role doc key defaults to role-<name>; Korean names need --role-doc
+//            --reports-to none = reports to the CEO (independent reviewers); [--guard worker|reviewer]
+//            with board approval on, hire/adopt stop at *_PENDING_APPROVAL; after approval run finish-hire
+//   adopt    --profile <registered non-Paperclip profile> --name 부서_업무 --reports-to <id> --role-file <md> --source-issue <id>
+//            --projects <k> [--role-doc role-<english>] [--guard worker|reviewer] [--skills a,b]   same gate as hire, keeps the profile's memory
+//   finish-hire --agent <agentId>        after the boss approved a pending hire/adopt: key, SOUL, skills, knowledge, guard
 //   convert  --agent <agentId>            switch an existing Paperclip bot to its own Hermes profile (memory migrated)
 //   skills   --agent <agentId> --add a,b   install role skills (Hermes skills, else Paperclip company skill)
 //   sync-soul [all|<agentId>]             regenerate SOUL.md of gateway bots from their Paperclip AGENTS.md
@@ -329,6 +334,58 @@ function guardModeOfWorkers() {
   return modes.includes("block") ? "block" : "warn";
 }
 
+// Second half of hire/adopt, run once the boss approved the hire in Paperclip (agent keys cannot be made before).
+// Everything it needs was stored in metadata by hire/adopt; the role is the agent's Paperclip AGENTS.md.
+async function finishHire(id) {
+  if (!id) fail("--agent <agentId> 가 필요합니다");
+  const a = await agent(id), m = a.metadata ?? {};
+  if (a.status === "pending_approval") fail(`${a.name} 은 아직 채용 승인 대기입니다 — Paperclip에서 사장님이 승인한 뒤 다시 실행하세요`);
+  if (!["idle", "active", "running", "paused"].includes(a.status)) fail(`${a.name} 상태가 ${a.status} 입니다 — 승인된 봇(idle/active/running/paused)만 마무리합니다`);
+  if (m.agentosHireFinishedAt && !process.argv.includes("--force")) fail(`${a.name} 은 이미 마무리됐습니다(${m.agentosHireFinishedAt}). 다시 하려면 --force (새 키가 하나 더 생기니 옛 키는 Paperclip에서 폐기하세요)`);
+  const profile = m.hermesProfile;
+  // the profile must be this agent's own: its gateway URL (fixed at creation) names it, it is never the Hermes root,
+  // and no other live bot points at it — otherwise this would overwrite another bot's key, SOUL and guard
+  if (!profile || profile === "default" || profileHome(profile) === HOME) fail(`metadata.hermesProfile 이 봇 프로필이 아닙니다: ${profile}`);
+  if (profileOf(a) !== profile) fail(`게이트웨이 주소의 프로필(${profileOf(a)})과 metadata.hermesProfile(${profile})이 다릅니다`);
+  if (!existsSync(path.join(profileHome(profile), "config.yaml"))) fail(`프로필 폴더가 없습니다: ${profile}`);
+  for (const s of await agents()) {
+    if (s.id === id) continue;
+    const o = await agent(s.id);
+    if (!o.metadata?.agentosArchived && (profileOf(o) === profile || o.metadata?.hermesProfile === profile)) fail(`${o.name} 가 이미 이 프로필을 씁니다`);
+  }
+  if (!m.agentosHireIssue || !Array.isArray(m.agentosProjects)) fail("hire/adopt 가 남긴 metadata(agentosHireIssue, agentosProjects)가 없습니다");
+  const roleHash = (t) => createHash("sha256").update(String(t).replace(/\r\n/g, "\n").trim()).digest("hex");
+  let role = agentsMd(id);
+  // agent-hires does not materialise instructionsBundle: write the reviewed role document (checked by hireGate) as AGENTS.md
+  if (!role.trim() && m.agentosSourceIssueId && m.agentosRoleDocKey) {
+    const d = await pc("GET", `/issues/${m.agentosSourceIssueId}/documents/${m.agentosRoleDocKey}`);
+    if (d.status !== 200 || !d.json?.body?.trim()) fail(`역할 문서 ${m.agentosRoleDocKey} 를 읽지 못했습니다: HTTP ${d.status}`);
+    // only the exact text the hire gate checked may become the bot's instructions
+    if (!m.agentosRoleSha256 || roleHash(d.json.body) !== m.agentosRoleSha256) fail(`역할 문서 ${m.agentosRoleDocKey} 가 채용 때 검수받은 글과 다릅니다(바뀌었거나 기록 없음) — 다시 검수·채용하세요`);
+    const w = await pc("PUT", `/agents/${id}/instructions-bundle/file`, { path: "AGENTS.md", content: d.json.body.replace(/\r\n/g, "\n") });
+    if (w.status >= 300) fail(`AGENTS.md 쓰기 실패: HTTP ${w.status}`);
+    role = agentsMd(id);
+  }
+  if (!role.trim()) fail(`AGENTS.md empty for ${id}`);
+  if (m.agentosRoleSha256 && roleHash(role) !== m.agentosRoleSha256) fail("AGENTS.md 가 채용 때 검수받은 역할서와 다릅니다 — 다시 검수·채용하세요");
+  await bindPaperclipKey(profile, id);
+  // An adopted profile was not made by createProfile: without env_passthrough its terminal has no PAPERCLIP_API_KEY,
+  // and a key-less localhost call acts as the board (local_trusted). Add the Paperclip vars to whatever it passes today.
+  const have = hermes(["-p", profile, "config", "get", "terminal.env_passthrough"]).split(/\r?\n/).map((l) => l.trim().replace(/^- /, "")).filter((l) => /^[A-Z][A-Z0-9_]*$/.test(l));
+  const want = [...new Set([...have, ...PASSTHROUGH])];
+  if (want.length !== have.length) hermes(["-p", profile, "config", "set", "terminal.env_passthrough", JSON.stringify(want)]);
+  writeFileSync(path.join(profileHome(profile), "SOUL.md"), soulFor(a.name, id, role));
+  const mem = path.join(profileHome(profile), "memories", "MEMORY.md");
+  if (!m.agentosAdopted && !(existsSync(mem) && readFileSync(mem, "utf8").trim())) seedMemory(profile, a.name, id, []);
+  await loadCompanySkills();
+  installSkills(profile, m.agentosSkills ?? []);
+  applyKnowledge(profile, id, a.name, m.agentosProjects);
+  const guardRole = m.agentosGuardRole || "worker";
+  installGuard(profile, guardRole, guardModeOfWorkers());
+  await pc("PATCH", `/agents/${id}`, { metadata: { ...m, agentosHireFinishedAt: new Date().toISOString() } });
+  console.log(`HIRE_FINISHED ${id} ${a.name} profile=${profile} projects=${m.agentosProjects.join(",")} guard=${guardRole}${m.agentosAdopted ? " adopted(memory kept)" : ""} — 게이트웨이 재시작 후 guard 적용`);
+}
+
 const cmd = process.argv[2];
 if (cmd === "baseline") {
   const snap = { at: new Date().toISOString(), gateway: gatewayStart(), memory: memoryHashes() };
@@ -367,6 +424,8 @@ if (cmd === "baseline") {
   if (!ok) process.exitCode = 1;
 } else if (cmd === "hire") {
   const name = arg("--name"), title = arg("--title") || name, reportsTo = arg("--reports-to"), roleFile = arg("--role-file");
+  const hireGuard = arg("--guard") || "worker";
+  if (!["worker", "reviewer"].includes(hireGuard)) fail("--guard 는 worker 또는 reviewer");
   if (!name || !/^[^\s_]+_[^\s_]+$/.test(name)) fail("--name 은 부서명_담당업무 형식(밑줄 1개, 띄어쓰기 없음)");
   if (!reportsTo || !roleFile || !existsSync(roleFile)) fail("--reports-to 와 --role-file(존재하는 파일)이 필요합니다");
   // role document key: --role-doc role-<english>, or role-<name> when the name itself is a valid Paperclip key
@@ -383,21 +442,59 @@ if (cmd === "baseline") {
   console.log(`HIRE_GATE_OK issue=${gate.issue} approval=${gate.approval} roleDoc=${gate.roleDoc} key=${gate.roleKey}`);
   const profile = newProfile();
   createProfile(profile, `Paperclip 봇 ${name}`);
-  const body = { name, role: "general", title, reportsTo, capabilities: title, adapterType: "hermes_gateway", adapterConfig: gatewayConfig(profile),
-    runtimeConfig: { heartbeat: { enabled: false, wakeOnDemand: true } }, metadata: { hermesProfile: profile },
+  // Paperclip freezes a pending-approval agent's config, so everything finish-hire needs goes in at creation
+  const meta = { hermesProfile: profile, agentosHireIssue: gate.issue, agentosHireApproval: gate.approval, agentosSourceIssueId: arg("--source-issue"), agentosRoleDocKey: roleDoc.key, agentosRoleSha256: createHash("sha256").update(role.replace(/\r\n/g, "\n").trim()).digest("hex"), agentosProjects: projects,
+    agentosGuardRole: hireGuard, agentosSkills: (arg("--skills") || "").split(",").map((x) => x.trim()).filter(Boolean) };
+  const body = { name, role: "general", title, reportsTo: reportsTo === "none" ? null : reportsTo, capabilities: title, adapterType: "hermes_gateway", adapterConfig: gatewayConfig(profile),
+    runtimeConfig: { heartbeat: { enabled: false, wakeOnDemand: true } }, metadata: meta,
     instructionsBundle: { files: { "AGENTS.md": role } }, ...(arg("--source-issue") ? { sourceIssueId: arg("--source-issue") } : {}) };
   const r = await pc("POST", `/companies/${COMPANY}/agent-hires`, body);
   const created = r.json?.agent ?? r.json;
   if (r.status >= 300 || !created?.id) fail(`agent-hires HTTP ${r.status}: ${String(r.text).slice(0, 300)}`);
-  await bindPaperclipKey(profile, created.id);
-  writeFileSync(path.join(profileHome(profile), "SOUL.md"), soulFor(name, created.id, role));
-  seedMemory(profile, name, created.id, []);
-  await loadCompanySkills();
-  installSkills(profile, (arg("--skills") || "").split(",").map((s) => s.trim()).filter(Boolean));
-  applyKnowledge(profile, created.id, name, projects);
-  await pc("PATCH", `/agents/${created.id}`, { metadata: { ...(created.metadata ?? {}), hermesProfile: profile, agentosHireIssue: gate.issue, agentosHireApproval: gate.approval } });
-  installGuard(profile, "worker", guardModeOfWorkers());
-  console.log(`HIRED ${created.id} ${name} profile=${profile} projects=${projects.join(",")} guard=worker/${guardModeOfWorkers()} — 게이트웨이 재시작 후 guard 적용`);
+  if (created.status === "pending_approval") { console.log(`HIRE_PENDING_APPROVAL ${created.id} ${name} profile=${profile} — 사장님 채용 승인 뒤: node scripts/hermes-bots.mjs finish-hire --agent ${created.id}`); process.exit(0); }
+  await finishHire(created.id);
+} else if (cmd === "adopt") {
+  // Bring an existing registered Hermes bot that works outside Paperclip (e.g. the rimbus group-chat bots) into
+  // Paperclip as a hermes_gateway agent on its OWN profile: same hire gate and board approval as `hire`, but no new
+  // profile, and its memory/skills are kept (only SOUL.md is regenerated from the reviewed role; the old one is backed up).
+  const profile = arg("--profile") ?? "", name = arg("--name"), title = arg("--title") || name, reportsTo = arg("--reports-to"), roleFile = arg("--role-file");
+  const guardRole = arg("--guard") || "worker";
+  if (!["worker", "reviewer"].includes(guardRole)) fail("--guard 는 worker 또는 reviewer");
+  if (!name || !/^[^\s_]+_[^\s_]+$/.test(name)) fail("--name 은 부서명_담당업무 형식(밑줄 1개, 띄어쓰기 없음)");
+  if (!reportsTo || !roleFile || !existsSync(roleFile)) fail("--reports-to 와 --role-file(존재하는 파일)이 필요합니다");
+  const reg = JSON.parse(readFileSync(path.join(REPO, "knowledge", "data", "registry.json"), "utf8"));
+  const regBot = reg.bots.find((b) => b.profile === profile);
+  if (!regBot) fail(`편입 거부: registry.json bots 에 없는 프로필입니다 — ${profile || "(없음)"}`);
+  if (regBot.agentId) fail(`편입 거부: 이미 Paperclip 봇(${regBot.agentId})에 연결된 프로필입니다`);
+  if (!existsSync(path.join(profileHome(profile), "config.yaml")) || profileHome(profile) === HOME) fail(`편입 거부: 프로필 폴더가 없습니다 — ${profile}`);
+  for (const s of await agents()) { const a = await agent(s.id); if (profileOf(a) === profile || a.metadata?.hermesProfile === profile) fail(`편입 거부: ${a.name} 가 이미 이 프로필을 씁니다`); }
+  if ((await agents()).some((a) => a.name === name)) fail(`같은 이름의 봇이 이미 있습니다: ${name}`);
+  const roleDocArg = process.argv.includes("--role-doc") ? (arg("--role-doc") ?? "") : undefined;
+  const roleDoc = resolveRoleDocKey(name, roleDocArg);
+  if (!roleDoc.ok) fail(`편입 거부: ${roleDoc.error}`);
+  const projects = projectsArg();
+  if (projects.some((k) => !reg.projects.some((p) => p.key === k))) fail(`알 수 없는 프로젝트: ${projects.join(",")}`);
+  const role = readFileSync(roleFile, "utf8");
+  const gate = await hireGate(arg("--source-issue"), name, roleDoc.key, role);
+  console.log(`HIRE_GATE_OK issue=${gate.issue} approval=${gate.approval} roleDoc=${gate.roleDoc} key=${gate.roleKey}`);
+  const home = profileHome(profile), stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const bdir = path.join(REPO, ".unlazy", "hermes-bots", "backups", `adopt-${profile}-${stamp}`);
+  mkdirSync(bdir, { recursive: true });
+  for (const f of ["SOUL.md", "config.yaml", path.join("memories", "MEMORY.md"), path.join("memories", "USER.md")])
+    if (existsSync(path.join(home, f))) cpSync(path.join(home, f), path.join(bdir, f.replace(/[\\/]/g, "_")));
+  // Paperclip freezes a pending-approval agent's config, so everything finish-hire needs goes in at creation
+  const meta = { hermesProfile: profile, agentosHireIssue: gate.issue, agentosHireApproval: gate.approval, agentosSourceIssueId: arg("--source-issue"), agentosRoleDocKey: roleDoc.key, agentosRoleSha256: createHash("sha256").update(role.replace(/\r\n/g, "\n").trim()).digest("hex"), agentosAdopted: true, agentosAdoptBackup: bdir,
+    agentosProjects: projects, agentosGuardRole: guardRole, agentosSkills: (arg("--skills") || "").split(",").map((x) => x.trim()).filter(Boolean) };
+  const body = { name, role: "general", title, reportsTo: reportsTo === "none" ? null : reportsTo, capabilities: title, adapterType: "hermes_gateway", adapterConfig: gatewayConfig(profile),
+    runtimeConfig: { heartbeat: { enabled: false, wakeOnDemand: true } }, metadata: meta,
+    instructionsBundle: { files: { "AGENTS.md": role } }, sourceIssueId: arg("--source-issue") };
+  const r = await pc("POST", `/companies/${COMPANY}/agent-hires`, body);
+  const created = r.json?.agent ?? r.json;
+  if (r.status >= 300 || !created?.id) fail(`agent-hires HTTP ${r.status}: ${String(r.text).slice(0, 300)}`);
+  if (created.status === "pending_approval") { console.log(`ADOPT_PENDING_APPROVAL ${created.id} ${name} profile=${profile} backup=${bdir} — 사장님 채용 승인 뒤: node scripts/hermes-bots.mjs finish-hire --agent ${created.id}`); process.exit(0); }
+  await finishHire(created.id);
+} else if (cmd === "finish-hire") {
+  await finishHire(arg("--agent"));
 } else if (cmd === "convert") {
   const id = arg("--agent");
   const projects = projectsArg();
@@ -480,7 +577,8 @@ if (cmd === "baseline") {
   } else check(/^pc-[0-9a-f]{8}$/.test(profile), `이름이 봇 프로필 형식(pc-8자리) — ${profile || "(없음)"}`);
   check(existsSync(home) && home !== HOME, "프로필 폴더가 있음");
   const owners = [];
-  for (const s of await agents()) { const a = await agent(s.id); if (profileOf(a) === profile) owners.push(a); }
+  // a bot counts as the owner by its gateway URL or by metadata.hermesProfile (set by hire/adopt/convert)
+  for (const s of await agents()) { const a = await agent(s.id); if (profileOf(a) === profile || a.metadata?.hermesProfile === profile) owners.push(a); }
   const own = owners.map((a) => `${a.name}(${a.status}${a.metadata?.agentosArchived ? ",보관" : ""})`).join(", ") || "없음";
   check(owners.every((a) => !/^(비서실장|검수)/.test(a.name)), `비서실장·검수 봇이 아님 — 연결된 봇: ${own}`);
   check(owners.every((a) => a.status === "paused" && a.metadata?.agentosArchived), "연결된 봇이 없거나, 멈춤+보관 상태");
@@ -540,6 +638,7 @@ if (cmd === "baseline") {
       if (!existsSync(home)) probs.push("profile missing");
       else {
         if (!/memory_enabled:\s*true/.test(readFileSync(path.join(home, "config.yaml"), "utf8"))) probs.push("memory off");
+        if (!/env_passthrough:(?:\r?\n\s+-[^\n]*)*?\r?\n\s+- PAPERCLIP_API_KEY\b/.test((readFileSync(path.join(home, "config.yaml"), "utf8").match(/^terminal:[\s\S]*?(?=^\S)/m) ?? [""])[0])) probs.push("PAPERCLIP_API_KEY not passed to terminal (calls would act as the board)");
         if (a.status !== "paused") {
           const cfgTxt = readFileSync(path.join(home, "config.yaml"), "utf8");
           if (!existsSync(path.join(home, "plugins", "agentos-guard", "__init__.py")) || !/agentos-guard/.test(cfgTxt)) probs.push("guard not installed");

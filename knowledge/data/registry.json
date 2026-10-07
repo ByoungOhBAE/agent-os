@@ -20,7 +20,7 @@
       "key": "rimbus",
       "name": "Mirror Ledger (Limbus Company)",
       "nameKo": "미러 레저(림버스)",
-      "paperclipProjectId": null,
+      "paperclipProjectId": "dee03ba0-bbc9-4aac-a067-f2993ff6ba73",
       "workspace": "C:/Users/tahar/orca/workspaces/rimbus company project"
     }
   ],
@@ -78,35 +78,39 @@
     },
     {
       "profile": "uacc4-ud68d-uc218-ub9bd-uac00",
-      "name": "계획수립가",
+      "name": "림버스_계획수립가",
       "room": "림버스 컴퍼니 헬퍼 개발방",
       "projects": [
         "rimbus"
-      ]
+      ],
+      "agentId": "4f00ceb9-3621-4353-8bff-1ab4e2c5c89e"
     },
     {
       "profile": "uac1c-ubc1c-uc790",
-      "name": "개발자",
+      "name": "림버스_개발자",
       "room": "림버스 컴퍼니 헬퍼 개발방",
       "projects": [
         "rimbus"
-      ]
+      ],
+      "agentId": "8a8a9d80-69a2-4b31-ae8f-3f9ffc74f52c"
     },
     {
       "profile": "uac80-uc218---uac80-ud1a0-uc790",
-      "name": "검수,검토자",
+      "name": "림버스_검수검토자",
       "room": "림버스 컴퍼니 헬퍼 개발방",
       "projects": [
         "rimbus"
-      ]
+      ],
+      "agentId": "8e93949d-6d85-4611-98c2-338a2a9ac651"
     },
     {
       "profile": "ub514-uc790-uc774-ub108",
-      "name": "디자이너",
+      "name": "림버스_디자이너",
       "room": "림버스 컴퍼니 헬퍼 개발방",
       "projects": [
         "rimbus"
-      ]
+      ],
+      "agentId": "4d77df0b-fcb5-4adf-a2d7-9fbdf8c1e36d"
     },
     {
       "profile": "pc-a2d59386",
@@ -132,6 +136,16 @@
       "name": "콘텐츠_당근글",
       "projects": [
         "academy"
+      ]
+    },
+    {
+      "profile": "pc-d6185797",
+      "agentId": "c04e5e2d-107d-4147-bb97-537981b88b6e",
+      "name": "검수_예비검수",
+      "projects": [
+        "agent-os",
+        "academy",
+        "rimbus"
       ]
     }
   ],
