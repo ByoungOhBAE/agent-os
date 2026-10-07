@@ -36,7 +36,10 @@ def main() -> int:
     flagged, cleared, changed = [], [], Counter()
     for c in calls:
         home = profiles / c["p"] if profiles else None
-        a = old.Guard(old_rules, c["role"], "block").evaluate(c["tool"], c["args"], "")
+        try:  # same profile home for both sides, so home-dependent rules (own skills, secret values) compare fairly
+            a = old.Guard(old_rules, c["role"], "block", None, home).evaluate(c["tool"], c["args"], "")
+        except TypeError:  # very old baselines take no home
+            a = old.Guard(old_rules, c["role"], "block").evaluate(c["tool"], c["args"], "")
         b = new.Guard(new_rules, c["role"], "block", None, home).evaluate(c["tool"], c["args"], "")
         if a is None and b is not None:
             flagged.append((c, b))

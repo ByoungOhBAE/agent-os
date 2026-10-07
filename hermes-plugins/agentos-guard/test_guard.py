@@ -2,6 +2,7 @@
   <hermes venv>/python -m unittest hermes-plugins/agentos-guard/test_guard.py -v
 """
 import importlib.util
+import os
 import sys
 import tempfile
 import unittest
@@ -557,6 +558,228 @@ class WorkerHardStops(unittest.TestCase):
         # chief/reviewer keep their own rules — the worker hardening is opt-in per role
         c = mod.Guard(RULES, "chief", "block", None, self.home)
         self.assertIsNone(c.evaluate("terminal", {"command": f"curl -s -X PATCH \"$PAPERCLIP_API_URL/api/issues/HER-38\" -d '{BAD_DONE}'"}))
+
+class SecretReadAllRoles(unittest.TestCase):
+    """T72 (2026-10 audit): secret-file reads are refused for chief, reviewer and worker alike, including renamed
+    copies, globs, 8.3 short names, symlinks and WSL/MSYS path spellings. Every case has a passing counterpart."""
+
+    DUMMY = "DUMMY_NOT_A_SECRET_" + "7" * 24
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        self.home = root / "hermes" / "profiles" / "pc-me"
+        (self.home / "cache" / "scratch").mkdir(parents=True)
+        (self.home / ".env").write_text(f"PAPERCLIP_API_KEY={self.DUMMY}\nPAPERCLIP_API_URL=http://127.0.0.1:3100\n", encoding="utf-8")
+        self.work = root / "work"
+        (self.work / "docs").mkdir(parents=True)
+        (self.work / ".env").write_text(f"X_TOKEN={self.DUMMY}\n", encoding="utf-8")
+        (self.work / "auth.json").write_text("{}", encoding="utf-8")
+        (self.work / "notes.txt").write_text(f"copied: {self.DUMMY}\n", encoding="utf-8")   # renamed copy of a secret
+        (self.work / "README.md").write_text("hello", encoding="utf-8")
+        (self.work / ".env.example").write_text("X_TOKEN=\n", encoding="utf-8")
+        for i in range(25):
+            (self.work / "docs" / f"p{i}.md").write_text("doc", encoding="utf-8")
+        self.symlink = None
+        try:
+            (self.work / "link.txt").symlink_to(self.work / ".env")
+            self.symlink = self.work / "link.txt"
+        except OSError:  # no symlink privilege on this Windows account: the symlink case is skipped
+            pass
+        self.g = {r: mod.Guard(RULES, r, "block", None, self.home) for r in ("chief", "reviewer", "worker")}
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def t(self, role, cmd):
+        return self.g[role].evaluate("terminal", {"command": cmd, "workdir": self.work.as_posix()})
+
+    def r(self, role, path):
+        return self.g[role].evaluate("read_file", {"path": path})
+
+    def blocked_shapes(self):
+        w = self.work.as_posix()
+        mnt = "/mnt/" + w[0].lower() + w[2:] if w[1] == ":" else w
+        msys = "/" + w[0].lower() + w[2:] if w[1] == ":" else w
+        win = str(self.work).replace("/", "\\")
+        shapes = [
+            "cat .env", "cat .ENV", "cat ./.Env", "grep TOKEN .env", "head -c 40 .env",
+            "cat .e*", "cat ./.e?v", "cat .[e]nv",                        # globs
+            "cat notes.txt", f"cat {w}/notes.txt", "cat note*.txt",       # renamed copy (content)
+            "cat ENV~1", "type AUTH~1.JSO",                               # 8.3 short names
+            f"cat {mnt}/.env", f"cat {msys}/notes.txt", f"type {win}\\.env",   # path spellings
+            "cat auth.json",
+        ]
+        if self.symlink:
+            shapes.append("cat link.txt")
+        return shapes
+
+    def test_terminal_reads_blocked_every_role(self):
+        for role in ("chief", "reviewer", "worker"):
+            for c in self.blocked_shapes():
+                self.assertIsNotNone(self.t(role, c), f"{role}: {c}")
+
+    def test_read_tool_blocked_every_role(self):
+        w = self.work.as_posix()
+        for role in ("chief", "reviewer", "worker"):
+            for p in (f"{w}/.env", f"{w}/.ENV", f"{w}/notes.txt", str(self.work / "notes.txt"), f"{w}/auth.json",
+                      f"{self.home.as_posix()}/.env"):
+                self.assertIsNotNone(self.r(role, p), f"{role}: {p}")
+
+    def test_copy_and_rename_blocked(self):
+        for role in ("reviewer", "worker"):
+            for c in ("cp .env x.txt", "mv .env x.txt", "copy .env x.txt", "ren .env x.txt", "ln -s .env x.txt"):
+                self.assertIsNotNone(self.t(role, c), f"{role}: {c}")
+
+    def test_normal_reads_pass(self):
+        w = self.work.as_posix()
+        for role in ("chief", "reviewer", "worker"):
+            for c in ("cat README.md", "cat .env.example", "ls", "cat docs/*.md", "grep -n hello README.md"):
+                self.assertIsNone(self.t(role, c), f"{role}: {c}")
+            self.assertIsNone(self.r(role, f"{w}/README.md"), role)
+            self.assertIsNone(self.r(role, f"{w}/docs/p1.md"), role)
+
+    def test_glob_json_needs_credential_keys(self):
+        loc = self.work / "locales" / "ko"
+        loc.mkdir(parents=True)
+        (loc / "auth.json").write_text('{"login": "로그인", "password": "비밀번호", "token": "인증 토큰을 입력하세요"}', encoding="utf-8")
+        (loc / "common.json").write_text('{"ok": "확인"}', encoding="utf-8")
+        for role in ("chief", "reviewer", "worker"):
+            self.assertIsNone(self.t(role, "cat locales/ko/*.json"), role)
+        (self.work / "auth.json").write_text('{"access_token": "DUMMY_NOT_A_SECRET_0000000000"}', encoding="utf-8")
+        for role in ("chief", "reviewer", "worker"):
+            self.assertIsNotNone(self.t(role, "cat *.json"), role)
+
+    def test_chief_runs_repo_scripts_that_manage_env(self):
+        script = self.work / "bots.mjs"
+        script.write_text("const f = path.join(home, '.env'); // writes the bot key", encoding="utf-8")
+        self.assertIsNone(self.t("reviewer", f"node {script.as_posix()} status"))
+        self.assertIsNotNone(self.t("worker", f"node {script.as_posix()} status"))
+
+    def test_basic_role_only_hard_stops(self):
+        b = mod.Guard(RULES, "basic", "block", None, self.home)
+        t = lambda c: b.evaluate("terminal", {"command": c, "workdir": self.work.as_posix()})
+        for c in ("cat .env", "cat notes.txt", "cat .e*", "ssh nas", "docker ps", 'bash -c "ssh nas uptime"',
+                  "wsl -d Ubuntu -- docker ps", "scp a nas:/x", "plink.exe nas"):
+            self.assertIsNotNone(t(c), c)
+        self.assertIsNotNone(b.evaluate("read_file", {"path": (self.work / "notes.txt").as_posix()}))
+        for c in ("rm -rf build", "bash -c 'npm test'", "wsl -d Ubuntu -- bash run.sh", "rm data/test.db", "env | sort",
+                  "git push origin main", "cat README.md", "hermes config set x y", "ls ~/projects/sshtools-notes"):
+            self.assertIsNone(t(c), c)
+
+    def test_board_only_urls_refused_for_every_bot(self):
+        # local_trusted Paperclip treats a key-less request as the boss: no bot may hire/approve/grant from a terminal
+        bad = ['curl -s -X POST "$PAPERCLIP_API_URL/api/companies/abc/agent-hires" -d \'{"name":"x"}\'',
+               "curl -s -X POST http://127.0.0.1:3100/api/approvals/123/approve",
+               'curl -s -X PATCH "$PAPERCLIP_API_URL/api/agents/abc/permissions" -d \'{"canCreateAgents":true}\'',
+               "curl -s -X PATCH http://127.0.0.1:3100/api/companies/db6f -d '{\"requireBoardApprovalForNewAgents\":false}'"]
+        ok = ['curl -s "$PAPERCLIP_API_URL/api/companies/abc/agents"',
+              'curl -s -X POST "$PAPERCLIP_API_URL/api/issues/x/comments" -d \'{"body":"agent-hires 는 비서실장만 씁니다"}\'']
+        basic = mod.Guard(RULES, "basic", "block", None, self.home)
+        for role in ("chief", "reviewer", "worker", "basic"):
+            g = basic if role == "basic" else self.g[role]
+            for c in bad:
+                self.assertIsNotNone(g.evaluate("terminal", {"command": c}), f"{role}: {c}")
+        for role in ("reviewer", "worker", "basic"):
+            g = basic if role == "basic" else self.g[role]
+            for c in ok:
+                self.assertIsNone(g.evaluate("terminal", {"command": c}), f"{role}: {c}")
+
+    def test_worker_remote_shell_and_containers_blocked(self):
+        for c in ("ssh nas", "scp a.tar user@nas:/tmp", "rsync -a dist/ nas:/x", "docker ps", "docker-compose up -d",
+                  "sftp nas", "plink nas"):
+            self.assertIsNotNone(self.t("worker", c), c)
+        for c in ('git commit -m "docker 설정 문서 정리"', "ls ~/projects", "npm test"):
+            self.assertIsNone(self.t("worker", c), c)
+
+
+class ReadRootsAllRoles(unittest.TestCase):
+    """W4-X1 / W6-X2 (2026-10-07 follow-up): read tools judge the real location against an allow list of roots, and
+    the NAS deployment notes in a Hermes skills folder are protected files for every bot role."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        self.hermes = root / "hermes"
+        self.home = self.hermes / "profiles" / "pc-me"
+        (self.home / "cache" / "scratch").mkdir(parents=True)
+        (self.home / "notes.md").write_text("bot notes", encoding="utf-8")
+        nas = self.hermes / "skills" / "devops" / "nas-docker-deployment"
+        (nas / "references").mkdir(parents=True)
+        (nas / "SKILL.md").write_text("deploy steps", encoding="utf-8")
+        (nas / "references" / "deploy-notes.md").write_text("DUMMY_NOT_A_SECRET", encoding="utf-8")
+        self.nas = nas
+        self.g = {r: mod.Guard(RULES, r, "block", None, self.home) for r in ("chief", "reviewer", "worker")}
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_reads_inside_roots_pass(self):
+        for role, g in self.g.items():
+            for p in (self.home / "notes.md", self.nas / "SKILL.md"):
+                self.assertIsNone(g.evaluate("read_file", {"path": p.as_posix()}), f"{role}: {p}")
+
+    def test_nas_reference_notes_refused(self):
+        p = (self.nas / "references" / "deploy-notes.md").as_posix()
+        for role, g in self.g.items():
+            self.assertIsNotNone(g.evaluate("read_file", {"path": p}), role)
+
+    def test_location_outside_roots_refused(self):
+        win = Path(os.environ.get("SystemRoot", "C:/Windows")) / "win.ini"
+        if not win.exists():
+            self.skipTest("no file outside the read roots on this machine")
+        for role, g in self.g.items():
+            self.assertIsNotNone(g.evaluate("read_file", {"path": win.as_posix()}), role)
+
+
+class WorkerProgramAllowList(unittest.TestCase):
+    """W6-X1 (2026-10-07 follow-up): a worker's terminal may start only programs on roles.worker.terminal.allow_programs.
+    Names are compared after quotes, folder, .exe and case are normalised. Everyday shapes from real sessions pass."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        self.home = root / "hermes" / "profiles" / "pc-me"
+        (self.home / "cache" / "scratch").mkdir(parents=True)
+        self.work = root / "work"
+        (self.work / "env" / "tools").mkdir(parents=True)
+        (self.work / "env" / "setenv.sh").write_text('export VPY="$AWENV/venv/Scripts/python.exe"\n', encoding="utf-8")
+        (self.work / "env" / "tools" / "runlog.sh").write_text('runlog() {\n  "$@"\n}\nprogress() {\n  echo "$@"\n}\n',
+                                                                encoding="utf-8")
+        self.w = mod.Guard(RULES, "worker", "block", None, self.home)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def t(self, cmd):
+        return self.w.evaluate("terminal", {"command": cmd, "workdir": self.work.as_posix()})
+
+    def test_everyday_commands_pass(self):
+        for c in ("git status", "npm test 2>&1 | tail -5", "npx tsc --noEmit", "node scripts/build.mjs",
+                  'git commit -m "docker 설정 문서 정리"', "python -m unittest", 'cd "docs" 2>/dev/null && ls',
+                  '"C:/Program Files/nodejs/node.exe" -v', "NODE.EXE -v", "command -v ffprobe || echo none",
+                  'for f in *.md; do n=$(basename "$f" .md); echo "$n"; done', "(rmdir old 2>/dev/null || true)",
+                  'curl -s "$PAPERCLIP_API_URL/api/health" \\\n  -H "Accept: application/json"',
+                  "# 확인용 메모\nls", "wsl -l -v", 'FP="${FFPROBE:-ffprobe}"; "$FP" -v error x.mp4',
+                  'grep -n "a\\"b\\|c" README.md', 'echo "$(date +%F)"'):
+            self.assertIsNone(self.t(c), c)
+
+    def test_sourced_functions_and_variables_pass(self):
+        c = ('. env/setenv.sh && . env/tools/runlog.sh && progress x start && '
+             'runlog x 01 step -- "$VPY" tools/a.py && "$VPY" -c "print(1)"')
+        self.assertIsNone(self.t(c))
+
+    def test_program_not_on_list_refused(self):
+        for c in ("make build", "MAKE.EXE build", '"C:/tools/make.exe" build', "ls && make build",
+                  'echo "$(make -v)"', "runlog x 01 step -- make build"):
+            self.assertIsNotNone(self.t(". env/tools/runlog.sh && " + c if c.startswith("runlog") else c), c)
+
+    def test_program_from_unset_variable_refused(self):
+        self.assertIsNotNone(self.t('"$TOOL" build'))
+
+    def test_chief_and_reviewer_unchanged(self):
+        # the allow list is worker-only; chief/reviewer keep their own regex allow lists
+        self.assertIsNone(mod.Guard(RULES, "reviewer", "block").evaluate("terminal", {"command": "make build"}))
 
 
 if __name__ == "__main__":

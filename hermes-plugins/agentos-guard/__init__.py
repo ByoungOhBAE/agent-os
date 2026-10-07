@@ -33,7 +33,7 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 _HERE = Path(__file__).resolve().parent
-_VALID_ROLES = ("chief", "reviewer", "worker")
+_VALID_ROLES = ("chief", "reviewer", "worker", "basic")
 _VALID_MODES = ("warn", "block")
 _WRITE_TOOLS = {"write_file": "path", "patch": "path", "skill_manage": "file_path"}
 _TERMINAL_TOOLS = ("terminal", "process_manage")
@@ -57,6 +57,12 @@ def _split_command_line(cmd: str) -> List[str]:
     i = 0
     while i < len(cmd):
         ch = cmd[i]
+        if ch == "\\" and quote != "'" and i + 1 < len(cmd):  # backslash escape (bash): `\"` inside "…", `\|` outside
+            if cmd.startswith(("\n", "\r\n"), i + 1):  # line continuation: bash drops it, the line goes on
+                buf.append(" "); i += 2 if cmd[i + 1] == "\n" else 3
+                continue
+            buf.append(cmd[i:i + 2]); i += 2
+            continue
         if quote:
             buf.append(ch)
             if ch == quote:
@@ -419,6 +425,60 @@ _OUTPUT_FLAG = re.compile(r"(?:^|\s)(?:-o|--output|-OutFile)(?:\s+|=)(?:[\"']Q(\
 _CODE_TOOLS = ("execute_code", "code_execution")
 _READ_TOOLS = {"read_file": "path", "search_files": "path"}
 
+# ---- W6-X1 (2026-10-07 follow-up): worker terminal = program ALLOW list (roles.<r>.terminal.allow_programs) ----
+# Every program a command line would start — each segment, `$(…)`/backtick substitutions, `bash -c` / `wsl …` command
+# strings, `find -exec`, wrapper builtins — is reduced to a plain lower-case name (quotes joined, path and .exe
+# dropped, variables resolved) and must be on the list. Shell syntax words are not programs. What it does not see:
+# what an allowed program does next (a script file, `npm run`, a git hook). Same OS account → speed bump, not a wall.
+_SHELL_WORDS = {"do", "then", "else", "elif", "if", "while", "until", "!", "{", "(", "time"}
+_SHELL_SKIP = {"for", "case", "select", "done", "fi", "esac", "}", ")", "in", ";;"}
+_WRAPPERS = {"nohup", "exec", "command", "env"}
+_SHELLS = {"bash", "sh", "zsh", "dash"}
+_ARRAY_ASSIGN = re.compile(r"^(?:export\s+|local\s+|declare\s+(?:-\w+\s+)*)?[A-Za-z_]\w*=\(")
+_FUNC_DEF = re.compile(r"^(?:function\s+)?([A-Za-z_][\w-]*)\s*\(\s*\)\s*\{?|^function\s+([A-Za-z_][\w-]*)\s*\{?")
+_SUBST_PROG = re.compile(r"\$\(\s*([^\s()|;&<>]+)|`\s*([^\s`|;&<>]+)[^`]*`")
+_SQ_TEXT = re.compile(r"'[^']*'")
+_SRC_ASSIGN = re.compile(r"^\s*(?:export\s+)?([A-Za-z_]\w*)=(\"[^\"]*\"|'[^']*'|[^\s;#]*)\s*(?:#.*)?$")
+
+
+def _unshape(text: str, quoted: List[str]) -> str:
+    """Put quoted placeholders back with their quote characters (inverse of _strip_data for one fragment)."""
+    return re.sub(r"([\"'])Q(\d+)\1", lambda m: m.group(1) + quoted[int(m.group(2))] + m.group(1), text)
+
+
+def _subst_vars(text: str, env: Dict[str, str], missing: Optional[str]) -> str:
+    """``$V`` / ``${V}`` / ``${V:-default}`` / ``${V-default}`` from *env*; an unset name without default → *missing*."""
+    def _one(m: "re.Match[str]") -> str:
+        name = m.group(1) or m.group(4)
+        if name in env:
+            return env[name]
+        return m.group(3) if m.group(2) else (m.group(0) if missing is None else missing)
+    return re.sub(r"\$\{(\w+)(:?-([^}]*))?\}|\$(\w+)", _one, text)
+
+
+def _assign_value_end(text: str) -> int:
+    """For a segment starting ``VAR=$(…)`` / ``VAR="$(…)"`` / ``VAR=`…```: index just past the value, or -1 when the
+    closing paren is not in this segment (the command line split inside the substitution)."""
+    m = re.match(r"(?:export\s+|local\s+)?[A-Za-z_]\w*=(\"?)(\$\(|`)", text)
+    if not m:
+        return -1
+    i, depth = m.end(), 1
+    if m.group(2) == "`":
+        j = text.find("`", i)
+        return -1 if j < 0 else j + 1 + (1 if m.group(1) and text[j + 1:j + 2] == "\"" else 0)
+    while i < len(text):
+        if text.startswith("$(", i):
+            depth += 1; i += 2
+            continue
+        if text[i] == "(":
+            depth += 1
+        elif text[i] == ")":
+            depth -= 1
+            if depth == 0:
+                return i + 1 + (1 if m.group(1) and text[i + 1:i + 2] == "\"" else 0)
+        i += 1
+    return -1
+
 
 def _ordered_tokens(shape: str, quoted: List[str]) -> List[str]:
     """Shape tokens in order with quoted placeholders restored (``"Q2"`` → its text). ``--opt=value`` keeps the
@@ -438,8 +498,169 @@ def _ordered_tokens(shape: str, quoted: List[str]) -> List[str]:
 # Secret files referenced inside program text; `process.env` / `os.environ` are not files and do not match.
 _SECRET_IN_CODE = re.compile(r"(?<![\w.$])\.env(?![\w-])(?!\.(example|sample|template)\b)|\bauth\.json\b|\.git-credentials\b|"
                              r"\bcredentials?\.json\b|\bid_(rsa|ed25519|ecdsa)\b")
+# Windows 8.3 short names of secret files (.env → ENV~1, auth.json → AUTH~1.JSO, credentials.json → CREDEN~1.JSO …)
+_SHORT_SECRET_NAME = re.compile(r"^(env|auth|creden|gitcre|git-cr|id_rsa|id_ed2|id_ecd)\w{0,2}~\d+(\.\w{0,3})?$", re.I)
+_CRED_JSON_KEY = re.compile(rb'"(access_?token|refresh_?token|id_token|api_?key|private_key|client_secret|oauth_token)"\s*:\s*"[^"\s]{16,}"', re.I)
+
+
+def _json_holds_credentials(path: Path) -> bool:
+    try:
+        return path.is_file() and path.stat().st_size <= 2 * 1024 * 1024 and bool(_CRED_JSON_KEY.search(path.read_bytes()))
+    except OSError:
+        return True  # cannot tell: stay on the safe side
+
+
+_CONTENT_SCAN_MAX = 2 * 1024 * 1024   # bytes; larger files are not scanned for secret values
+_GLOB_MAX = 200                         # glob matches checked by name per argument
+_GLOB_CONTENT_MAX = 20                  # glob matches also scanned for secret values (more → names only)
 _PY_OPEN_WRITE = re.compile(r"open\([^)]*,\s*(mode\s*=\s*)?['\"][wax]|\.write_text\(|\.write_bytes\(|\.unlink\(|rmtree\(")
 _DB_FILE = re.compile(r"\.(sqlite3?|db)(-wal|-shm|-journal)?$", re.I)
+
+
+# ---- W4-X1 / W6-X2 (2026-10-07 follow-up): protect secret files by IDENTITY and keep reads inside known roots ----
+# A name rule loses to any second name for the same bytes (hard link, junction, 8.3 alias, subst drive, UNC, MSYS or
+# WSL spelling). Files are therefore also matched by (volume, file index) from os.stat, which every alias shares.
+# Limits, stated plainly: program text that assembles a path at run time (python -c, node -e, execute_code) and
+# tools the guard does not parse can still reach any file this Windows account can read. Only running bots under a
+# separate OS account closes that (PLAN 7.4 U-F2); this index narrows the reachable surface, it is not a boundary.
+_INDEX_TTL = 300.0                      # seconds before the protected-file index is rebuilt
+_WALK_SKIP = {"node_modules", ".git", ".next", "venv", ".venv", "__pycache__", "dist", "build", ".cache"}
+_READ_VERB = re.compile(r"^(cat|type|head|tail|less|more|gc|get-content|findstr|grep|egrep|fgrep|zgrep|rg|sed|awk|cp|copy|"
+                        r"xcopy|robocopy|base64|certutil|xxd|od|hexdump|strings|select-string|sls|nl|tac|sort|uniq|cut|"
+                        r"diff|cmp|fc|comp|tar|zip|7z|compress-archive|iconv|openssl|gpg|ln|mklink|fsutil|new-item|"
+                        r"copy-item|cpi|move-item|rename-item|ren|mv|move|import-csv|get-filehash|certreq)(\.exe)?$", re.I)
+_RECURSIVE_SEARCH = re.compile(r"^(grep|egrep|fgrep|zgrep)(\.exe)?\b.*\s-\w*[rR]|^rg(\.exe)?\b|^findstr(\.exe)?\b.*\s/[sS]\b|"
+                               r"^(select-string|sls)\b|^(get-childitem|gci|dir|ls)\b.*-(recurse|r)\b.*\|\s*(select-string|sls)\b",
+                               re.I)
+_RG_SEES_HIDDEN = re.compile(r"\s(--hidden|-\w*u|--no-ignore\S*|-\w*\.)\b")
+
+
+def _norm_key(p: "str | Path") -> str:
+    """Case-folded forward-slash form of a resolved path, for prefix comparisons."""
+    return str(p).replace("\\", "/").rstrip("/").lower()
+
+
+def _win_path(raw: str) -> str:
+    raw = raw.replace("\\", "/")
+    if re.match(r"^/mnt/[a-zA-Z]/", raw):
+        return raw[5].upper() + ":" + raw[6:]
+    if re.match(r"^/[a-zA-Z]/", raw):
+        return raw[1].upper() + ":" + raw[2:]
+    if re.match(r"^//(wsl\$|wsl\.localhost)/", raw, re.I):
+        return raw
+    return raw
+
+
+def _real(p: "str | Path") -> Optional[str]:
+    try:
+        return os.path.realpath(_win_path(str(p)))
+    except (OSError, ValueError):
+        return None
+
+
+def _file_ident(p: "str | Path") -> "Optional[tuple[int, int]]":
+    try:
+        st = os.stat(_win_path(str(p)))
+    except (OSError, ValueError):
+        return None
+    if not (st.st_mode & 0o170000) == 0o100000 or not st.st_ino:  # regular files with a real file index only
+        return None
+    return (st.st_dev, st.st_ino)
+
+
+class SecretIndex:
+    """Protected files by identity + path, rebuilt every few minutes. Placeholders in rule globs:
+    {hermes} root Hermes home, {userhome} the account's home, {workspaces} the shared work root."""
+
+    def __init__(self, globs: List[str], scan_roots: List[str], name_check, places: Dict[str, str]):
+        self._globs, self._scan_roots, self._name_check, self._places = globs, scan_roots, name_check, places
+        self._built = 0.0
+        self._idents: Dict["tuple[int, int]", str] = {}
+        self._keys: List[str] = []
+        self._lock = threading.Lock()
+
+    def _fill(self, s: str) -> str:
+        for k, v in self._places.items():
+            s = s.replace("{" + k + "}", v)
+        return s
+
+    def _add(self, path: str, idents: Dict["tuple[int, int]", str], keys: List[str]) -> None:
+        ident = _file_ident(path)
+        real = _real(path)
+        if ident is None or real is None:
+            return
+        idents[ident] = real
+        keys.append(_norm_key(real))
+
+    def _build(self) -> None:
+        import glob as _glob
+        idents: Dict["tuple[int, int]", str] = {}
+        keys: List[str] = []
+        for g in self._globs:
+            pat = self._fill(g)
+            if "{" in pat:
+                continue
+            try:
+                for x in _glob.glob(pat, recursive=True, include_hidden=True)[:5000]:
+                    self._add(x, idents, keys)
+            except (OSError, ValueError, TypeError):
+                continue
+        for root in self._scan_roots:  # bounded walk for secret-named files inside shared work folders
+            base = self._fill(root)
+            if "{" in base or not os.path.isdir(base):
+                continue
+            base_depth = base.rstrip("/\\").count(os.sep) + base.rstrip("/\\").count("/")
+            for dirpath, dirnames, filenames in os.walk(base):
+                depth = dirpath.count(os.sep) + dirpath.count("/") - base_depth
+                dirnames[:] = [] if depth >= 4 else [d for d in dirnames if d not in _WALK_SKIP]
+                for f in filenames:
+                    if self._name_check(f):
+                        full = os.path.join(dirpath, f)
+                        # an i18n `locales/ko/auth.json` is not a credential store (same rule as the glob check)
+                        if f.lower().endswith(".json") and not _json_holds_credentials(Path(full)):
+                            continue
+                        self._add(full, idents, keys)
+        self._idents, self._keys, self._built = idents, keys, time.monotonic()
+
+    def _fresh(self) -> None:
+        if time.monotonic() - self._built > _INDEX_TTL or not self._built:
+            with self._lock:
+                if time.monotonic() - self._built > _INDEX_TTL or not self._built:
+                    self._build()
+
+    def hit(self, p: "str | Path") -> bool:
+        """True when *p* names a protected file under any alias."""
+        self._fresh()
+        ident = _file_ident(p)
+        return ident is not None and ident in self._idents
+
+    def inside(self, root: "str | Path", visible_only: bool = False) -> Optional[str]:
+        """A protected file below *root* (a content search there would read it), else None. visible_only skips
+        dot-named files, which ripgrep-style searches leave out unless asked."""
+        self._fresh()
+        real = _real(root)
+        if real is None:
+            return None
+        k = _norm_key(real) + "/"
+        for key in self._keys:
+            if key.startswith(k) and not (visible_only and any(part.startswith(".") for part in key[len(k):].split("/"))):
+                return key
+        return None
+
+
+_INDEX_CACHE: Dict[tuple, SecretIndex] = {}
+_INDEX_CACHE_LOCK = threading.Lock()
+
+
+def _shared_index(globs: List[str], scan_roots: List[str], name_check, places: Dict[str, str], key_extra: tuple) -> SecretIndex:
+    """One index per distinct rule set + placeholders: a multiplexed gateway registers this guard once per profile, and
+    every profile shares the same protected files, so they share one walk."""
+    key = (tuple(globs), tuple(scan_roots), tuple(sorted(places.items())), key_extra)
+    with _INDEX_CACHE_LOCK:
+        idx = _INDEX_CACHE.get(key)
+        if idx is None:
+            idx = _INDEX_CACHE[key] = SecretIndex(globs, scan_roots, name_check, places)
+        return idx
 
 
 def _issue_payloads_legacy(seg: str, shape: str, quoted: List[str]) -> List[str]:
@@ -478,7 +699,9 @@ def _expand_path(p: str, cwd: Optional[str], env: Optional[Dict[str, str]] = Non
     if "$" in p:
         return None
     p = os.path.expanduser(p)
-    if re.match(r"^/[a-zA-Z]/", p):  # MSYS /c/Users → C:/Users
+    if re.match(r"^/mnt/[a-zA-Z]/", p):  # WSL /mnt/c/Users → C:/Users
+        p = p[5].upper() + ":" + p[6:]
+    elif re.match(r"^/[a-zA-Z]/", p):  # MSYS /c/Users → C:/Users
         p = p[1].upper() + ":" + p[2:]
     path = Path(p)
     if not path.is_absolute():
@@ -561,6 +784,29 @@ class Guard:
         self.skills_own_only = bool(pr.get("skills_own_only"))
         self.home = Path(home) if home else None
         self.own_profile = self.home.name.lower() if self.home and self.home.parent.name.lower() == "profiles" else None
+        # W4-X1/W6-X2: identity index of protected files + the roots read tools may open (see SecretIndex)
+        self._places: Dict[str, str] = {}
+        if self.home:
+            import tempfile
+            hermes_root = self.home.parent.parent if self.own_profile else self.home
+            userhome = Path.home()
+            self._places = {"hermes": str(hermes_root).replace("\\", "/"), "own": str(self.home).replace("\\", "/"),
+                            "userhome": str(userhome).replace("\\", "/"),
+                            "workspaces": str(userhome / "orca" / "workspaces").replace("\\", "/"),
+                            "temp": tempfile.gettempdir().replace("\\", "/")}
+        self.secret_index: Optional[SecretIndex] = None
+        if self._places and (pr.get("secret_paths") or pr.get("secret_scan_roots")):
+            self.secret_index = _shared_index([str(x) for x in pr.get("secret_paths") or []],
+                                              [str(x) for x in pr.get("secret_scan_roots") or []],
+                                              self._secret_name, self._places,
+                                              tuple(p.pattern for p in self.protect_read))
+        self.read_roots: List[str] = []
+        for r_ in pr.get("read_roots") or []:
+            filled = str(r_)
+            for k_, v_ in self._places.items():
+                filled = filled.replace("{" + k_ + "}", v_)
+            if "{" not in filled and (real_ := _real(filled)):
+                self.read_roots.append(_norm_key(real_))
         # Variables a worker's terminal sees that the gateway process may not (Hermes points TMPDIR at the
         # profile's own scratch dir), so `cd "$TMPDIR/x" && curl -d @done.json` resolves to the right file.
         self._env: Dict[str, str] = {}
@@ -570,6 +816,7 @@ class Guard:
         # Literal secret values from this bot's own .env (held in memory only, never logged). Any tool call that
         # carries one — a comment, a document, a file, a command — is refused: the bot saw the value somewhere
         # (env dump, error text) and is about to write it out.
+        self._cwd_cache: "tuple[Optional[float], Optional[str]]" = (None, None)
         self._secret_values: List[str] = []
         if pr.get("secret_values") and self.home:
             try:
@@ -588,9 +835,16 @@ class Guard:
         self.deny_ext = {str(e).lower() for e in (w.get("deny_ext") or [])}
         t = r.get("terminal") or {}
         self.term_allow = [re.compile(p) for p in (t.get("allow") or [])]
-        self.term_deny = [re.compile(p) for p in (t.get("deny") or [])]
+        # W6-X1: deny patterns ignore case (Windows resolves SSH.exe like ssh.exe) and are also tried on the
+        # un-quoted program name, so `"ssh" host` cannot slip past as a quoted placeholder.
+        self.term_deny = [re.compile(p, re.I) for p in (t.get("deny") or [])]
+        # deny_raw: matched on the raw segment INCLUDING quoted text, so `bash -c "ssh nas"` / `wsl -- docker ps` are
+        # caught even where the shell-escape check is off (basic role). Costs false hits on quoted mentions.
+        self.term_deny_raw = [re.compile(p, re.I) for p in (t.get("deny_raw") or [])]
+        self.shell_escape_guard = bool(t.get("shell_escape_guard", True))
         self.inline_python_guard = bool(t.get("inline_python_guard", False))
         self.redirect_guard = bool(t.get("redirect_guard", False))
+        self.allow_programs = {str(p).lower() for p in (t.get("allow_programs") or [])}
         self.max_calls = int(((r.get("budget") or {}).get("max_tool_calls")) or 0)
         self._counts: Dict[str, int] = {}
         self._lock = threading.Lock()
@@ -670,7 +924,10 @@ class Guard:
                     if self.comment_rules and (body := _issue_body_from_json(text)):
                         if reason := self.comment_rules.check_body(body):
                             return reason
-            if _SHELL_ESCAPE.search(shape):
+            for pat in self.term_deny_raw:
+                if m := pat.search(seg):
+                    return f"{self.role} 역할에 금지된 명령입니다: '{m.group(0).strip()}' in `{seg[:120]}`"
+            if self.shell_escape_guard and _SHELL_ESCAPE.search(shape):
                 return f"{self.role} 역할은 셸 인터프리터에 명령 문자열을 넘길 수 없습니다: `{seg[:120]}`"
             if self.redirect_guard:
                 for m in _REDIRECT.finditer(shape):
@@ -678,7 +935,7 @@ class Guard:
                     if target not in ("/dev/null", "NUL", "nul") and not _REDIRECT_OK.search(target):
                         return f"{self.role} 역할은 파일로 출력을 저장할 수 없습니다(scratch/evidence 폴더만 가능): `{target}`"
             for pat in self.term_deny:
-                m = pat.search(shape)
+                m = pat.search(shape) or pat.search(_resolve_head(shape, quoted))
                 if m:
                     return f"{self.role} 역할에 금지된 명령입니다: '{m.group(0).strip()}' in `{seg[:120]}`"
             if self.comment_rules and not self.inline_python_guard:
@@ -696,7 +953,173 @@ class Guard:
                     continue  # inline program passed its own check; skip the allow list
             if self.term_allow and not any(p.search(shape) or p.search(_resolve_head(shape, quoted)) for p in self.term_allow):
                 return f"{self.role} 역할의 허용 명령 목록에 없습니다: `{seg[:120]}`"
+        if self.allow_programs:
+            wd = args.get("workdir") if isinstance(args.get("workdir"), str) and args.get("workdir") else self._default_cwd()
+            return self._check_programs(cmd, wd, dict(self._env), set())
         return None
+
+    # ---- W6-X1: program allow list ----
+
+    def _prog_of(self, tok: str, quoted: List[str], env: Dict[str, str]) -> "tuple[str, bool]":
+        """``(name, known)``: the plain program name a shell would run for *tok* — quoted pieces joined, variables
+        resolved, folder and .exe/.cmd dropped, lower case. ``known`` is False when part of it is only decided at
+        run time (an unset variable, a command substitution)."""
+        t = re.sub(r"[\"']Q(\d+)[\"']", lambda m: quoted[int(m.group(1))], tok)
+        if "$(" in t or "`" in t:
+            return t, False
+        t = _subst_vars(t, env, "\x00")
+        name = re.split(r"[/\\]", t.replace("\"", "").replace("'", ""))[-1].lower()
+        if "\x00" in name or "$" in name:
+            return tok, False
+        return re.sub(r"\.(exe|cmd|bat|com)$", "", name), True
+
+    def _source_defs(self, raw: str, cwd: Optional[str], env: Dict[str, str], funcs: set) -> None:
+        """`. file` / `source file`: the shell functions and plain variables that file defines become known."""
+        p = _expand_path(raw, cwd, env)
+        try:
+            if p is None or not p.is_file() or p.stat().st_size > 256 * 1024:
+                return
+            lines = p.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            return
+        for line in lines:
+            if fm := _FUNC_DEF.match(line.strip()):
+                funcs.add((fm.group(1) or fm.group(2)).lower())
+            elif am := _SRC_ASSIGN.match(line):
+                env[am.group(1)] = am.group(2).strip("\"'")
+
+    def _check_programs(self, cmd: str, cwd: Optional[str], env: Dict[str, str], funcs: set,
+                        depth: int = 0) -> Optional[str]:
+        """Reason when *cmd* would start a program outside ``allow_programs``, else None."""
+        if depth > 4:
+            return f"{self.role} 역할: 명령이 너무 깊게 겹쳐 있어 guard가 확인할 수 없습니다 — 나눠서 실행하세요."
+        unknown = (lambda tok: f"{self.role} 역할: 실행할 프로그램이 변수·명령 결과로 정해져 guard가 확인할 수 없습니다: "
+                               f"`{tok[:60]}` — 프로그램 이름을 직접 쓰세요.")
+        for seg in _split_command_line(cmd):
+            shape, quoted = _strip_data(seg)
+            # $(…) and `…` start programs too; double-quoted text still expands them, single-quoted text does not
+            dq = re.sub(r"\"Q(\d+)\"", lambda m: "\"" + quoted[int(m.group(1))] + "\"", shape)
+            for m in re.finditer(r"\$\(([^()]*)\)|`([^`]*)`", dq):
+                inner = m.group(1) if m.group(1) is not None else m.group(2)
+                if inner.strip() and (r := self._check_programs(inner, cwd, env, funcs, depth + 1)):
+                    return r
+            for m in _SUBST_PROG.finditer(dq):  # openings whose closing paren landed in another segment
+                name, known = self._prog_of(m.group(1) or m.group(2), [], env)
+                if not known:
+                    return unknown(m.group(0))
+                if name and name not in self.allow_programs and name not in funcs and name not in _SHELL_SKIP:
+                    return self._not_allowed(name)
+            head = re.sub(r"^(?:(?:do|then|else|elif|if|while|until|!|\{|time)\s+)+", "", shape.strip())
+            if not head or head.startswith("#"):
+                continue
+            if am := re.match(r"(?:export\s+|local\s+)?([A-Za-z_]\w*)=\"?(\$\(|`)", head):
+                env.pop(am.group(1), None)
+                end = _assign_value_end(head)
+                rest = head[end:].strip() if end > 0 else ""   # -1: the line was split inside the substitution
+                if rest and (r := self._check_programs(_unshape(rest, quoted), cwd, env, funcs, depth + 1)):
+                    return r
+                continue
+            if m := _CD_SEG.match(head):
+                p = _expand_path(quoted[int(m.group(1))] if m.group(1) is not None else m.group(2), cwd, env)
+                cwd = str(p) if p else cwd
+                continue
+            if m := _ASSIGN_SEG.match(head):
+                val = quoted[int(m.group(2))] if m.group(2) is not None else (m.group(3) or "")
+                if "$(" in val or "`" in val:
+                    env.pop(m.group(1), None)
+                else:
+                    env[m.group(1)] = _subst_vars(val, env, None)
+                continue
+            if _ARRAY_ASSIGN.match(head):
+                continue
+            if fm := _FUNC_DEF.match(head):
+                funcs.add((fm.group(1) or fm.group(2)).lower())
+                rest = head[fm.end():].strip()
+                if rest and (r := self._check_programs(_unshape(rest, quoted), cwd, env, funcs, depth + 1)):
+                    return r
+                continue
+            toks = [t[:len(t) - (t.count(")") - t.count("("))] if t.endswith(")") and t.count(")") > t.count("(") else t
+                    for t in _run_shape(head).split()]   # `(a || b)`: the subshell's closing paren is not a name
+            i, name = 0, ""
+            while i < len(toks):
+                while i < len(toks) and toks[i] in _SHELL_WORDS:
+                    i += 1
+                if i >= len(toks) or toks[i] in _SHELL_SKIP or toks[i] in ("[[", "(("):
+                    name = ""
+                    break
+                tok = toks[i].lstrip("(")
+                name, known = self._prog_of(tok, quoted, env)
+                if not known:
+                    return unknown(_unshape(tok, quoted))
+                if name in _WRAPPERS:
+                    if name == "command" and i + 1 < len(toks) and toks[i + 1] in ("-v", "-V"):
+                        name = ""
+                        break  # lookup only, starts nothing
+                    j = i + 1
+                    while j < len(toks) and (toks[j].startswith("-") or re.match(r"^[A-Za-z_]\w*=", toks[j])):
+                        j += 1
+                    if j < len(toks):
+                        i = j
+                        continue
+                break
+            if not name:
+                continue
+            args = toks[i + 1:]
+            if name in funcs:  # shell function from this command line or a sourced file; `fn … -- prog …` runs prog
+                if "--" in args and (rest := args[args.index("--") + 1:]):
+                    if r := self._check_programs(_unshape(" ".join(rest), quoted), cwd, env, funcs, depth + 1):
+                        return r
+                continue
+            if name not in self.allow_programs:
+                return self._not_allowed(name)
+            if name in (".", "source") and args:
+                self._source_defs(_unshape(args[0], quoted).strip("\"'"), cwd, env, funcs)
+            elif name in _SHELLS:
+                k = next((n for n, a in enumerate(args) if re.fullmatch(r"-[A-Za-z]*c[A-Za-z]*", a)), None)
+                if k is not None:
+                    rest = args[k + 1:]
+                    if rest:
+                        mm = _QPLACE.match(rest[0])
+                        text = quoted[int(mm.group(1))] if mm else _unshape(" ".join(rest), quoted)
+                        if r := self._check_programs(text, cwd, env, funcs, depth + 1):
+                            return r
+                elif (h := _HEREDOC_BODY.search(seg)) is not None:
+                    if r := self._check_programs(h.group(3), cwd, env, funcs, depth + 1):
+                        return r
+                elif not [a for a in args if not a.startswith("-") and not a.startswith("<") and not re.match(r"^\d?[<>]", a)]:
+                    return (f"{self.role} 역할: `{name}`가 받는 명령을 guard가 볼 수 없습니다(파이프·표준입력). "
+                            f"스크립트 파일이나 명령을 직접 실행하세요.")
+            elif name == "wsl":
+                rest: List[str] = []
+                n = 0
+                while n < len(args):
+                    a = args[n]
+                    if a in ("-d", "--distribution", "-u", "--user", "--cd"):
+                        n += 2
+                        continue
+                    if a in ("-e", "--exec", "--"):
+                        rest = args[n + 1:]
+                        break
+                    if a.startswith("-"):
+                        n += 1
+                        continue
+                    rest = args[n:]
+                    break
+                if rest and (r := self._check_programs(_unshape(" ".join(rest), quoted), cwd, env, funcs, depth + 1)):
+                    return r
+            elif name == "find":
+                for n, a in enumerate(args):
+                    if a in ("-exec", "-execdir", "-ok", "-okdir") and n + 1 < len(args):
+                        sub, known = self._prog_of(args[n + 1], quoted, env)
+                        if not known:
+                            return unknown(_unshape(args[n + 1], quoted))
+                        if sub not in self.allow_programs:
+                            return self._not_allowed(sub)
+        return None
+
+    def _not_allowed(self, name: str) -> str:
+        return (f"{self.role} 역할의 허용 프로그램 목록에 없는 명령입니다: `{name[:60]}` — 꼭 필요하면 담당 봇에게 넘기거나 "
+                f"사장님께 목록 추가를 요청하세요.")
 
     # ---- worker hardening (strict_issue_calls / protect) ----
 
@@ -717,10 +1140,143 @@ class Guard:
                 return f"{self.role} 역할은 다른 봇의 폴더에 쓸 수 없습니다: {raw}"
         return None
 
-    def _protected_read(self, raw: str) -> Optional[str]:
+    def _secret_name(self, base: str) -> bool:
+        return any(p.search(base) for p in self.protect_read) or bool(_SHORT_SECRET_NAME.search(base))
+
+    def _default_cwd(self) -> Optional[str]:
+        """The bot's terminal cwd from its profile config.yaml (re-read when the file changes), so a bare relative
+        argument like `cat notes.txt` can still be resolved for the content check."""
+        if not self.home:
+            return None
+        cfg = self.home / "config.yaml"
+        try:
+            mt = cfg.stat().st_mtime
+        except OSError:
+            return None
+        if self._cwd_cache[0] != mt:
+            cwd = None
+            try:
+                import yaml
+                data = yaml.safe_load(cfg.read_text(encoding="utf-8")) or {}
+                v = ((data.get("terminal") or {}).get("cwd")) if isinstance(data, dict) else None
+                cwd = str(v) if v and str(v) not in (".", "") else None
+            except Exception:  # never let config parsing break the agent loop
+                cwd = None
+            self._cwd_cache = (mt, cwd)
+        return self._cwd_cache[1]
+
+    def _holds_secret(self, path: Path) -> bool:
+        """True when *path* is a small regular file that contains one of this bot's literal secret values
+        (catches a renamed/copied secret file whatever its name)."""
+        if not self._secret_values:
+            return False
+        try:
+            if not path.is_file() or path.stat().st_size > _CONTENT_SCAN_MAX:
+                return False
+            data = path.read_bytes()
+        except OSError:
+            return False
+        return any(v.encode("utf-8") in data for v in self._secret_values)
+
+    def _protected_read(self, raw: str, cwd: Optional[str] = None, env: Optional[Dict[str, str]] = None) -> Optional[str]:
+        msg = f"{self.role} 역할은 비밀 파일(키·인증 정보)을 열 수 없습니다: {raw} — 필요한 값이 있으면 사장님께 요청하세요."
         base = raw.replace("\\", "/").rstrip("/").rsplit("/", 1)[-1]
-        if any(p.search(base) for p in self.protect_read):
-            return f"{self.role} 역할은 비밀 파일(키·인증 정보)을 열 수 없습니다: {raw} — 필요한 값이 있으면 사장님께 요청하세요."
+        if self._secret_name(base):
+            return msg
+        if not raw or raw.startswith("-") or len(raw) > 400 or re.match(r"^[a-z][\w+.-]*://", raw, re.I):
+            return None
+        p = _expand_path(raw, cwd or self._default_cwd(), env if env is not None else self._env)
+        if p is None:
+            return None
+        cands: List[Path] = []
+        globbed = bool(re.search(r"[*?\[]", base) or re.search(r"[*?]", str(p)))
+        if globbed:
+            try:
+                import glob as _glob
+                cands = [Path(x) for x in _glob.glob(str(p), recursive=False, include_hidden=True)[:_GLOB_MAX]]
+            except (TypeError, ValueError, OSError):
+                cands = []
+        else:
+            cands = [p]
+        scan = len(cands) <= _GLOB_CONTENT_MAX  # wide globs: names only, so one `cat *.md` cannot stall the gateway
+        for c in cands:
+            if self.secret_index is not None and self.secret_index.hit(c):
+                return msg  # same file under another name (hard link, junction, 8.3, subst, UNC, MSYS/WSL spelling)
+            names = [c.name]
+            try:
+                if c.is_symlink():
+                    names.append(Path(os.path.realpath(c)).name)
+            except OSError:
+                pass
+            if any(self._secret_name(n) for n in names):
+                # a glob that sweeps up e.g. an i18n `locales/ko/auth.json` is not a credential store: for globbed
+                # .json matches require credential-looking keys before refusing
+                if not (globbed and c.suffix.lower() == ".json" and not _json_holds_credentials(c)):
+                    return msg
+            if scan and self._holds_secret(c):
+                return (f"{self.role} 역할은 비밀 값이 들어 있는 파일을 열 수 없습니다: {raw} — "
+                        f"이름을 바꾼 비밀 파일로 보입니다. 필요한 값이 있으면 사장님께 요청하세요.")
+        return None
+
+    def _read_scope(self, tool_name: str, raw: str, args: Dict[str, Any]) -> Optional[str]:
+        """Read tools stay inside the configured roots, and a content search may not sweep a folder that holds a
+        protected file (the search would print its lines)."""
+        if not raw or raw.startswith("-") or re.match(r"^[a-z][\w+.-]*://", raw, re.I):
+            return None
+        p = _expand_path(raw, self._default_cwd(), self._env)
+        if p is None:
+            return (f"{self.role} 역할: 읽을 경로가 실행 중에 정해져 guard가 확인할 수 없습니다: {raw[:80]} — "
+                    f"경로를 직접 쓰세요.") if re.search(r"\$|`", raw) else None
+        if not p.is_absolute():
+            return None  # relative to an unknown process cwd: the name/identity checks above still ran
+        real = _real(p)
+        if real is None:
+            return None
+        key = _norm_key(real)
+        if self.read_roots and not any(key == r or key.startswith(r + "/") for r in self.read_roots):
+            return (f"{self.role} 역할은 이 위치를 읽을 수 없습니다: {raw[:100]} — 자기 프로필·작업 폴더·공용 스킬·"
+                    f"Hermes 소스·임시 폴더만 읽을 수 있습니다. 필요하면 사장님께 요청하세요.")
+        if tool_name == "search_files" and str(args.get("target") or "content") != "files" and self.secret_index is not None:
+            if self.secret_index.inside(real):
+                return (f"{self.role} 역할: 이 폴더 전체 검색에는 비밀 파일이 들어 있습니다: {raw[:100]} — "
+                        f"검색 범위를 하위 폴더로 좁히세요.")
+        return None
+
+    def _terminal_read_checks(self, head: str, tokens: List[str], cwd: Optional[str], env: Dict[str, str]) -> Optional[str]:
+        """Read/copy/link verbs in a terminal segment: refuse file names the guard cannot see (built at run time) and
+        recursive content searches over a folder that holds a protected file."""
+        if self.secret_index is None or not tokens:
+            return None
+        prog = re.split(r"[\\/]", tokens[0].strip("\"'"))[-1].lower()
+        if not _READ_VERB.match(prog):
+            return None
+        pattern_first = bool(re.match(r"^(sed|awk|grep|egrep|fgrep|zgrep|rg|findstr|select-string|sls)(\.exe)?$", prog))
+        for t in tokens[1:]:
+            if t.startswith("-") or (t.startswith("/") and len(t) <= 3):
+                continue
+            if pattern_first:  # the pattern / program text, not a file name
+                pattern_first = False
+                continue
+            if re.search(r"\$\(|`", t) or (("$" in t) and not re.search(r"[\s^\\\[\]|+?]", t)
+                                           and _expand_path(t, cwd, env) is None):
+                return (f"{self.role} 역할: `{prog}`가 읽을 파일 이름이 실행 중에 만들어져 guard가 확인할 수 없습니다 — "
+                        f"경로를 직접 쓰세요.")
+        if _RECURSIVE_SEARCH.search(head):
+            visible_only = prog.startswith("rg") and not _RG_SEES_HIDDEN.search(" " + head)
+            rest = [t for t in tokens[1:] if not t.startswith("-")]
+            if re.match(r"^(grep|egrep|fgrep|zgrep|rg|findstr|select-string|sls)(\.exe)?$", prog) and rest:
+                rest = rest[1:]  # drop the pattern
+            dirs: List[Path] = []
+            for t in rest:
+                p = _expand_path(t, cwd, env)
+                if p is not None and p.is_absolute() and p.is_dir():
+                    dirs.append(p)
+            if not rest and cwd:  # no path given: the search runs over the working folder
+                dirs = [Path(cwd)]
+            for d in dirs:
+                if self.secret_index.inside(d, visible_only=visible_only):
+                    return (f"{self.role} 역할: 이 폴더 전체 검색에는 비밀 파일이 들어 있습니다: {str(d)[:100]} — "
+                            f"검색 범위를 하위 폴더로 좁히세요.")
         return None
 
     def _code_violation(self, code: Any, label: str) -> Optional[str]:
@@ -776,13 +1332,15 @@ class Guard:
                 tokens = _ordered_tokens(_HEREDOC_BODY.sub(lambda h: h.group(1) + h.group(4), shape), quoted)
             if self.protect_read:
                 for t in tokens:
-                    if reason := self._protected_read(t):
+                    if reason := self._protected_read(t, cwd, env):
                         return reason
+                if reason := self._terminal_read_checks(head, tokens, cwd, env):
+                    return reason
                 if re.match(r"^(echo|printf|print|Write-Output|Write-Host|cat\s+<<<)\b", head, re.I) and \
                         any(re.search(r"\$(\{(env:)?\w*(KEY|TOKEN|SECRET|PASSWORD)\w*(?!:?\+)[^}]*\}|(env:)?\w*(KEY|TOKEN|SECRET|PASSWORD)\w*\b(?!\}))",
                                       t, re.I) for t in tokens[1:]):
                     return f"{self.role} 역할은 비밀 값(API 키·토큰)을 화면에 출력할 수 없습니다."
-            if head.lower().startswith(("rm ", "del ", "erase ", "remove-item", "ri ", "unlink ")):
+            if self.protect_write and head.lower().startswith(("rm ", "del ", "erase ", "remove-item", "ri ", "unlink ")):
                 for t in tokens[1:]:
                     if _DB_FILE.search(t):
                         return f"{self.role} 역할은 DB 파일을 지울 수 없습니다: {t} — 사장님께 보고하세요."
@@ -821,7 +1379,7 @@ class Guard:
                 code = (quoted[int(m.group(1))], "python -c")
             elif m := _JS_INLINE.match(head):
                 code = (quoted[int(m.group(2))], "node -e")
-            elif m := _SCRIPT_RUN.match(head):
+            elif self.strict_issue and (m := _SCRIPT_RUN.match(head)):  # repo scripts the chief/reviewer run may manage .env themselves
                 sp = _expand_path(quoted[int(m.group(1))] if m.group(1) is not None else m.group(2), cwd, env)
                 try:
                     code = (sp.read_text(encoding="utf-8", errors="replace"), f"스크립트 {sp.name}") if sp else None
@@ -855,7 +1413,11 @@ class Guard:
                         f"키는 $PAPERCLIP_API_KEY 처럼 변수 이름으로만 쓰세요.")
         if tool_name in _READ_TOOLS and self.protect_read:
             p = args.get(_READ_TOOLS[tool_name])
+            if tool_name == "search_files" and not p:
+                p = "."
             if isinstance(p, str) and p and (reason := self._protected_read(p)):
+                return reason
+            if isinstance(p, str) and p and (reason := self._read_scope(tool_name, p, args)):
                 return reason
         if tool_name in ("write_file", "patch"):
             p = args.get("path")

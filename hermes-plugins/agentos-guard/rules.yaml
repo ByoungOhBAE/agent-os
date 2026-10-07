@@ -18,7 +18,7 @@
 # mode (warn|block) and role come from config.yaml:
 #   plugins.entries.agentos-guard.settings: { role: chief, mode: warn }
 
-version: 4
+version: 5
 
 # Human-readable issue titles. Enforced for roles with `check_issue_title: true` whenever they create/rename an
 # issue via curl (inline -d, heredoc, @file body) or write a JSON body containing "title".
@@ -79,8 +79,59 @@ issue_comment:
       - 위반 기준: <완료 기준 항목 또는 규칙>
       - 수정안: <구체 조치>
 
+# Secret files no role may read (T72). Matched case-insensitively on the basename of every path argument, glob
+# matches and symlink targets; a file of any name that contains one of the bot's own .env secret values is refused too.
+# Paperclip runs in local_trusted mode: a request WITHOUT an agent key is treated as the boss (board). These URL
+# shapes are refused for every bot so nobody can hire or approve "as the boss" from a terminal (T13).
+# Matched on the raw command (quoted URLs included). Hiring stays possible only via the chief's hermes-bots.mjs hire,
+# which creates a pending hire the boss approves in the Paperclip UI.
+board_only_urls: &board_only_urls
+  - '^(?=.*(-X\s*POST\b|--request\s+POST\b|\s-d\b|\s--data)).*/api/companies/[^/\s"'']+/(agent-hires|agents)\b(?!/)'
+  - '/api/approvals/[^/\s"'']+/(approve|request-revision)\b'
+  - '^(?=.*(-X\s*(PATCH|PUT|POST)\b|--request\s+(PATCH|PUT|POST)\b)).*/api/agents/[^/\s"'']+/permissions\b'
+  - '^(?=.*(-X\s*(PATCH|PUT)\b|--request\s+(PATCH|PUT)\b)).*/api/companies/[^/\s"''?]+(["''\s?]|$)'
+
+secret_basenames: &secret_basenames
+  - '^\.env$'
+  - '^\.env\.(?!example$|sample$|template$)[\w.-]+$'
+  - '^auth\.json$'
+  - '^\.git-credentials$'
+  - '^credentials?(\.json)?$'
+  - '^id_(rsa|ed25519|ecdsa)$'
+
+# W4-X1 / W6-X2 (2026-10-07): protected files matched by FILE IDENTITY (every alias of the same bytes), and the roots
+# read tools may open. Placeholders: {hermes} root Hermes home, {own} this bot's profile, {userhome}, {workspaces},
+# {temp}. The NAS deployment notes stay with the boss's Hermes only. A guard cannot stop program text that builds a
+# path at run time; separating the bots' OS account is the real boundary (PLAN 7.4 U-F2).
+secret_paths: &secret_paths
+  - '{hermes}/.env'
+  - '{hermes}/auth.json'
+  - '{hermes}/mcp-tokens/**'
+  - '{hermes}/profiles/*/.env'
+  - '{hermes}/profiles/*/auth.json'
+  - '{hermes}/profiles/*/mcp-tokens/**'
+  - '{hermes}/skills/**/nas-docker-deployment/references/*'
+  - '{hermes}/profiles/*/skills/**/nas-docker-deployment/references/*'
+  - '{userhome}/.ssh/*'
+  - '{userhome}/.git-credentials'
+secret_scan_roots: &secret_scan_roots   # bounded walk (depth 4, no node_modules/.git) for secret-named files
+  - '{workspaces}'
+read_roots: &read_roots                 # read_file / search_files only; terminal tokens get the identity check
+  - '{own}'
+  - '{hermes}/profiles'
+  - '{hermes}/skills'
+  - '{hermes}/hermes-agent'
+  - '{hermes}/cache'
+  - '{userhome}/orca'
+  - '{temp}'
 roles:
   chief:
+    protect:
+      read_basenames: *secret_basenames
+      secret_paths: *secret_paths
+      secret_scan_roots: *secret_scan_roots
+      read_roots: *read_roots
+      secret_values: true
     check_issue_title: true
     check_done_comment: true
     tools:
@@ -98,6 +149,7 @@ roles:
         - "**/plans/**/*.md"
       deny_ext: [.py, .mjs, .cjs, .js, .ts, .tsx, .jsx, .json, .yaml, .yml, .toml, .sh, .ps1, .bat, .cmd, .sql, .env, .ini, .cfg]
     terminal:
+      deny_raw: *board_only_urls
       inline_python_guard: true
       redirect_guard: true                       # > file only into scratch/Temp/-evidence
       allow:
@@ -122,6 +174,12 @@ roles:
   reviewer:
     check_done_comment: true
     check_reject_comment: true
+    protect:
+      read_basenames: *secret_basenames
+      secret_paths: *secret_paths
+      secret_scan_roots: *secret_scan_roots
+      read_roots: *read_roots
+      secret_values: true
     tools:
       deny: [delegate_task, execute_code, code_execution]
     skill_manage:
@@ -135,6 +193,7 @@ roles:
         - "**/workspace/**/review-*.md"
       deny_ext: []
     terminal:
+      deny_raw: *board_only_urls
       inline_python_guard: true
       redirect_guard: true
       allow:
@@ -165,13 +224,10 @@ roles:
         - '/plugins/agentos-guard(/|$)'
         - '/hermes-plugins/agentos-guard(/|$)'
         - '(^|/)\.git(/|$)'
-      read_basenames:
-        - '^\.env$'
-        - '^\.env\.(?!example$|sample$|template$)[\w.-]+$'
-        - '^auth\.json$'
-        - '^\.git-credentials$'
-        - '^credentials?(\.json)?$'
-        - '^id_(rsa|ed25519|ecdsa)$'
+      read_basenames: *secret_basenames   # shared with chief/reviewer (T72); 8.3 short names + renamed copies are caught in code
+      secret_paths: *secret_paths
+      secret_scan_roots: *secret_scan_roots
+      read_roots: *read_roots
       other_profiles: true        # no writes into another bot's profile folder
       skills_own_only: true       # skill_manage only on skills under this bot's own profile
       secret_values: true         # refuse any tool call carrying a literal value from this bot's .env (*KEY/TOKEN/SECRET)
@@ -184,8 +240,21 @@ roles:
       allow_paths: []
       deny_ext: []
     terminal:
+      deny_raw: *board_only_urls
       inline_python_guard: false
       allow: ['.*']
+      # W6-X1 (2026-10-07): programs a worker may start. Built from every worker terminal call in the profiles'
+      # state.db (extract_calls.py); names are compared after quotes/folder/.exe are dropped and case is folded.
+      # Shell functions from a sourced file are allowed by name. Adding a program = edit here + replay + test.
+      allow_programs: [
+        git, node, npm, npx, python, python3, py, uv, curl, wget, jq, hermes, paperclipai, yt-dlp,
+        ls, cat, head, tail, grep, sed, awk, cut, wc, sort, uniq, tr, tee, diff, cmp, stat, du, df, od, sha256sum,
+        find, mkdir, cp, mv, rm, rmdir, touch, ln, basename, dirname, realpath, cygpath, which, readlink, ps, env,
+        cd, pushd, popd,
+        echo, printf, pwd, date, sleep, 'true', 'false', test, '[', export, set, unset, local, read, exit, return, wait, shift,
+        ., source, bash, sh, wsl,
+        ffmpeg, ffprobe,
+      ]
       deny:
         - '\brm\s+(-\w+\s+)*-\w*[rR]'                  # rm -r / -rf / -fr …
         - '\b(Remove-Item|ri|rd|rmdir)\b.*\s-(Recurse|r)\b'
@@ -199,8 +268,31 @@ roles:
         - '\bhermes(\.exe)?\s+(-p\s+\S+\s+)?(config\s+(set|edit|reset)|plugins?\b|auth\s+(add|remove|reset|logout)|profile\s+(delete|create|rename)|gateway\s+(stop|restart|uninstall)|update\b)'
         - '\bnode\s+.*hermes-bots\.mjs"?\s+(convert|archive|sync-soul|guard|retire)\b'   # hire stays open: the code bot tests the hire gate
         - '\b(drop\s+(table|database)|truncate\s+table)\b'
+        # no remote shells / containers from bots: the academy NAS and Docker are deployed only by the boss's Hermes (T32)
+        - '\b(ssh|scp|sftp|rsync|plink|pscp|docker|docker-compose|podman|kubectl)\b'
         # dumping secrets into the transcript: printenv / env / set, echo of a *KEY/*TOKEN variable
         - '^(printenv|env|set|export\s+-p|Get-ChildItem\s+env:|gci\s+env:|dir\s+env:)\s*$'
         - '^(echo|printf|print|Write-Output|Write-Host)\b.*\$(\{(env:)?\w*(KEY|TOKEN|SECRET|PASSWORD)\w*(?!:?\+)[^}]*\}|(env:)?\w*(KEY|TOKEN|SECRET|PASSWORD)\w*\b(?!\}))'
     budget:
       max_tool_calls: 400
+
+  # Bots outside the Paperclip org (rimbus project, 2026-10 D3): only two hard stops, nothing about issues or files —
+  # no secret-file reads and no remote shells / containers. Quoted text is checked too (bash -c "ssh …").
+  basic:
+    protect:
+      read_basenames: *secret_basenames
+      secret_paths: *secret_paths
+      secret_scan_roots: *secret_scan_roots
+      read_roots: *read_roots
+      secret_values: true
+    terminal:
+      shell_escape_guard: false
+      allow: ['.*']
+      deny_raw:
+        - '(^|[\s;&|(`"''/\\])(ssh|scp|sftp|rsync|plink|pscp|docker|docker-compose|podman|kubectl)(\.exe)?(\s|$|["''])'   # W6-X1: /usr/bin/ssh, C:\…\ssh.exe too
+        - '^(?=.*(-X\s*POST\b|--request\s+POST\b|\s-d\b|\s--data)).*/api/companies/[^/\s"'']+/(agent-hires|agents)\b(?!/)'
+        - '/api/approvals/[^/\s"'']+/(approve|request-revision)\b'
+        - '^(?=.*(-X\s*(PATCH|PUT|POST)\b|--request\s+(PATCH|PUT|POST)\b)).*/api/agents/[^/\s"'']+/permissions\b'
+        - '^(?=.*(-X\s*(PATCH|PUT)\b|--request\s+(PATCH|PUT)\b)).*/api/companies/[^/\s"''?]+(["''\s?]|$)'
+    budget:
+      max_tool_calls: 0
