@@ -454,7 +454,7 @@ if (cmd === "baseline") {
   if (created.status === "pending_approval") { console.log(`HIRE_PENDING_APPROVAL ${created.id} ${name} profile=${profile} — 사장님 채용 승인 뒤: node scripts/hermes-bots.mjs finish-hire --agent ${created.id}`); process.exit(0); }
   await finishHire(created.id);
 } else if (cmd === "adopt") {
-  // Bring an existing registered Hermes bot that works outside Paperclip (e.g. the rimbus group-chat bots) into
+  // Bring an existing registered Hermes bot that works outside Paperclip (e.g. bots that used to work only in a desktop group chat) into
   // Paperclip as a hermes_gateway agent on its OWN profile: same hire gate and board approval as `hire`, but no new
   // profile, and its memory/skills are kept (only SOUL.md is regenerated from the reviewed role; the old one is backed up).
   const profile = arg("--profile") ?? "", name = arg("--name"), title = arg("--title") || name, reportsTo = arg("--reports-to"), roleFile = arg("--role-file");
@@ -568,7 +568,7 @@ if (cmd === "baseline") {
   const check = (ok, label) => { checks.push(`${ok ? "✔" : "✘"} ${label}`); return ok; };
   const home = profileHome(profile);
   // --orphan: a non-pc leftover profile (old experiments, probes). Allowed only when it is not the owner's own
-  // `default` profile and not a bot listed in knowledge/data/registry.json bots[] (e.g. the rimbus group-chat bots).
+  // `default` profile and not a bot listed in knowledge/data/registry.json bots[] (e.g. bots that used to work only in a desktop group chat).
   const orphan = process.argv.includes("--orphan");
   const registered = JSON.parse(readFileSync(path.join(REPO, "knowledge", "data", "registry.json"), "utf8")).bots.map((b) => b.profile);
   if (orphan) {

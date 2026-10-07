@@ -79,7 +79,6 @@
     {
       "profile": "uacc4-ud68d-uc218-ub9bd-uac00",
       "name": "림버스_계획수립가",
-      "room": "림버스 컴퍼니 헬퍼 개발방",
       "projects": [
         "rimbus"
       ],
@@ -88,7 +87,6 @@
     {
       "profile": "uac1c-ubc1c-uc790",
       "name": "림버스_개발자",
-      "room": "림버스 컴퍼니 헬퍼 개발방",
       "projects": [
         "rimbus"
       ],
@@ -97,7 +95,6 @@
     {
       "profile": "uac80-uc218---uac80-ud1a0-uc790",
       "name": "림버스_검수검토자",
-      "room": "림버스 컴퍼니 헬퍼 개발방",
       "projects": [
         "rimbus"
       ],
@@ -106,7 +103,6 @@
     {
       "profile": "ub514-uc790-uc774-ub108",
       "name": "림버스_디자이너",
-      "room": "림버스 컴퍼니 헬퍼 개발방",
       "projects": [
         "rimbus"
       ],
@@ -470,7 +466,7 @@
       "from": [
         "uacc4-ud68d-uc218-ub9bd-uac00/MEMORY.md#a2bb71001628"
       ],
-      "en": "Limbus Company mirror-dungeon service 'Mirror Ledger' (Electron overlay + strategy web, login and subscription): C:\\Users\\tahar\\orca\\workspaces\\rimbus company project (plan docs/plan/PLAN.md). Four group-chat bots collaborate (designer, reviewer, developer, planner). Never commit or upload game text or images (© Project Moon)."
+      "en": "Limbus Company mirror-dungeon service 'Mirror Ledger' (Electron overlay + strategy web, login and subscription): C:\\Users\\tahar\\orca\\workspaces\\rimbus company project (plan docs/plan/PLAN.md). Four Paperclip bots work on it (림버스_계획수립가, 림버스_개발자, 림버스_디자이너, reviewer 림버스_검수검토자); work arrives only as Paperclip tasks — the old desktop group chat room is no longer used. Never commit or upload game text or images (© Project Moon)."
     },
     {
       "id": "b-youtube-workdir",
