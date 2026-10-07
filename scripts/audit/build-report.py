@@ -215,13 +215,15 @@ if REM:
         rows += (f"<tr><td>{E(t['id'])}</td><td><span class=st style='background:{ST[rm['status']][1]}'>{ST[rm['status']][0]}</span></td>"
                  f"<td>{E(t['title'])}</td><td>{E(rm['what']) or '—'}</td><td>{E(rm['evidence']) or '—'}</td><td>{E(rm['left'])}</td></tr>")
     ext = "".join(f"<tr><td><span class=st style='background:{ST[x['status']][1]}'>{ST[x['status']][0]}</span></td><td>{E(x['title'])}</td><td>{E(x['what'])}</td><td>{E(x['evidence'])}</td><td>{E(x['left'])}</td></tr>" for x in REM.get("extra", []))
+    dec = ("<div class=note style='margin-top:14px'><b>사장님 결정·작업이 필요한 것</b><ol style='margin:6px 0 0;padding-left:20px'>"
+           + "".join(f"<li>{E(d)}</li>" for d in REM.get("decisions", [])) + "</ol></div>") if REM.get("decisions") else ""
     A(f"""<section id=s0><h2>0. 조치 현황 <small>{E(REM['updated'])} 최신화 · 점검 뒤 고친 것 포함</small></h2>
 <p class=sub>근거: <code>{E(REM['basis'])}</code></p><div class=note style='margin-bottom:12px'>{E(REM['note'])}</div>
 <div style='display:flex;flex-wrap:wrap;border-radius:8px;overflow:hidden;margin:0 0 12px'>{bar}</div><div class=kpis>{kp}</div>
 <h3 style='font-size:15px;margin:16px 0 6px'>높음 {tot}개 — 주제별 상태</h3>
 <table class=ids><tr><th>주제</th><th>상태</th><th>문제</th><th>한 일</th><th>확인 근거</th><th>남은 일</th></tr>{rows}</table>
 <h3 style='font-size:15px;margin:16px 0 6px'>그 밖의 조치·발견</h3>
-<table><tr><th>상태</th><th>항목</th><th>한 일</th><th>확인 근거</th><th>남은 일</th></tr>{ext}</table></section>""")
+<table><tr><th>상태</th><th>항목</th><th>한 일</th><th>확인 근거</th><th>남은 일</th></tr>{ext}</table>{dec}</section>""")
 
 # 1 KPIs
 bp = F["bot_probe"]
