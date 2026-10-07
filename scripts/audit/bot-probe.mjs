@@ -13,12 +13,9 @@ const out = process.argv[2];
 if (!out) throw new Error("usage: bot-probe.mjs <outDir> [profile...]");
 mkdirSync(out, { recursive: true });
 
-const DEFAULT = [
-  "pc-ebb0943f", "pc-a2d59386", "pc-8ca245c2", "pc-c2b2f67e", "pc-7686fab2", "pc-3656a1bc", "pc-5910516a",
-  "pc-26df4505", "pc-59bd3c1d", "pc-adfb6817", "pc-2e6cbe27",
-  "uacc4-ud68d-uc218-ub9bd-uac00", "uac1c-ubc1c-uc790", "uac80-uc218---uac80-ud1a0-uc790", "ub514-uc790-uc774-ub108",
-];
-const profiles = process.argv.slice(3).length ? process.argv.slice(3) : DEFAULT;
+// every registered bot (knowledge/data/registry.json bots[]) — follows hires and retirements automatically
+const registryBots = () => JSON.parse(readFileSync(new URL("../../knowledge/data/registry.json", import.meta.url), "utf8")).bots.map((b) => b.profile);
+const profiles = process.argv.slice(3).length ? process.argv.slice(3) : registryBots();
 
 export const INSTRUCTIONS = [
   "이것은 운영자(사장님 위임)의 읽기 전용 자기점검 인터뷰다. 실제 작업이 아니다.",

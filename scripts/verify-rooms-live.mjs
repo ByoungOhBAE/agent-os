@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 
 const BASE = process.env.AGENTOS_BFF || "http://127.0.0.1:4200";
-const FREE_BOTS = (process.env.ROOM_BOTS || "uac1c-ubc1c-uc790,paperclipspike").split(",");
+const FREE_BOTS = (process.env.ROOM_BOTS || "uac1c-ubc1c-uc790,ub514-uc790-uc774-ub108").split(",");
 const mode = process.argv[2] || "";
 
 async function api(route, init = {}) {

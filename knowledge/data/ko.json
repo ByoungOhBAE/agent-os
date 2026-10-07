@@ -161,11 +161,6 @@
       "en": "In the chief's sessions HERMES_HOME is my own profile folder, not the Hermes root. hermes-bots.mjs passes the root to its child tools since commit 48630ac, but still run hire and similar commands as HERMES_HOME=\"C:/Users/tahar/AppData/Local/hermes\" node.exe .... While the gateway runs, hermes profile delete fails on a locked file (WinError 32). The empty profile folder left by the failed HER-11 is pc-a243fe69.",
       "source": "claude-subscription"
     },
-    "fe74f2bdc028": {
-      "ko": "저는 2026-09-28에 Paperclip 연결 테스트를 통과했습니다; 결과는 이슈 댓글에 남기고 이슈를 완료로 표시합니다.",
-      "en": "I passed the Paperclip connection test on 2026-09-28; results go into an issue comment and the issue is set to done.",
-      "source": "claude-subscription"
-    },
     "79d0cbd59fea": {
       "ko": "PUT /api/issues/:id/documents/:key 엔드포인트와 {title, format: \"markdown\", body} 형식의 본문을 사용해 작업 문서를 업로드하세요.",
       "en": "Upload an issue document with PUT /api/issues/:id/documents/:key and body {title, format: \"markdown\", body}.",
@@ -222,5 +217,5 @@
       "source": "claude-subscription"
     }
   },
-  "generatedAt": "2026-10-07T08:52:45.360Z"
+  "generatedAt": "2026-10-07T09:41:37.759Z"
 }

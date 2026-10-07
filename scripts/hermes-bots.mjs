@@ -470,7 +470,14 @@ if (cmd === "baseline") {
   const checks = [];
   const check = (ok, label) => { checks.push(`${ok ? "✔" : "✘"} ${label}`); return ok; };
   const home = profileHome(profile);
-  check(/^pc-[0-9a-f]{8}$/.test(profile), `이름이 봇 프로필 형식(pc-8자리) — ${profile || "(없음)"}`);
+  // --orphan: a non-pc leftover profile (old experiments, probes). Allowed only when it is not the owner's own
+  // `default` profile and not a bot listed in knowledge/data/registry.json bots[] (e.g. the rimbus group-chat bots).
+  const orphan = process.argv.includes("--orphan");
+  const registered = JSON.parse(readFileSync(path.join(REPO, "knowledge", "data", "registry.json"), "utf8")).bots.map((b) => b.profile);
+  if (orphan) {
+    check(/^[a-z0-9][a-z0-9-]*$/.test(profile) && profile !== "default", `조직 밖 프로필 이름 형식(default 아님) — ${profile || "(없음)"}`);
+    check(!registered.includes(profile), "등록된 봇(registry.json bots)이 아님");
+  } else check(/^pc-[0-9a-f]{8}$/.test(profile), `이름이 봇 프로필 형식(pc-8자리) — ${profile || "(없음)"}`);
   check(existsSync(home) && home !== HOME, "프로필 폴더가 있음");
   const owners = [];
   for (const s of await agents()) { const a = await agent(s.id); if (profileOf(a) === profile) owners.push(a); }
