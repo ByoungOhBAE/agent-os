@@ -6,11 +6,6 @@
       "en": "The owner is a beginner and prefers short answers in plain Korean: lead with the answer, keep jargon out, use tables when they help.",
       "source": "claude-subscription"
     },
-    "e5d134740723": {
-      "ko": "사장님은 짧게 한국어로 지시하고, 에이전트가 이전에 합의된 절차를 지키기를 기대합니다; 커밋이나 배포 전에는 주장이 아니라 검증 증거를 보여주세요.",
-      "en": "The owner gives terse Korean instructions and holds agents to previously agreed procedures; show verification evidence (not claims) before a commit or deploy.",
-      "source": "claude-subscription"
-    },
     "4ae07a2c91b7": {
       "ko": "합성 데이터나 목(mock) QA 결과를 프로덕션 증거로 제시하지 마세요.",
       "en": "Never present synthetic or mocked QA as production evidence.",
@@ -24,11 +19,6 @@
     "04f1fa9acc9e": {
       "ko": "Figma 작업에서 '기존 도면을 변경한다'는 것은 지정된 프레임(예: 프레임 1-11)을 그 자리에서 수정한다는 뜻이며, 복사본을 제안하지 마세요. 이전 결과물은 남겨두고 새 결과물을 함께 추가하세요.",
       "en": "For Figma work, 'change the existing drawing' means edit the named frames in place (e.g. frames 1-11); do not propose a copy. Keep earlier outputs and add new ones alongside.",
-      "source": "claude-subscription"
-    },
-    "43d128c6c6fd": {
-      "ko": "작업 단위가 끝날 때마다 묻지 않고 git에 커밋하세요; 비밀정보와 관련 없는 파일은 제외하세요.",
-      "en": "Commit to git after each finished unit of work without asking; exclude secrets and unrelated files.",
       "source": "claude-subscription"
     },
     "5fdcaefe148a": {
@@ -69,11 +59,6 @@
     "9ac2e4c7dcd1": {
       "ko": "`npx tsc`는 npm 알림을 먼저 출력할 수 있습니다. 출력을 파일로 리다이렉트하고 `$?`를 확인하세요; grep으로 파이프하면 grep의 종료 코드가 대신 반환됩니다.",
       "en": "`npx tsc` may print npm notices first. Redirect output to a file and check `$?`; piping into grep returns grep's exit code instead.",
-      "source": "claude-subscription"
-    },
-    "78fbaa61514b": {
-      "ko": "Paperclip 실행 환경은 PAPERCLIP_API_URL과 PAPERCLIP_API_KEY를 제공하지만 PAPERCLIP_RUN_ID는 제공하지 않습니다; X-Paperclip-Run-Id에는 깨우기 메시지의 Run ID를 사용하세요. 한국어 본문은 Python urllib(json.dumps ensure_ascii=False, UTF-8)로 보내 텍스트 깨짐을 방지하세요.",
-      "en": "Paperclip runs expose PAPERCLIP_API_URL and PAPERCLIP_API_KEY but no PAPERCLIP_RUN_ID; use the Run ID from the wake message for X-Paperclip-Run-Id. Send Korean bodies with Python urllib (json.dumps ensure_ascii=False, UTF-8) to avoid broken text.",
       "source": "claude-subscription"
     },
     "8cd01662563c": {
@@ -201,11 +186,6 @@
       "en": "agent-os is a single repo on branch `main` at C:/Users/tahar/orca/workspaces/agent os (origin GitHub ByoungOhBAE/agent-os, which is PUBLIC: never commit secrets or private operating details). On 2026-10-03 the team/memory-visual and team/org-reviewer-side worktrees and branches were merged and removed; the folder agent os-memory-visual no longer exists.",
       "source": "hermes-manual-2026-10-05"
     },
-    "8cb2e4eb3bb8": {
-      "ko": "코드나 문서를 바꿀 때는 작업마다 최신 main에서 작업 복사본을 만드세요: 직전에 `git log -1 main`을 다시 확인한 뒤 `git worktree add -b team/<주제> .worktrees/<주제> main`, main이 움직였으면 보고합니다. 원본 폴더에서는 고치거나 커밋하지 않습니다. main 합치기(`git merge --ff-only team/<주제>`)는 작업에 그렇게 적혀 있을 때만 하고, 끝나면 작업 복사본과 브랜치를 지웁니다.",
-      "en": "For a code or document change, make a per-task worktree from the latest main: re-check `git log -1 main` right before, then `git worktree add -b team/<topic> .worktrees/<topic> main`, and report if main moved. Never edit or commit in the original checkout. Merge into main (`git merge --ff-only team/<topic>`) only when the task asks for it, then remove the worktree and the branch.",
-      "source": "hermes-manual-2026-10-05"
-    },
     "29ed3f633c30": {
       "ko": "요청받은 폴더와 파일 안에서만 작업하세요. 시작 전에 `git status --porcelain`을 실행합니다: 이미 바뀌어 있는 것은 다른 사람의 작업이니 스테이지·이동·커밋하지 않습니다.",
       "en": "Keep work inside the requested folder and files. Run `git status --porcelain` before starting: anything already changed belongs to someone else, so never stage, move or commit it.",
@@ -220,7 +200,27 @@
       "ko": "academy-homepage는 단일 git 저장소(브랜치 main, origin GitHub ByoungOhBAE/academy-homepage)이며 위치는 C:/Users/tahar/orca/workspaces/academy homepage입니다. 2026-10-03에 예전 워크트리(C:/Users/tahar/academy homepage의 master, 홈페이지제작 등)를 하나로 합치고 삭제했으니 작업은 여기서 하세요.",
       "en": "academy-homepage is a single git repo (branch main, origin GitHub ByoungOhBAE/academy-homepage) at C:/Users/tahar/orca/workspaces/academy homepage. On 2026-10-03 the old worktrees (master at C:/Users/tahar/academy homepage, 홈페이지제작, etc.) were consolidated and removed; work here.",
       "source": "claude-subscription"
+    },
+    "8fafa3d1de74": {
+      "ko": "코드나 문서 변경이 허용된 역할의 봇에게만 해당합니다(검토처럼 읽기 전용인 역할은 절대 커밋하지 않습니다). 코드나 문서를 변경할 때는 최신 main에서 작업별 worktree를 만드세요. 만들기 직전에 `git log -1 main`을 다시 확인한 뒤 `git worktree add -b team/<topic> .worktrees/<topic> main`을 실행하고, main이 바뀌었다면 보고하세요. 원래 체크아웃에서는 절대 수정하거나 커밋하지 마세요. 작업에서 요청한 경우에만 main에 병합(`git merge --ff-only team/<topic>`)하고, 그다음 worktree와 브랜치를 삭제하세요.",
+      "en": "Only for bots whose role allows code or document changes (read-only roles such as review never commit): For a code or document change, make a per-task worktree from the latest main: re-check `git log -1 main` right before, then `git worktree add -b team/<topic> .worktrees/<topic> main`, and report if main moved. Never edit or commit in the original checkout. Merge into main (`git merge --ff-only team/<topic>`) only when the task asks for it, then remove the worktree and the branch.",
+      "source": "claude-subscription"
+    },
+    "6b3678c2779a": {
+      "ko": "작업을 검증하고, 그 증거를 보고서에 담은 다음, 해당 작업이나 프로젝트가 쓰는 브랜치에 바로 커밋하세요. 증거를 보여 주는 것만으로 충분하니 커밋하기 위해 승인을 기다리지 마세요. 비밀 정보와 관련 없는 파일은 제외하세요.",
+      "en": "Verify the work, put the evidence in your report, then commit right away on the branch the task or project uses; showing the evidence is enough, do not wait for approval to commit. Exclude secrets and unrelated files.",
+      "source": "claude-subscription"
+    },
+    "1f1d4b7ba799": {
+      "ko": "사장님은 짧고 간결한 한국어로 지시하며, 에이전트가 이전에 합의한 절차를 지키도록 요구합니다. 모든 커밋이나 배포 보고에는 주장만 담지 말고, 실행한 명령과 그 결과 같은 실제 검증 근거를 반드시 포함해야 합니다. 근거를 보고하는 것은 승인을 요청하는 것이 아닙니다.",
+      "en": "The owner gives terse Korean instructions and holds agents to previously agreed procedures; every commit or deploy report must carry real verification evidence (commands run and their results), not claims. Reporting the evidence is not a request for approval.",
+      "source": "claude-subscription"
+    },
+    "8516e1457a4f": {
+      "ko": "Paperclip 실행 환경에는 PAPERCLIP_API_URL과 PAPERCLIP_API_KEY는 있지만 PAPERCLIP_RUN_ID는 없습니다. X-Paperclip-Run-Id에는 깨우기 메시지에 있는 Run ID를 사용하세요. Paperclip에 쓰는 방법은 다음과 같습니다. 작업 상태를 바꾸지 않는 댓글과 문서는 Python urllib(json.dumps ensure_ascii=False, UTF-8)로 보내도 됩니다. 상태를 done이나 in_progress로 바꾸는 요청은 agentos-guard가 읽을 수 있어야 하므로 curl로 보내야 합니다. 이때 heredoc(--data-binary @- <<'EOF') 형태로 보내거나, 앞선 명령에서 만들어 둔 JSON 파일(--data-binary @<절대 경로>)을 사용하세요. 상태를 PATCH하는 Python/Node 프로그램은 차단됩니다. 한국어 텍스트는 인라인 -d보다 heredoc이나 파일을 쓰는 것이 좋습니다.",
+      "en": "Paperclip runs expose PAPERCLIP_API_URL and PAPERCLIP_API_KEY but no PAPERCLIP_RUN_ID; use the Run ID from the wake message for X-Paperclip-Run-Id. Paperclip writes: comments and documents that do not change the task status may be sent with Python urllib (json.dumps ensure_ascii=False, UTF-8). Status changes to done or in_progress must stay readable by agentos-guard: send them with curl, as a heredoc (--data-binary @- <<'EOF') or from a JSON file written in an earlier command (--data-binary @<absolute path>); a Python/Node program that PATCHes a status is blocked. For Korean text prefer the heredoc or the file over an inline -d.",
+      "source": "claude-subscription"
     }
   },
-  "generatedAt": "2026-10-05T20:08:25.375Z"
+  "generatedAt": "2026-10-07T08:52:45.360Z"
 }

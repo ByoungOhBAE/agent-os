@@ -168,7 +168,7 @@
       "from": [
         "USER.md#46c19085d544"
       ],
-      "en": "The owner gives terse Korean instructions and holds agents to previously agreed procedures; show verification evidence (not claims) before a commit or deploy."
+      "en": "The owner gives terse Korean instructions and holds agents to previously agreed procedures; every commit or deploy report must carry real verification evidence (commands run and their results), not claims. Reporting the evidence is not a request for approval."
     },
     {
       "id": "u-no-fake-qa",
@@ -196,15 +196,6 @@
         "USER.md#8f1b4d71f7ee"
       ],
       "en": "For Figma work, 'change the existing drawing' means edit the named frames in place (e.g. frames 1-11); do not propose a copy. Keep earlier outputs and add new ones alongside."
-    },
-    {
-      "id": "u-commit-each",
-      "scope": "common",
-      "kind": "user",
-      "from": [
-        "USER.md#df6f17b1813d"
-      ],
-      "en": "Commit to git after each finished unit of work without asking; exclude secrets and unrelated files."
     },
     {
       "id": "u-no-time-split",
@@ -296,7 +287,7 @@
       "from": [
         "pc-8ca245c2/MEMORY.md#7853e30b5ada"
       ],
-      "en": "Paperclip runs expose PAPERCLIP_API_URL and PAPERCLIP_API_KEY but no PAPERCLIP_RUN_ID; use the Run ID from the wake message for X-Paperclip-Run-Id. Send Korean bodies with Python urllib (json.dumps ensure_ascii=False, UTF-8) to avoid broken text."
+      "en": "Paperclip runs expose PAPERCLIP_API_URL and PAPERCLIP_API_KEY but no PAPERCLIP_RUN_ID; use the Run ID from the wake message for X-Paperclip-Run-Id. Paperclip writes: comments and documents that do not change the task status may be sent with Python urllib (json.dumps ensure_ascii=False, UTF-8). Status changes to done or in_progress must stay readable by agentos-guard: send them with curl, as a heredoc (--data-binary @- <<'EOF') or from a JSON file written in an earlier command (--data-binary @<absolute path>); a Python/Node program that PATCHes a status is blocked. For Korean text prefer the heredoc or the file over an inline -d."
     },
     {
       "id": "c-hires-orgchart",
@@ -349,7 +340,7 @@
         "pc-ebb0943f/MEMORY.md#0073027a73aa",
         "pc-ebb0943f/MEMORY.md#277ba7f8c685"
       ],
-      "en": "For a code or document change, make a per-task worktree from the latest main: re-check `git log -1 main` right before, then `git worktree add -b team/<topic> .worktrees/<topic> main`, and report if main moved. Never edit or commit in the original checkout. Merge into main (`git merge --ff-only team/<topic>`) only when the task asks for it, then remove the worktree and the branch."
+      "en": "Only for bots whose role allows code or document changes (read-only roles such as review never commit): For a code or document change, make a per-task worktree from the latest main: re-check `git log -1 main` right before, then `git worktree add -b team/<topic> .worktrees/<topic> main`, and report if main moved. Never edit or commit in the original checkout. Merge into main (`git merge --ff-only team/<topic>`) only when the task asks for it, then remove the worktree and the branch."
     },
     {
       "id": "a-narrow-scope",
@@ -554,6 +545,33 @@
         "pc-2e6cbe27/MEMORY.md#acd709f7cd72"
       ],
       "en": "I passed the Paperclip connection test on 2026-09-28; results go into an issue comment and the issue is set to done."
+    },
+    {
+      "id": "u-commit-code-pc-59bd3c1d",
+      "scope": "bot:pc-59bd3c1d",
+      "kind": "user",
+      "from": [
+        "USER.md#df6f17b1813d"
+      ],
+      "en": "Verify the work, put the evidence in your report, then commit right away on the branch the task or project uses; showing the evidence is enough, do not wait for approval to commit. Exclude secrets and unrelated files."
+    },
+    {
+      "id": "u-commit-code-pc-26df4505",
+      "scope": "bot:pc-26df4505",
+      "kind": "user",
+      "from": [
+        "USER.md#df6f17b1813d"
+      ],
+      "en": "Verify the work, put the evidence in your report, then commit right away on the branch the task or project uses; showing the evidence is enough, do not wait for approval to commit. Exclude secrets and unrelated files."
+    },
+    {
+      "id": "u-commit-code-uac1c-ubc1c-uc790",
+      "scope": "bot:uac1c-ubc1c-uc790",
+      "kind": "user",
+      "from": [
+        "USER.md#df6f17b1813d"
+      ],
+      "en": "Verify the work, put the evidence in your report, then commit right away on the branch the task or project uses; showing the evidence is enough, do not wait for approval to commit. Exclude secrets and unrelated files."
     }
   ],
   "dropped": [

@@ -783,5 +783,50 @@ class WorkerProgramAllowList(unittest.TestCase):
         self.assertIsNone(mod.Guard(RULES, "reviewer", "block").evaluate("terminal", {"command": "make build"}))
 
 
+class P1WritingRules(unittest.TestCase):
+    """P1 (2026-10-07): the bots' instructions now say exactly what the guard does — comments/documents may go through
+    Python urllib, status changes must be a visible curl body; the reviewer's single comment form passes."""
+    URL = '"$PAPERCLIP_API_URL/api/issues/HER-1"'
+
+    def _py(self, payload, method, path):
+        return ("python - <<'PY'\nimport json,urllib.request,os\n"
+                f"b=json.dumps({payload},ensure_ascii=False).encode('utf-8')\n"
+                f"urllib.request.urlopen(urllib.request.Request(os.environ['PAPERCLIP_API_URL']+'{path}',data=b,method='{method}'))\nPY")
+
+    def test_urllib_comment_and_document_pass(self):
+        for role in ("worker", "chief", "reviewer"):
+            self.assertIsNone(g(role).evaluate("terminal", {"command": self._py("{'body':'중간 보고: 초안 작성 중'}", "POST", "/api/issues/HER-1/comments")}), role)
+            self.assertIsNone(g(role).evaluate("terminal", {"command": self._py("{'title':'review','format':'markdown','body':'표'}", "PUT", "/api/issues/HER-1/documents/review")}), role)
+
+    def test_urllib_status_change_blocked(self):
+        for role in ("worker", "chief", "reviewer"):
+            for st in ("done", "in_progress"):  # the guard comment-checks these two; blocked is not gated
+                self.assertIsNotNone(g(role).evaluate("terminal", {"command": self._py(f"{{'status':'{st}','comment':'x'}}", "PATCH", "/api/issues/HER-1")}), f"{role} {st}")
+
+    def test_prewritten_file_status_change_passes(self):
+        import json as _j, tempfile
+        from pathlib import Path as _P
+        d = _P(tempfile.mkdtemp())
+        f = d / "done.json"
+        f.write_text(_j.dumps({"status": "done", "comment": "## 완료\n- 한 일: 문서 instagram 저장\n- 확인 방법: GET으로 다시 읽어 줄 수를 셈\n"
+                                "- 증거: 문서 instagram revision 9410b535\n- 남은 일: 없음"}, ensure_ascii=False), encoding="utf-8")
+        cmd = f"curl -s -X PATCH {self.URL} -H \"Content-Type: application/json\" --data-binary @{f.as_posix()}"
+        for role in ("worker", "chief", "reviewer"):
+            self.assertIsNone(g(role).evaluate("terminal", {"command": cmd}), role)
+
+    def _heredoc(self, body):
+        import json as _j
+        return {"command": f"curl -s -X PATCH {self.URL} -H \"Content-Type: application/json\" --data-binary @- <<'EOF'\n{_j.dumps(body, ensure_ascii=False)}\nEOF"}
+
+    def test_reviewer_single_form_passes(self):
+        reject = ("## 반려 #1\n- 위치: 문서 instagram 2줄\n- 위반 기준: 완료 기준 2(가격 쓰지 않기)\n- 수정안: 가격 문장을 '학원 문의'로 바꾸기\n\n"
+                  "| # | 무엇이 | 어디서 |\n|---|---|---|\n| 1 | 가격 | 2줄 |")
+        approve = ("## 완료\n- 한 일: HER-1 인스타 문구 검수 (실제 작업한 봇: 콘텐츠_SNS문구)\n- 확인 방법: python len()으로 줄 수를 세고 금지어를 검색\n"
+                   "- 증거: 문서 review revision 9410b535\n- 남은 일: 없음\n\n| # | 기준 | 결과 |\n|---|---|---|\n| 1 | 3~5줄 | 4줄 |")
+        r = g("reviewer")
+        self.assertIsNone(r.evaluate("terminal", self._heredoc({"status": "in_progress", "comment": reject})))
+        self.assertIsNone(r.evaluate("terminal", self._heredoc({"status": "done", "comment": approve})))
+
+
 if __name__ == "__main__":
     unittest.main()
