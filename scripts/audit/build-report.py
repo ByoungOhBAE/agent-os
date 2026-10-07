@@ -11,6 +11,12 @@ F = json.load(open(os.path.join(D, "final.json"), encoding="utf-8"))
 G = json.load(open(os.path.join(D, "bot-probe/grade.json"), encoding="utf-8"))
 # Sensitive narrative (security weaknesses) lives in the private audit folder, not in this public script.
 TXT = json.load(open(os.path.join(D, "report-text.json"), encoding="utf-8"))
+# Fix status after the audit (private, optional): theme id -> {status, what, evidence, left}
+_RP = os.path.join(D, "remediation.json")
+REM = json.load(open(_RP, encoding="utf-8")) if os.path.exists(_RP) else None
+REM_BY = {i["theme"]: i for i in (REM or {}).get("items", [])}
+ST = {"done": ("조치 완료", "#2f7d55"), "partial": ("일부 조치", "#d39b2a"), "wait": ("사장님 작업·결정 대기", "#5b6ee1"),
+      "skip": ("제외(결정)", "#8b8b8b"), "open": ("미착수", "#c0392b")}
 E = lambda s: html.escape(str(s if s is not None else ""))
 
 def jl(p):
@@ -174,20 +180,48 @@ details summary{cursor:pointer;color:var(--nav);font-weight:600;margin:6px 0}
 .shots figcaption{font-size:12.5px;color:var(--mut)}
 .prio{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}.prio div{border-radius:10px;padding:12px 14px;border:1px solid var(--line)}
 .prio h3{margin:0 0 6px;font-size:15px}.prio ol{margin:0;padding-left:18px;font-size:13.6px}
+.st{display:inline-block;white-space:nowrap;color:#fff;font-size:12px;font-weight:600;border-radius:6px;padding:1px 8px;margin-right:4px;vertical-align:1px}
 .p0{background:#fdf0ee}.p1{background:#fff7e9}.p2{background:#eef3fb}
 @media (max-width:640px){.grid2{grid-template-columns:1fr}.hero h1{font-size:21px}section{padding:16px}.tw table{min-width:620px}.cw .chart{min-width:520px}.cw .flow{min-width:900px}}
 """
 H = []
 A = H.append
-A(f"<!doctype html><html lang=ko><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>AgentOS 전체 점검 보고서 (3회 + 환각 검수)</title><style>{css}</style></head><body><div class=wrap>")
+A(f"<!doctype html><html lang=ko><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>AgentOS 전체 점검 보고서 (3회 + 환각 검수){' · 조치 현황 ' + REM['updated'] if REM else ''}</title><style>{css}</style></head><body><div class=wrap>")
 hv = F["final_themes"]["by_severity"].get("high", 0)
+REM_COUNT = Counter()
+for t in themes:
+    if t["severity"] == "high" and t["final"] != "not_real" and t["id"] in REM_BY:
+        REM_COUNT[REM_BY[t["id"]]["status"]] += 1
+REM_COUNT = {k: REM_COUNT[k] for k in ST if REM_COUNT.get(k)}
 A(f"""<header class=hero><h1>AgentOS 전체 점검 보고서 — 3회 점검 · 환각 검수 · 관제센터 샘플</h1>
 <p>2026-10-07 · 대상: 봇 프로필 {len(json.load(open(os.path.join(D,'snapshot-pre.json'),encoding='utf-8'))['profiles'])}개(Paperclip 봇 14 포함) · 프로젝트 3 · 계획서 <code>docs/plans/agentos-전체점검-개선샘플-계획.md</code> (결정 1가 2가 3나 4가 5나 6가)</p>
 <div class=tl>
 <div>① 점검 발견 {r1['findings']}+{r2['findings']}건을 주제 {r3['themes']}개로 묶어 3회 확인한 결과, <b>실제 문제 {F['final_themes']['total_real_or_partly']}개</b>(높음 {hv})가 확정됐고 <b>아니었던 것은 {len(F['final_themes']['not_real'])}개</b>입니다.</div>
 <div>② {TXT['hero2']}</div>
-<div>③ 관제센터 샘플은 조직 봇들이 직접 만들었습니다(아래 6장). 점검 에이전트의 틀린 주장은 검수에서 걸러 냈고 <b>반박 0건·숫자/과장 오류 {wrong(r1)+wrong(r2)}건</b>을 바로잡았습니다.</div></div></header>""")
-A("<nav class=toc>" + "".join(f"<a href='#{i}'>{t}</a>" for i, t in [("s1","1. 한눈에"),("s2","2. 점검 과정"),("s3","3. 환각 검수"),("s4","4. 확정 문제"),("s5","5. 봇 조직"),("s6","6. 봇 자기점검"),("s7","7. 관제센터 샘플"),("s8","8. 점검이 준 영향"),("s9","9. 고칠 순서"),("s10","10. 근거 파일")]) + "</nav>")
+<div>③ 관제센터 샘플은 조직 봇들이 직접 만들었습니다(아래 6장). 점검 에이전트의 틀린 주장은 검수에서 걸러 냈고 <b>반박 0건·숫자/과장 오류 {wrong(r1)+wrong(r2)}건</b>을 바로잡았습니다.</div>
+{f"<div>④ <b>조치 현황 ({E(REM['updated'])} 최신화)</b>: 높음 12개 중 " + ' · '.join(f"{ST[k][0]} {v}" for k, v in REM_COUNT.items()) + " — 자세한 내용은 0장.</div>" if REM else ""}</div></header>""")
+A("<nav class=toc>" + "".join(f"<a href='#{i}'>{t}</a>" for i, t in ([("s0","0. 조치 현황")] if REM else []) + [("s1","1. 한눈에"),("s2","2. 점검 과정"),("s3","3. 환각 검수"),("s4","4. 확정 문제"),("s5","5. 봇 조직"),("s6","6. 봇 자기점검"),("s7","7. 관제센터 샘플"),("s8","8. 점검이 준 영향"),("s9","9. 고칠 순서"),("s10","10. 근거 파일")]) + "</nav>")
+
+# 0 remediation status
+if REM:
+    tot = sum(REM_COUNT.values()) or 1
+    bar = "".join(f"<div title='{ST[k][0]} {v}' style='flex:{v} 1 0;min-width:fit-content;white-space:nowrap;background:{ST[k][1]};color:#fff;font-size:12.5px;font-weight:600;text-align:center;padding:6px 10px'>{ST[k][0]} {v}</div>" for k, v in REM_COUNT.items())
+    kp = "".join(f"<div class=kpi><span>{ST[k][0]}</span><b style='color:{ST[k][1]}'>{v}</b><i>높음 {tot}개 중</i></div>" for k, v in REM_COUNT.items())
+    order = {k: i for i, k in enumerate(ST)}
+    hi = sorted([t for t in themes if t["severity"] == "high" and t["final"] != "not_real"], key=lambda t: (order[REM_BY.get(t["id"], {"status": "open"})["status"]], t["id"]))
+    rows = ""
+    for t in hi:
+        rm = REM_BY.get(t["id"], {"status": "open", "what": "", "evidence": "", "left": ""})
+        rows += (f"<tr><td>{E(t['id'])}</td><td><span class=st style='background:{ST[rm['status']][1]}'>{ST[rm['status']][0]}</span></td>"
+                 f"<td>{E(t['title'])}</td><td>{E(rm['what']) or '—'}</td><td>{E(rm['evidence']) or '—'}</td><td>{E(rm['left'])}</td></tr>")
+    ext = "".join(f"<tr><td><span class=st style='background:{ST[x['status']][1]}'>{ST[x['status']][0]}</span></td><td>{E(x['title'])}</td><td>{E(x['what'])}</td><td>{E(x['evidence'])}</td><td>{E(x['left'])}</td></tr>" for x in REM.get("extra", []))
+    A(f"""<section id=s0><h2>0. 조치 현황 <small>{E(REM['updated'])} 최신화 · 점검 뒤 고친 것 포함</small></h2>
+<p class=sub>근거: <code>{E(REM['basis'])}</code></p><div class=note style='margin-bottom:12px'>{E(REM['note'])}</div>
+<div style='display:flex;flex-wrap:wrap;border-radius:8px;overflow:hidden;margin:0 0 12px'>{bar}</div><div class=kpis>{kp}</div>
+<h3 style='font-size:15px;margin:16px 0 6px'>높음 {tot}개 — 주제별 상태</h3>
+<table class=ids><tr><th>주제</th><th>상태</th><th>문제</th><th>한 일</th><th>확인 근거</th><th>남은 일</th></tr>{rows}</table>
+<h3 style='font-size:15px;margin:16px 0 6px'>그 밖의 조치·발견</h3>
+<table><tr><th>상태</th><th>항목</th><th>한 일</th><th>확인 근거</th><th>남은 일</th></tr>{ext}</table></section>""")
 
 # 1 KPIs
 bp = F["bot_probe"]
@@ -220,12 +254,15 @@ A(f"""<section id=s3><h2>3. AI 착각·거짓말·환각 검수</h2><p class=sub
 # 4 high + medium
 cards = []
 for t in high:
-    cards.append(f"<div class=card><h3>{E(t['id'])} · {E(t['title'])}</h3><p>{E(plain_of(t))}</p><p class=fix>🔧 {E(fix_of(t))}</p>"
+    rm = REM_BY.get(t['id'])
+    badge = (f"<span class=st style='background:{ST[rm['status']][1]}'>{ST[rm['status']][0]}</span> " if rm else "")
+    border = (f" style='border-left-color:{ST[rm['status']][1]}'" if rm else "")
+    cards.append(f"<div class=card{border}><h3>{badge}{E(t['id'])} · {E(t['title'])}</h3><p>{E(plain_of(t))}</p><p class=fix>🔧 {E(fix_of(t))}</p>"
                  f"<p class=meta><span class='tag {t['status']}'>{ {'both':'두 회차 모두','r1_only':'1회차만→3회차 확인','r2_only':'2회차만→3회차 확인','conflict':'회차 충돌→3회차 확정'}[t['status']] }</span>"
                  + (f"<span class=tag>봇 {t['probe_bots']}개가 스스로 지적</span>" if t['probe_bots'] else "") + f"<span class=tag>근거 {E(', '.join(t['r1_ids']+t['r2_ids']))}</span></p></div>")
 medrows = "".join(f"<tr><td>{E(t['id'])}</td><td>{E(t['title'])}<div class=meta style='color:#5b6672;font-size:12.5px'>{E(plain_of(t))}</div></td><td>{E(fix_of(t))[:260]}</td><td class=num>{t['probe_bots'] or ''}</td></tr>" for t in med)
 A(f"""<section id=s4><h2>4. 확정된 문제 <small>높음 {len(high)} · 중간 {len(med)} · 낮음/참고 {lowc} · 아니었던 것 {', '.join(F['final_themes']['not_real'])}</small></h2>
-<p class=sub>🔧는 권고이며 이번에는 실행하지 않았습니다(결정 2가: 보고서까지 읽기 전용).</p><div class=cards>{''.join(cards)}</div>
+<p class=sub>{'🔧는 점검 당시 권고입니다. 실제 조치 상태는 카드 앞 배지와 0장에 있습니다.' if REM else '🔧는 권고이며 이번에는 실행하지 않았습니다(결정 2가: 보고서까지 읽기 전용).'}</p><div class=cards>{''.join(cards)}</div>
 <details style='margin-top:14px'><summary>중간 심각도 {len(med)}개 펼치기</summary><table class=ids><tr><th>주제</th><th>무엇이 문제인가</th><th>권고</th><th>봇 지적</th></tr>{medrows}</table></details>
 <p class=sub style='margin-top:8px'>낮음·참고 {lowc}개 전체 목록은 <code>docs/audit/2026-10-agentos/final.json</code>.</p></section>""")
 
