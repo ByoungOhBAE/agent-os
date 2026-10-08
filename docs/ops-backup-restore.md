@@ -68,7 +68,7 @@ wsl -d Ubuntu -- bash "$S" purge --name A     # 끝나면 정리
   3. 둘을 tar 하나로 묶어 **암호화**(openssl aes-256-cbc, pbkdf2) 후 NAS `<NAS 계정>@<NAS 주소>:~/backups/agentos/agentos-<시각>.tar.enc`로 스트리밍, NAS 쪽 sha256을 PC 값과 대조. 평문은 PC 밖으로 나가지 않는다.
   4. 보관 7일: NAS·PC(hermes-*)·WSL(fullbackup-*) 모두 7일 지난 것 삭제.
 - NAS 주소·계정은 저장소 밖 `%LOCALAPPDATA%/agentos/backups/nas.env`(NAS_USER/NAS_HOST)에 둔다.
-- 비밀: NAS 비밀번호는 기존 `academy-homepage/credentials/nas-ssh.clixml`(DPAPI), 암호화 비밀구절은 `%LOCALAPPDATA%/agentos/backups/credentials/nas-backup-pass.clixml`(DPAPI, 이 Windows 사용자만 복호화). 둘 다 helper 스크립트가 파이프로만 넘기며 출력·기록하지 않는다. **PC를 잃으면 비밀구절도 잃는다** — 사장님이 보관할 사본은 `powershell -c "(Import-Clixml <경로>).Credential.GetNetworkCredential().Password"`로 한 번 꺼내 비밀번호 관리자에 넣어 둘 것(채팅·파일에 남기지 말 것).
+- 비밀: NAS 비밀번호는 기존 `academy-homepage/credentials/nas-ssh.clixml`(DPAPI). **암호화 비밀구절 = NAS 로그인 비밀번호**(사장님 결정 2026-10-08, 따로 외울 것 없음) — 같은 DPAPI 기록을 helper가 파이프로만 넘기며 출력·기록하지 않는다. 복원 때는 NAS 비밀번호만 있으면 된다(`openssl enc -d … -pass pass:<NAS 비밀번호>`). NAS 비밀번호를 바꾸면 그날부터 새 비밀번호로 암호화되고, 그전 사본은 옛 비밀번호로 푼다.
 - 로그: `%LOCALAPPDATA%/agentos/backups/daily.log` (시작·각 단계 크기·NAS sha256·정리 목록·`done nas_copies=N`).
 - 복호화(복원 때): `openssl enc -d -aes-256-cbc -pbkdf2 -pass fd:3 3< <("%LOCALAPPDATA%/agentos/backups/credentials/backup-pass.sh") -in agentos-<시각>.tar.enc | gunzip | tar -xf -` → `fullbackup-<시각>/`(Paperclip, 위 복원 절차)와 `hermes-<시각>/`(프로필 폴더에 그대로 덮어쓰기; state.db는 게이트웨이를 멈춘 뒤).
 - 수동 실행·점검: `bash scripts/agentos-daily-backup.sh` → 마지막 줄 `DAILY_BACKUP_OK agentos-<시각>.tar.enc`. 스케줄러 상태: `schtasks /Query /TN AgentOS-Daily-Backup /V /FO LIST`.
