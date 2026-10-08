@@ -13,4 +13,5 @@ Scope: 사장님 결정(2026-10-08) — ① 봇 14개 기억 한도 2,200→4,40
   CHECK: `npx vitest run tests/memory-routine.test.ts` (8개) + 전체 `npx vitest run` 106/106, `npm run build` 통과, agentos-hermes 플러그인 63/63·tsc 0.
 - [x] R2: Hermes 예약 작업 `88e314216f6f` 「AgentOS 봇 기억 정리 (이틀마다)」 — `0 10 */2 * *`, 문지기 `~/AppData/Local/hermes/scripts/agentos-memory-scan.py`(같은 출력이면 에이전트 안 깨움), 작업 폴더 agent os, 스킬 agentos-bot-profile-config, 전달 `bot-chat`(사장님 Hermes Bot Chat). 대상이 없으면 `[SILENT]`로 알리지 않음.
 - [ ] R3: 실제 회차에서 70% 넘은 봇의 판정·적용·보고 — 지금은 넘은 봇 0(최대 2,192/4,400 = 49.8%)이라 다음에 넘을 때 확인. 리허설(임계 0.45, `apply --dry-run`까지만)은 예약 작업 수동 실행으로 확인(결과는 아래 EVIDENCE).
-  EVIDENCE: pending
+  EVIDENCE: 리허설 2026-10-08 19:00 (예약 작업 수동 실행, last_status ok, 전달 bot-chat 오류 없음, 2분 10초): 임계 0.45로 대상 2봇(화면디자인 검토 0, 스킬탐색 검토 1) → 판정 남김 1(근거: 봇 지시문·공통 지식 줄 번호, 확인 못 한 부분은 "재현 안 함"으로 명시) → `apply --dry-run` 오류 0. 실행 전후 decisions.json 31(남김 31) 그대로, 기억 글자 수 그대로. 작업 파일 `%LOCALAPPDATA%/agentos/memory-routine/20261008/`(비공개). 70% 기준 실제 적용 회차는 아직 없음 → R3 미체크 유지.
+  관찰: 리허설이 "한글 본문 heredoc 이 안전하다"는 지시문과 봇 2개의 실제 500 오류 기억이 엇갈림을 발견 — 지시문 수정 여부는 사장님 결정.
