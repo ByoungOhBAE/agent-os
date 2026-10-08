@@ -23,7 +23,7 @@
 | `argv_probe.py`: `bash -c "printf '%s' 'a\\b'"` | `a\b` (줄어듦) |
 | `argv_probe.py`: 같은 명령을 stdin(`bash -s`)으로 | `a\\b` (그대로) |
 | `argv_probe.py`: `<<'EOF'` heredoc, `-c` / stdin | 줄어듦 / 그대로 |
-| `env_probe.py`: 환경 변수 `MSYS=noglob` 추가 | `a\\b` (그대로) — 줄어들지 않음 |
+| `env_probe.py`: 환경 변수 `MSYS=noglob` 추가 | `a\\b` (그대로) — 단독 시험에서만 그렇고, 실제 Hermes 에서는 실패(아래 '시도한 해결') |
 | `paperclip_probe.py`: 없는 이슈에 PATCH — 올바른 `C:\\Users` | 404 "Issue not found" (본문은 정상으로 읽힘, 쓰기 없음) |
 | 같은 대상에 줄어든 `C:\Users` / `\d` / 깨진 JSON | 500 "Internal server error" ×3 |
 
@@ -32,3 +32,10 @@
 - 500처럼 눈에 띄는 경우는 JSON이 깨질 때뿐이다. `\\n`이 `\n`이 되는 경우처럼 **오류 없이 내용만 바뀌는 경우**도 있을 수 있다.
 - 봇 기록 전체(state.db)에서 이 500은 2026-10-08의 6건뿐이다.
 - 지시문의 "heredoc이 안전하다"는 설명은 한글 인코딩 측면에서는 맞다. 하지만 본문에 `\\`가 있으면 틀린다.
+
+## 시도한 해결 — `MSYS=noglob` (사장님 선택 '가') → 실패, 되돌림
+- 22:50 Windows 사용자 환경 변수 `MSYS=noglob`을 추가했다. 이어서 게이트웨이 감독자를 새 환경으로 띄우고 게이트웨이를 다시 시작했다(`/health` 200).
+- 고치기 전 봇 턴 시험(`bs-probe.mjs`, 스킬탐색): 역슬래시가 하나로 줄어 있었고 `MSYS=unset`이었다.
+- 고친 뒤 봇 턴 시험(스킬탐색·당근글): **터미널 명령이 아예 실행되지 않았다.** Hermes가 명령을 감싸는 스크립트가 `[: $_HERMES_RUNTIME_PASSTHROUGH_… =: unary operator expected`, `-P)\ exit $__hermes_ec` 오류로 깨졌다. `noglob`은 역슬래시뿐 아니라 따옴표 해석까지 꺼 버린다. 그래서 Python이 붙인 `"…"`와 `\"`가 글자 그대로 남는다.
+- 22:57 변수를 지우고 같은 방법으로 다시 시작했다. 봇 턴 2개에서 터미널이 정상으로 돌아왔다(`MSYS=unset`, 오류 없음). 고장 난 약 6분 동안 Paperclip 봇 실행은 0건이었고, 봇 턴은 시험 턴 2개뿐이었다.
+- 결론: 환경 변수로는 고칠 수 없다. 남은 방법은 Hermes가 명령을 `-c` 인자 대신 임시 스크립트 파일이나 stdin으로 넘기게 하는 것(로컬 수정)과, 지시문으로 피하는 것이다.
