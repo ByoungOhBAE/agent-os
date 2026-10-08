@@ -34,8 +34,9 @@ unk_date = [c['url'] for c in cards if c['date'] == '미확인']
 out(f"date unknown: {len(unk_date)} {unk_date}")
 three = [c['url'] for c in cards if not all(k in c['accuracy'] for k in ('무엇','왜','어떻게')) or not all(k in c['efficiency'] for k in ('무엇','왜','어떻게'))]
 out(f"cards without explicit 무엇/왜/어떻게 markers in both accuracy+efficiency: {len(three)}")
-raw = os.listdir(os.path.join(D, "raw"))
-out(f"raw files: {len(raw)} (yt {sum(f.startswith('yt-') for f in raw)}, web {sum(f.startswith('web-') for f in raw)}, github {sum(f.startswith('github-') for f in raw)}, community {sum(f.startswith('community-') for f in raw)})")
+RAW = os.environ.get("KNOWHOW_RAW_DIR") or os.path.join(D, "..", "..", "audit", "private-evidence", "ai-org-knowhow-raw")  # moved out of the public repo (T78: third-party emails in source text)
+raw = os.listdir(RAW) if os.path.isdir(RAW) else []
+out(f"raw files: {len(raw)} (yt {sum(f.startswith('yt-') for f in raw)}, web {sum(f.startswith('web-') for f in raw)}, github {sum(f.startswith('github-') for f in raw)}, community {sum(f.startswith('community-') for f in raw)}){'' if raw else ' — raw dir not present (private, operator PC only)'}")
 out(f"source candidates: {len(sources)} included={sum(1 for s in sources if s.get('included'))}")
 
 # URL check

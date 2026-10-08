@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# AgentOS secret guard (pre-commit hook). Blocks a commit when the STAGED changes add a secret-looking value or
+# stage a secret-bearing file. Same file for Windows Git Bash, WSL and Linux (always LF). Bots commit from WSL
+# through this same hook, so it is the one place where a leaked key is stopped before it reaches the PUBLIC repo.
+#
+# Rules: only looks at what is being committed (git diff --cached); never prints the matched value in full
+# (first 4 chars + ***); exits 1 on a hit with the file:line. Emergency bypass for a KNOWN false positive:
+#   AGENTOS_SKIP_SECRET_SCAN=1 git commit ...     (say why in the commit message)
+# Allow-list (test fixtures / placeholders): a line containing example|placeholder|your-|<...>|${...}|process.env|
+# dummy|redacted|***|test-key|fake|sample|changeme|fixture|.repeat( is ignored.
+# Source of truth: agent os repo scripts/git-hooks/pre-commit (installed by scripts/install-git-activity-hooks.sh).
+set -u
+[ "${AGENTOS_SKIP_SECRET_SCAN:-}" = 1 ] && exit 0
+
+# 1) files that must never be committed, whatever they contain
+bad_files="$(git diff --cached --name-only --diff-filter=ACR -z | tr '\0' '\n' | grep -E \
+  '(^|/)\.env($|\.)|(^|/)auth\.json$|(^|/)\.credentials\.json$|(^|/)mcp-tokens/|\.(db|db-wal|db-shm|sqlite|sqlite3|sql\.gz|tgz|pem|key|p12|pfx|dpapi)$|(^|/)credentials?\.json$' 2>/dev/null \
+  | grep -vE '\.env\.example$' || true)"
+
+# 2) secret-looking values in ADDED lines of the staged diff
+pat='-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY|AKIA[0-9A-Z]{16}|(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}|sk-ant-[A-Za-z0-9_-]{20,}|sk-(proj-)?[A-Za-z0-9_-]{32,}|xox[abpors]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|[0-9]{8,10}:AA[A-Za-z0-9_-]{33}|tskey-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|hgw_[A-Za-z0-9]{16,}|pcp_[A-Za-z0-9]{16,}|[Bb][Ee][Aa][Rr][Ee][Rr] [A-Za-z0-9_.=-]{24,}|(api[_-]?key|secret|token|passw(or)?d|client[_-]?secret)["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][A-Za-z0-9_/+=.-]{16,}["'"'"']'
+allow='example|placeholder|your[_-]|xxxx|<[^>]+>|\$\{|process\.env|dummy|redacted|\*\*\*|test[_-]?key|fake|sample|changeme|sk-a\*\*\*|fixture|\.repeat\('
+
+hits=""
+file=""
+while IFS= read -r line; do
+  case "$line" in
+    +++\ b/*) file="${line#+++ b/}"; continue ;;
+    +++*|---*|@@*|diff\ --git*|index\ *|Binary*) continue ;;
+    +*) ;;
+    *) continue ;;
+  esac
+  body="${line#+}"
+  printf '%s\n' "$body" | grep -qiE -e "$allow" && continue
+  m="$(printf '%s\n' "$body" | grep -oE -e "$pat" | head -1 || true)"
+  [ -n "$m" ] && hits="${hits}${file}: $(printf '%s' "$m" | cut -c1-4)*** (${#m} chars)"$'\n'
+done < <(git diff --cached -U0 --no-color --diff-filter=ACMR 2>/dev/null)
+
+if [ -n "$bad_files" ] || [ -n "$hits" ]; then
+  echo "AgentOS secret guard: commit blocked." >&2
+  [ -n "$bad_files" ] && { echo "  secret-bearing file(s) staged:" >&2; printf '    %s\n' $bad_files >&2; }
+  [ -n "$hits" ] && { echo "  secret-looking value(s) added:" >&2; printf '%s' "$hits" | sed 's/^/    /' >&2; }
+  echo "  Remove the secret (use .env / a placeholder) and commit again. Known false positive: AGENTOS_SKIP_SECRET_SCAN=1" >&2
+  exit 1
+fi
+exit 0

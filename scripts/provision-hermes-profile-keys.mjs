@@ -7,6 +7,7 @@
 //
 // Existing keys are reused, never replaced. Key values are never printed.
 import { randomBytes } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -99,6 +100,13 @@ if (!changed) {
 const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
 const backupDir = path.join(home, "backups", `agentos-keys-${stamp}`);
 mkdirSync(backupDir, { recursive: true });
+// Key backups hold plaintext secrets: lock the folder to the current user + SYSTEM + Administrators (no inherited
+// CodexSandboxUsers / second-account read). Point-in-time audit found 16 world-readable copies (T75).
+if (process.platform === "win32") {
+  const me = `${process.env.USERDOMAIN || "."}\\${process.env.USERNAME}`;
+  const r = spawnSync("icacls", [backupDir, "/inheritance:r", "/grant:r", `${me}:(OI)(CI)F`, "NT AUTHORITY\\SYSTEM:(OI)(CI)F", "BUILTIN\\Administrators:(OI)(CI)F"], { encoding: "utf8" });
+  if (r.status !== 0) fail(`백업 폴더 권한 설정 실패: ${(r.stderr || r.stdout || "").trim()}`);
+}
 const files = [];
 const backup = (target, label, existed) => {
   const name = `${files.length}.env`;

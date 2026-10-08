@@ -25,3 +25,22 @@ __pycache__/
 
 # Kanban redesign preview bundle (never deployed from here)
 preview-dist/
+
+# Secret-bearing files / dumps / archives (T76): never tracked, whatever the folder
+auth.json
+.credentials.json
+mcp-tokens/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sql.gz
+*.tgz
+*.pem
+*.key
+*.p12
+*.pfx
+*.dpapi
+# Web-extract scratch dumps (ext1.json ...) belong in $TMPDIR, not the repo
+/ext[0-9]*.json

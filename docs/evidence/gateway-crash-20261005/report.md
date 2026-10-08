@@ -5,7 +5,7 @@
 ## 결론 한눈에
 | 사건 | 원인 | 확실성 | 근거 |
 |---|---|---|---|
-| ① 10-04 18:02 게이트웨이 사라짐 | **PC를 시작 메뉴 "전원 끄기"로 끔**(빠른 시작=절전형 종료). 다음날 아침 빠른 시작 복원 실패 → 처음부터 부팅 | **확정** | System 로그 1074(전원 끄기, StartMenuExperienceHost, pilt\tahar) 18:02:49 · Kernel-Power 42 Target=6/Effective=5 18:02:59 · 게이트웨이 마지막 심장박동 18:02:43 · 07:54:14 부팅 · Kernel-Boot 29(0xC00000D4) · KP41 bugcheck=0, 전원버튼 길게 누름 없음 |
+| ① 10-04 18:02 게이트웨이 사라짐 | **PC를 시작 메뉴 "전원 끄기"로 끔**(빠른 시작=절전형 종료). 다음날 아침 빠른 시작 복원 실패 → 처음부터 부팅 | **확정** | System 로그 1074(전원 끄기, StartMenuExperienceHost, <pc>\<user>) 18:02:49 · Kernel-Power 42 Target=6/Effective=5 18:02:59 · 게이트웨이 마지막 심장박동 18:02:43 · 07:54:14 부팅 · Kernel-Boot 29(0xC00000D4) · KP41 bugcheck=0, 전원버튼 길게 누름 없음 |
 | ② 10-05 08:02:48 다시 꺼짐 | 게이트웨이 내부 **이벤트 루프가 멈춰** 감시기가 "응답 없음 3회"로 스스로 종료(코드 75) | **확정**(무엇이 멈췄는지는 아래 ③) | `state/gateway.lifecycle.json` exit 75 loop_liveness_watchdog · gateway.log CRITICAL |
 | ③ 루프를 멈춘 코드 줄 | **특정 못 함** — 감시기가 스택을 표준오류(숨은 콘솔)로 찍어 종료와 함께 사라짐 | 미확정(포기·인계) | 08:02:40~03:40 사이 새로 쓰인 파일에 덤프 없음 · `gateway_faulthandler.log` 없음 |
 | ④ 08:02:48 이후 아무도 다시 켜지 않음 | 게이트웨이는 **시작프로그램 폴더 VBS로 "한 번 켜고 끝"** 방식으로 뜸(감독자 없음). 그런데 감시기는 항상 "재시작해 달라(75)"로 종료 → 받아 줄 쪽이 없음 | **확정** | Startup `Hermes_Gateway.vbs` → `gateway-service\Hermes_Gateway.vbs` `sh.Run …, 0, False` · Hermes 예약 작업 0개 · `shutdown_watchdog.py` exit_code 기본값 = 75 · `gateway/restart.py` 주석: Windows 런처는 재시작 정책이 없음(#113670) · `gateway_state.json` restart_requested=true |
