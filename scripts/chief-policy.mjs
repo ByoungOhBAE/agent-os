@@ -46,7 +46,7 @@ export const POLICY=`## 비서실장 운영 규칙 (${VERSION})
 `;
 export const SECTION=`${START}\n${POLICY}${END}`;
 export const PLAN_SKILL=`---
-name: omh-plan
+name: agentos-chief-plan
 description: "Board-approved planning: goals, assumptions, allocation and evidence."
 ---
 # 계획

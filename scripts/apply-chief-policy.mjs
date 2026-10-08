@@ -23,7 +23,7 @@ const files=new Map([
  ['SOUL.md',mergePolicy(readFileSync(path.join(home,'SOUL.md'),'utf8'))],
  ['skills/paperclip/agentos-chief-of-staff/SKILL.md',CHIEF_SKILL],
  ['skills/paperclip/paperclip/SKILL.md',PAPERCLIP_SKILL],
- ['skills/paperclip/omh-plan/SKILL.md',PLAN_SKILL],
+ ['skills/paperclip/agentos-chief-plan/SKILL.md',PLAN_SKILL],
 ]);
 const oldChief=readFileSync(path.join(home,'skills/paperclip/agentos-chief-of-staff/SKILL.md'),'utf8');
 const oldPaperclip=readFileSync(path.join(home,'skills/paperclip/paperclip/SKILL.md'),'utf8');

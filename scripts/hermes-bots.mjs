@@ -23,7 +23,7 @@
 //   check-chief                           -> CHIEF_HERMES_DEFAULT_OK
 //   guard    --agent <id>|--profile <p> --role chief|reviewer|worker|basic [--mode warn|block] | --status   install agentos-guard plugin
 import { createHash, randomBytes } from "node:crypto";
-import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, readlinkSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, readlinkSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import http from "node:http";
 import path from "node:path";
@@ -186,11 +186,62 @@ function findSkillDir(root, name) {
   }
   return null;
 }
+// Audit ③ T40: the upstream Paperclip skill assumes scripts/*.sh, jq and heredocs that this install lacks (and the guard
+// blocks); every copy carries this notice right after the front matter so the bot follows SOUL/agentos-* first.
+const PAPERCLIP_SKILL_NOTICE = `
+> **AgentOS 주의(이 설치본 기준)** — 아래 상류 설명 중 \`scripts/*.sh\`, \`jq\`, heredoc 예시는 이 환경에 **없고 가드가 막습니다**.
+> API 호출은 SOUL의 규칙대로 Python \`urllib\`(UTF-8 JSON)로 하고, 이슈를 바꾸는 요청에는 \`X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID\` 헤더를 꼭 넣습니다.
+> 역할 지침(SOUL/AGENTS.md)과 agentos-* 지식이 이 스킬보다 우선합니다. 자세한 API 모양은 아래를 참고만 합니다.
+`;
+function addPaperclipNotice(skillMd) {
+  if (!existsSync(skillMd)) return;
+  const s = readFileSync(skillMd, "utf8");
+  if (s.includes("AgentOS 주의(이 설치본 기준)")) return;
+  const m = s.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
+  if (!m) return;
+  writeFileSync(skillMd, s.slice(0, m[0].length) + PAPERCLIP_SKILL_NOTICE + s.slice(m[0].length));
+}
+/** Relative dirs (category/name) of every SKILL.md under root, e.g. "creative/humanizer". */
+function skillDirsUnder(root) {
+  const out = new Set();
+  const walk = (dir, rel) => {
+    if (!existsSync(dir)) return;
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (!e.isDirectory() || e.name.startsWith(".") || e.name === "node_modules") continue;
+      const sub = path.join(dir, e.name), r = rel ? `${rel}/${e.name}` : e.name;
+      if (existsSync(path.join(sub, "SKILL.md"))) out.add(r); else if (r.split("/").length < 3) walk(sub, r);
+    }
+  };
+  walk(root, "");
+  return out;
+}
+/** Audit ④ T33: after --clone-from, drop template-only skills (anything not in Hermes' bundled set, except the agentos/ and
+ * paperclip/ trees which hire regenerates) and empty the copied memories. Returns the removed skill dirs. */
+function scrubClonedProfile(profile) {
+  const home = profileHome(profile);
+  const bundled = skillDirsUnder(path.join(HOME, "skills"));
+  const removed = [];
+  for (const rel of skillDirsUnder(path.join(home, "skills"))) {
+    if (rel.startsWith("agentos/") || rel.startsWith("paperclip/") || bundled.has(rel)) continue;
+    rmSync(path.join(home, "skills", rel), { recursive: true, force: true });
+    removed.push(rel);
+  }
+  const mem = path.join(home, "memories");
+  mkdirSync(mem, { recursive: true });
+  for (const f of ["MEMORY.md", "USER.md"]) writeFileSync(path.join(mem, f), "");
+  return removed.sort();
+}
 function installSkills(profile, extra) {
   const skills = path.join(profileHome(profile), "skills");
   const dst = path.join(skills, "paperclip");
   mkdirSync(dst, { recursive: true });
-  for (const s of PAPERCLIP_SKILLS) wsl(["cp", "-r", `${WSL_SKILLS}/${s}`, `${toWslPath(dst)}/`]);
+  for (const s of PAPERCLIP_SKILLS) {
+    // Audit ④ T38: never overwrite an existing copy — the chief's paperclip skill is a managed edition (apply-chief-policy),
+    // and bots may hold the AgentOS-edited copy. Fresh copies only, then the AgentOS notice.
+    if (existsSync(path.join(dst, s, "SKILL.md"))) continue;
+    wsl(["cp", "-r", `${WSL_SKILLS}/${s}`, `${toWslPath(dst)}/`]);
+    if (s === "paperclip") addPaperclipNotice(path.join(dst, s, "SKILL.md"));
+  }
   for (const s of extra) {
     if (findSkillDir(skills, s)) continue;
     const src = findSkillDir(path.join(HOME, "skills"), s);
@@ -232,6 +283,14 @@ function createProfile(profile, description, { gatewayKeyStep = true } = {}) {
     }
   };
   step("profile create", () => hermes(["profile", "create", profile, "--clone-from", TEMPLATE, "--no-alias", "--description", description]));
+  // Audit ④ T33: --clone-from copies the template bot's whole skills tree, memories and skills.disabled. A new bot keeps
+  // only Hermes' bundled skills (agentos/* and paperclip/* are regenerated/installed below); memory starts empty
+  // (seedMemory + memory-knowledge apply fill it); the template's role preset must not leak in.
+  step("clean clone", () => {
+    const removed = scrubClonedProfile(profile);
+    hermes(["-p", profile, "config", "set", "skills.disabled", "[]"]);
+    console.log(`clean clone: removed ${removed.length} template-only skill(s)${removed.length ? ` (${removed.slice(0, 5).join(", ")}${removed.length > 5 ? ", …" : ""})` : ""}, memory reset`);
+  });
   step("config", () => {
     hermes(["-p", profile, "config", "set", "terminal.env_passthrough", JSON.stringify(PASSTHROUGH)]);
     hermes(["-p", profile, "config", "set", "memory.memory_enabled", "true"]);
@@ -412,9 +471,14 @@ if (cmd === "baseline") {
   const profile = `pc-selftest-${randomBytes(3).toString("hex")}`;
   createProfile(profile, "selftest (W2-4) — deleted right after", { gatewayKeyStep: false });
   const get = (k) => hermes(["-p", profile, "config", "get", k]).trim().split(/\r?\n/).pop().trim();
+  // ④ T33: a fresh clone must carry no template-only skills, an empty memory and no inherited skills.disabled
+  const bundled = skillDirsUnder(path.join(HOME, "skills"));
+  const leftover = [...skillDirsUnder(path.join(profileHome(profile), "skills"))].filter((r) => !r.startsWith("agentos/") && !r.startsWith("paperclip/") && !bundled.has(r));
+  const memEmpty = ["MEMORY.md", "USER.md"].every((f) => !readFileSync(path.join(profileHome(profile), "memories", f), "utf8").trim());
   const res = { profile, omhPlugin: existsSync(path.join(profileHome(profile), "plugins", "omh")),
     lazyInstalls: get("security.allow_lazy_installs"), omhHome: get("plugins.entries.omh.settings.omh_home"),
-    omhStore: existsSync(path.join(profileHome(profile), "omh")) };
+    omhStore: existsSync(path.join(profileHome(profile), "omh")),
+    templateOnlySkillsLeft: leftover, memoryEmpty: memEmpty, skillsDisabled: get("skills.disabled"), cleanClone: leftover.length === 0 && memEmpty };
   let deleted = "yes";
   try { hermes(["profile", "delete", profile, "-y"]); } catch { deleted = "no"; }
   if (existsSync(profileHome(profile))) deleted = "RETIRE_PENDING (locked; restart the gateway, then hermes profile delete)";
