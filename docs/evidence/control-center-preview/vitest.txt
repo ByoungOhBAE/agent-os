@@ -1,0 +1,14 @@
+
+ RUN  v3.2.7 /mnt/c/Users/tahar/orca/workspaces/agent os/.worktrees/control-center/plugins/agentos-project-hub
+
+ ✓ tests/git-activity.spec.ts (14 tests) 6ms
+ ✓ tests/board.spec.ts (14 tests) 4ms
+ ✓ tests/control.spec.ts (29 tests) 12ms
+ ✓ tests/model.spec.ts (18 tests) 6ms
+
+ Test Files  4 passed (4)
+      Tests  75 passed (75)
+   Start at  03:08:44
+   Duration  1.87s (transform 239ms, setup 0ms, collect 539ms, tests 29ms, environment 0ms, prepare 2.99s)
+
+vitest run exit=0

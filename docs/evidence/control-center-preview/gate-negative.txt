@@ -1,0 +1,4 @@
+exit=1 fail-lines=1
+  FAIL: [1440] 관제센터가 그려지지 않음
+NEGATIVE_CONTROL_OK
+negative_gate_exit=0

@@ -1,0 +1,6 @@
+2026-10-06T17:22:29Z
+commit d158045f7da6ee5d9cd827e3cca9feb1d9fe0941
+Author: Tahar <tahar@example.com>
+Date:   Wed Oct 7 01:59:18 2026 +0900
+
+    docs(plan): 관제센터 명세 색 규칙 모순 정정(HER-113 막힘 반영) + 감시·채점 스크립트

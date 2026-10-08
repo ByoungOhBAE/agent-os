@@ -1,0 +1,13 @@
+project=에이전트 os web dashboard expected={"bots":11,"approval":0,"blocked":2,"review":0,"failed":1} bundle=6ea2ed8d8295
+[1440] lightContrastMin=4.74(354)
+[1440] kpis=6 bots=11 overflow=0 outside=0 orphans=0 contrastMin=6.39(354) band=ok
+[768] lightContrastMin=4.74(336)
+[768] kpis=6 bots=11 overflow=0 outside=0 orphans=0 contrastMin=6.39(336) band=ok
+[390] lightContrastMin=4.74(336)
+[390] kpis=6 bots=11 overflow=0 outside=0 orphans=0 contrastMin=6.39(336) band=ok
+[실패:실행 기록] kpi={"done":"32건","bots":"읽을 수 없음","success":"읽을 수 없음","tokens":"읽을 수 없음","passRate":"50%","noReview":"16건"} contrast dark=7.47 light=4.74
+[실패:반려 기록] {"unknownNote":16,"rework":"0","rowUnknown":16,"passNote":"기록을 읽지 못한 작업 16건은 빼고 셈","abortedActivityGets":19}
+[모양 시험:경보 카드] dark=11.14(6) light=15.43(6)
+requests=1006 nonGET=0 bundleHits=6 pageErrors=0
+CONTROL_CENTER_PREVIEW_OK
+preview_gate_exit=0
