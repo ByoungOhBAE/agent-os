@@ -285,7 +285,7 @@
       "from": [
         "pc-8ca245c2/MEMORY.md#7853e30b5ada"
       ],
-      "en": "Paperclip runs expose PAPERCLIP_API_URL and PAPERCLIP_API_KEY but no PAPERCLIP_RUN_ID; use the Run ID from the wake message for X-Paperclip-Run-Id. Paperclip writes: comments and documents that do not change the task status may be sent with Python urllib (json.dumps ensure_ascii=False, UTF-8). Status changes to done or in_progress must stay readable by agentos-guard: send them with curl, as a heredoc (--data-binary @- <<'EOF') or from a JSON file written in an earlier command (--data-binary @<absolute path>); a Python/Node program that PATCHes a status is blocked. For Korean text prefer the heredoc or the file over an inline -d."
+      "en": "Paperclip runs expose PAPERCLIP_API_URL and PAPERCLIP_API_KEY but no PAPERCLIP_RUN_ID; use the Run ID from the wake message for X-Paperclip-Run-Id. Paperclip writes: comments and documents that do not change the task status may be sent with Python urllib (json.dumps ensure_ascii=False, UTF-8). Status changes to done or in_progress must stay readable by agentos-guard: send them with curl, as a heredoc (--data-binary @- <<'EOF') or from a JSON file written in an earlier command (--data-binary @<absolute path>); a Python/Node program that PATCHes a status is blocked. For Korean text prefer the heredoc or the file over an inline -d. If the body contains any backslash (a Windows path like C:\\Users, a regex like \\d, a table cell \\|), do not send it inline or as a heredoc: write the JSON with the write_file tool, then send it with --data-binary @<absolute path> (this PC's terminal can turn two backslashes into one inside a command, which breaks the JSON and returns HTTP 500)."
     },
     {
       "id": "c-hires-orgchart",

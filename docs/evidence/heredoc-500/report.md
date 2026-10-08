@@ -79,3 +79,13 @@
 
 **종합: 사실 확인.** 위 표에 정정 두 가지(⌈n/2⌉ 규칙, 림버스 2건은 `\|`)를 반영했다.
 
+## 해결 (사장님 결정 '나+다', 2026-10-08 23:50)
+- **나 — Hermes 로컬 수정**(`docs/hermes-local-patches.md` #4): Windows에서는 명령을 임시 스크립트 파일로 넘긴다.
+  - 확인: `patch_regression.py` 18/18, `patch_background.py` 2/2 통과.
+  - 게이트웨이 재시작 뒤 실제 봇 턴 3개에서, 봇이 친 `\\`가 보존됐고(`wc -c` 4) 봇식 본문이 Paperclip에 정상으로 읽혔다(404, 없는 이슈).
+- **다 — 지시문 보강**(수정이 업데이트로 풀릴 때를 대비):
+  - `scripts/hermes-bots.mjs` 공통 머리말에 "본문에 역슬래시가 있으면 (3) 파일(write_file)로" 1줄을 넣었다. sync-soul로 봇 14개 SOUL에 각 +1줄씩만 바뀐 것을 확인했다.
+  - 공통 지식 `c-run-env`에 같은 규칙을 넣었다(ko.json 키 이동, 번역 커버리지는 140/146 그대로). apply-skills로 봇 14개의 agentos-common이 각 1줄 교체됐다.
+  - 백업: `%LOCALAPPDATA%/agentos/backups/bs-instruction-20261008/`.
+- **봇 기억 정정**: 스킬탐색의 "한글 heredoc → 500" 기억은 원인이 틀렸으므로 **지움 제안**(사장님 승인 대기)으로 올렸다. 당근글 기억은 원인을 단정하지 않았고 'PATCH 뒤 코드 출력·다시 GET' 습관이 유효해서 남김으로 정했다.
+
