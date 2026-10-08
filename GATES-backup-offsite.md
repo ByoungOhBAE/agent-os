@@ -14,6 +14,6 @@ Scope: `docs/plans/점검-중간낮음-조치-계획.md` 묶음 ⑥ T70 — 사�
 - [x] B3 복원 시험 — 같은 바이트(NAS sha256 일치)인 `latest.tar.enc`를 복호화·해제: EXTRACT_OK, hermes SHA256SUMS 337개 OK, Paperclip SHA256SUMS 19개 OK, 복원된 비서실장 state.db `pragma integrity_check` ok(세션 50).
 
 ## 한계
-- NAS→PC 내려받기는 느림(ssh/scp 실측 5~50 KB/s, 올리기는 15 MB/s). 재해 복원은 NAS 앞에서(학원 LAN) 받거나 반나절을 잡아야 한다. PC가 살아 있으면 `backups/latest.tar.enc`·평문 폴더로 바로 복원.
+- (해결 2026-10-08 18:18) NAS→PC 내려받기가 8MB 뒤 멈추던 원인 = NAS Tailscale이 userspace-networking 모드(TUN 없음). 사장님이 DSM 작업 스케줄러(root)로 `tailscale configure-host` 실행 + 패키지 재시작 → 커널 TUN 모드. 실측 100MB 2.6초(38 MB/s). PC가 살아 있으면 `backups/latest.tar.enc`·평문 폴더로 바로 복원.
 - 비밀구절은 NAS 로그인 비밀번호와 같다: NAS 비밀번호를 아는 사람은 NAS 사본을 풀 수 있다(그 사람은 어차피 NAS 폴더를 볼 수 있으므로 노출 범위는 같음). NAS 비밀번호 변경 시 이전 사본은 옛 비밀번호로 푼다.
 - 첫 실행 때 7일 규칙으로 WSL `fullbackup-20260924…`(9-24, 검증본 아님)이 지워짐. `LATEST_VERIFIED`(10-03)는 보호 규칙 추가 뒤 유지됨.

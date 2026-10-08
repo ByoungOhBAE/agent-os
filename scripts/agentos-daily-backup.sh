@@ -5,8 +5,9 @@
 #   3) one tar of both, encrypted (openssl aes-256-cbc, pbkdf2; passphrase from a DPAPI-protected clixml via a helper
 #      that prints it to a pipe only) → NAS  ~/backups/agentos/agentos-<ts>.tar.enc  + .sha256, verified remotely
 #   4) retention: NAS and local copies older than KEEP_DAYS (7) are deleted; the local plaintext stays on this PC only.
-#      The newest encrypted archive is also kept locally as backups/latest.tar.enc (restore drill without the NAS link,
-#      which is slow in the NAS→PC direction: ~50 KB/s measured 2026-10-08).
+#      The newest encrypted archive is also kept locally as backups/latest.tar.enc (restore drill without the NAS link).
+#      NAS→PC used to stall after ~8 MB while the NAS Tailscale ran in userspace-networking mode; fixed 2026-10-08 by
+#      enabling kernel TUN on the NAS (tailscale configure-host + package restart) — 38 MB/s measured afterwards.
 # Secrets never appear in output or in files on the NAS in clear text. Prints DAILY_BACKUP_OK on success.
 set -euo pipefail
 export PATH="/usr/bin:/bin:/c/Windows/System32:$PATH"
