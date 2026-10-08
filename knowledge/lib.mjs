@@ -6,7 +6,9 @@
 import { createHash } from "node:crypto";
 
 export const USER_LIMIT = 1375;
-export const MEMORY_LIMIT = 2200;
+// Owner decision 2026-10-08: bots get 4,400 chars (Hermes default 2,200). Must equal every registered profile's
+// config.yaml `memory.memory_char_limit` — scripts/memory-routine.mjs `scan` reports a mismatch.
+export const MEMORY_LIMIT = 4400;
 export const SEP = "\n§\n";
 export const SKILL_PREFIX = "agentos-";
 

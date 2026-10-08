@@ -36,7 +36,10 @@ export interface MemoryOverviewData {
   paperclip: { state: "ok" | "not-configured" | "server-pending" | "unavailable"; message?: string; user: MemoryFile | null; bots: BotMemoryCard[] };
 }
 
-export const BOT_LIMIT = 2200;
+export const BOT_LIMIT = 2200; // Hermes default (the owner's own "default" profile)
+/** AgentOS bots (every non-default profile) run with memory.memory_char_limit 4400 — owner decision 2026-10-08, see knowledge/lib.mjs MEMORY_LIMIT. */
+export const AGENTOS_BOT_LIMIT = 4400;
+export const memoryLimitFor = (profile: string | null | undefined): number => (!profile || profile === "default" ? BOT_LIMIT : AGENTOS_BOT_LIMIT);
 export const USER_LIMIT = 1375;
 const MAX_ENTRIES = 60;
 const MAX_FILE_CHARS = 20_000;
@@ -124,10 +127,10 @@ function fileFromItems(items: GraphMemory[], limit: number, ko?: KoLookup): Memo
 }
 
 /** Hermes 그래프의 `memory[]`를 봇 기억(`memory`)과 사장님 정보(`profile`)로 나눈다. */
-export function projectHermesMemory(graph: { memory?: GraphMemory[] } | null | undefined, ko?: KoLookup): { bot: MemoryFile; user: MemoryFile } {
+export function projectHermesMemory(graph: { memory?: GraphMemory[] } | null | undefined, ko?: KoLookup, botLimit: number = BOT_LIMIT): { bot: MemoryFile; user: MemoryFile } {
   const memory = Array.isArray(graph?.memory) ? graph!.memory : [];
   return {
-    bot: fileFromItems(memory.filter(m => m.source === "memory"), BOT_LIMIT, ko),
+    bot: fileFromItems(memory.filter(m => m.source === "memory"), botLimit, ko),
     user: fileFromItems(memory.filter(m => m.source === "profile"), USER_LIMIT, ko),
   };
 }
@@ -169,9 +172,9 @@ export async function readHermesMemory(read: BffReader = readBff, ko?: KoLookup)
     const base = { key: `hermes:${profile}`, source: "hermes" as const, name: title || (profile === "default" ? "기본 Hermes" : profile), subtitle: profile, skills: skills.status === "available" ? hermesSkills((skills as any).data) : null };
     if (graph.status !== "available") {
       if (profile === "default") user = stateFile("unavailable", USER_LIMIT, MESSAGES.unavailable);
-      return { ...base, memory: stateFile("unavailable", BOT_LIMIT, `${MESSAGES.unavailable.slice(0, -1)} (Hermes 학습 기록 없음).`) };
+      return { ...base, memory: stateFile("unavailable", memoryLimitFor(profile), `${MESSAGES.unavailable.slice(0, -1)} (Hermes 학습 기록 없음).`) };
     }
-    const projected = projectHermesMemory((graph as any).data, ko);
+    const projected = projectHermesMemory((graph as any).data, ko, memoryLimitFor(profile));
     if (profile === "default") user = projected.user;
     return { ...base, memory: projected.bot };
   });
@@ -208,11 +211,11 @@ export async function readPaperclipMemory(ctx: PaperclipReadCtx, companyId: stri
     const profile = hermesProfileOf(a);
     const base = { key: `paperclip:${a.id}`, source: "paperclip" as const, name: redact(a.name, 80) || a.id.slice(0, 8),
       subtitle: `${profile ? `Hermes ${profile}` : a.id.slice(0, 8)}${a.status ? ` · ${redact(a.status, 20)}` : ""}` };
-    if (!profile) return { ...base, skills: paperclipSkills(a.adapterConfig), memory: stateFile("missing", BOT_LIMIT, MESSAGES.notHermes) };
+    if (!profile) return { ...base, skills: paperclipSkills(a.adapterConfig), memory: stateFile("missing", AGENTOS_BOT_LIMIT, MESSAGES.notHermes) };
     const [graph, skills] = await Promise.all([read("graph", profile), read("skills", profile)]);
     const chips = skills.status === "available" ? hermesSkills((skills as any).data) : null;
-    if (graph.status !== "available") return { ...base, skills: chips, memory: stateFile("unavailable", BOT_LIMIT, MESSAGES.unavailable) };
-    const projected = projectHermesMemory((graph as any).data, ko);
+    if (graph.status !== "available") return { ...base, skills: chips, memory: stateFile("unavailable", memoryLimitFor(profile), MESSAGES.unavailable) };
+    const projected = projectHermesMemory((graph as any).data, ko, memoryLimitFor(profile));
     if (!user && projected.user.state === "ok") user = projected.user;
     return { ...base, skills: chips, memory: projected.bot };
   });

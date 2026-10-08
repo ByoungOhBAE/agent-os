@@ -4,7 +4,7 @@ import manifest from "../src/manifest.js";
 import plugin from "../src/worker.js";
 import { readBff, routeFor } from "../src/bff.js";
 import {
-  countChars, fileFromRaw, gaugeTone, hermesProfileOf, hermesSkills, paperclipSkills, projectHermesMemory, readMemoryOverview, readPaperclipMemory,
+  countChars, fileFromRaw, gaugeTone, hermesProfileOf, memoryLimitFor, hermesSkills, paperclipSkills, projectHermesMemory, readMemoryOverview, readPaperclipMemory,
   splitEntries, summarize, toEntry, visibleCards, type BotMemoryCard, type PaperclipAgentRow,
 } from "../src/memory.js";
 
@@ -71,6 +71,8 @@ describe("기억 한눈에 보기 — 순수 함수", () => {
     expect(bot.updatedAt).toBe(new Date(1790000000 * 1000).toISOString());
     expect(user).toMatchObject({ state: "ok", chars: 3, limit: 1375 });
     expect(projectHermesMemory({ memory: [] }).bot.state).toBe("empty");
+    expect(projectHermesMemory({ memory: [{ source: "memory", body: "가" }] }, undefined, memoryLimitFor("pc-59bd3c1d")).bot.limit).toBe(4400);
+    expect(memoryLimitFor("default")).toBe(2200);
     expect(projectHermesMemory(null).user.state).toBe("empty");
   });
   it("T9 스킬 이름은 마지막 / 뒤만, 형식이 다르면 null", () => {
@@ -108,7 +110,7 @@ describe("기억 한눈에 보기 — Paperclip 봇 = 짝인 Hermes 프로필의
     const result = await readPaperclipMemory(ctx, COMPANY, read);
     expect(result.state).toBe("ok");
     expect(result.bots).toHaveLength(1);
-    expect(result.bots[0]).toMatchObject({ key: `paperclip:${AGENT}`, name: "코드구현", subtitle: "Hermes pc-59bd3c1d · idle", skills: [{ name: "paperclip", uses: 2 }], memory: { state: "ok", limit: 2200, approx: true } });
+    expect(result.bots[0]).toMatchObject({ key: `paperclip:${AGENT}`, name: "코드구현", subtitle: "Hermes pc-59bd3c1d · idle", skills: [{ name: "paperclip", uses: 2 }], memory: { state: "ok", limit: 4400, approx: true } });
     expect(result.bots[0].memory.entries).toHaveLength(2);
     expect(result.user).toMatchObject({ state: "ok", limit: 1375 });
     expect(calls.filter(c => c.startsWith("graph:"))).toEqual(["graph:pc-59bd3c1d"]);

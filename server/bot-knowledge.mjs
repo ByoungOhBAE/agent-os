@@ -17,6 +17,8 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PROFILE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const HASH = /^[0-9a-f]{12}$/;
 export const ACTIONS = ["move", "keep", "drop"];
+// Drop reasons are shown to the owner before approval (org chart + memory routine report), so they may be detailed.
+export const REASON_MAX = 600;
 const SECRET = /(sk-ant-[\w-]+|ghp_\w+|github_pat_\w+|pcp_\w+|Bearer\s+[A-Za-z0-9._-]{16,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/g;
 
 export class KnowledgeError extends Error {
@@ -198,7 +200,7 @@ export function overlayFromDecisions(reg, local, decisions, idx, { allowDrop = f
     if (!item) continue;
     if (d.action === "drop") {
       if (!allowDrop) { pending.push(key); continue; }
-      next.retired.push({ hash: item.hash, profile: item.profile, reason: String(d.reason ?? "").slice(0, 200), at: now, by });
+      next.retired.push({ hash: item.hash, profile: item.profile, reason: String(d.reason ?? "").slice(0, REASON_MAX), at: now, by });
       applied.push(key);
     } else if (d.action === "move") {
       // a member follows its lead only while the lead itself is a carried "move"; otherwise it stands alone
@@ -273,7 +275,7 @@ export function overview(env = process.env) {
     const carried = [...idx.values()].filter((i) => i.profile === b.profile).map((i) => {
       const key = itemKey(i.profile, i.hash);
       const d = state.decisions.items?.[key];
-      return { key, hash: i.hash, text: redact(i.text), chars: charCount(i.text), ko: state.ko[i.hash]?.ko ? redact(state.ko[i.hash].ko) : null, decision: d ? { action: d.action, scope: d.scope ?? null, group: d.group ?? null, reason: d.reason ?? null } : null };
+      return { key, hash: i.hash, text: redact(i.text), chars: charCount(i.text), ko: state.ko[i.hash]?.ko ? redact(state.ko[i.hash].ko) : null, decision: d ? { action: d.action, scope: d.scope ?? null, group: d.group ?? null, reason: d.reason ?? null, at: d.at ?? null, by: d.by ?? null } : null };
     });
     return {
       profile: b.profile, name: b.name, agentId: b.agentId ?? null, room: b.room ?? null, projects: b.projects ?? [],
@@ -349,7 +351,7 @@ export function decide(input, env = process.env) {
           if (it.group !== key) d.group = it.group;
         }
       }
-      if (it.reason) d.reason = String(it.reason).slice(0, 200);
+      if (it.reason) d.reason = String(it.reason).slice(0, REASON_MAX);
       next.items[key] = d;
     }
     // members of a group must go where the lead goes
