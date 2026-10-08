@@ -719,6 +719,16 @@ class SecretReadAllRoles(unittest.TestCase):
         for c in ('git commit -m "docker 설정 문서 정리"', "ls ~/projects", "npm test"):
             self.assertIsNone(self.t("worker", c), c)
 
+    def test_worker_pc_api_patch_blocked_other_subcommands_open(self):
+        # Audit ⑤ T02: a status PATCH from inside the youtube helper script would bypass the done-comment format check
+        for c in ("python env/tools/pc_api.py patch 123 done.json",
+                  'python "C:/x/agent-work/env/tools/pc_api.py" patch HER-99 body.json',
+                  "source env/setenv.sh && python env/tools/pc_api.py patch 123 done.json"):
+            self.assertIsNotNone(self.t("worker", c), c)
+        for c in ('python env/tools/pc_api.py comment 123 "요약"', "python env/tools/pc_api.py get 123",
+                  "python env/tools/pc_api.py doc-put 123 report report.md", "python env/tools/pc_api.py attach co 123 a.png"):
+            self.assertIsNone(self.t("worker", c), c)
+
 
 class ReadRootsAllRoles(unittest.TestCase):
     """W4-X1 / W6-X2 (2026-10-07 follow-up): read tools judge the real location against an allow list of roots, and

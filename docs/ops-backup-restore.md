@@ -58,6 +58,21 @@ wsl -d Ubuntu -- bash "$S" purge --name A     # 끝나면 정리
 4. 같은 경로에 `instance-*.tgz`를 풀고, 빈 DB 폴더에서 `scripts/paperclip-restore-db.mjs`로 DB를 복원한다(이 스크립트는 운영 경로를 거부하므로, 운영 교체용으로 쓰려면 별도 승인된 절차가 필요하다).
 5. 서비스를 시작하고 `counts.json`과 API 행 수를 대조한다.
 
+## 매일 NAS 사본 + Hermes 봇 상태 (2026-10-08, 점검 ⑥ T70)
+
+같은 디스크에만 있던 백업을 **매일 03:30 NAS로 한 벌 더** 보내고, Paperclip 백업에 없던 **Hermes 봇 기억·세션·지시문**도 함께 담는다.
+
+- 작업 스케줄러 `AgentOS-Daily-Backup` → Git Bash `scripts/agentos-daily-backup.sh`
+  1. `scripts/paperclip-full-backup.sh`(WSL) — 위 표 그대로
+  2. `scripts/hermes-state-backup.py` — 프로필 16개(봇 14 + default + 루트)의 `config.yaml`, `SOUL.md`, `.env`, `memories/`, `skills/agentos/`, `skills/paperclip/`, `cron/jobs.json`, **`state.db`(세션, sqlite 온라인 백업 API로 일관 복사)** + 비공개 지식 겹침(`%LOCALAPPDATA%/agentos/knowledge/*.json`) → `%LOCALAPPDATA%/agentos/backups/hermes-<UTC시각>/` (MANIFEST.json, SHA256SUMS)
+  3. 둘을 tar 하나로 묶어 **암호화**(openssl aes-256-cbc, pbkdf2) 후 NAS `<NAS 계정>@<NAS 주소>:~/backups/agentos/agentos-<시각>.tar.enc`로 스트리밍, NAS 쪽 sha256을 PC 값과 대조. 평문은 PC 밖으로 나가지 않는다.
+  4. 보관 7일: NAS·PC(hermes-*)·WSL(fullbackup-*) 모두 7일 지난 것 삭제.
+- NAS 주소·계정은 저장소 밖 `%LOCALAPPDATA%/agentos/backups/nas.env`(NAS_USER/NAS_HOST)에 둔다.
+- 비밀: NAS 비밀번호는 기존 `academy-homepage/credentials/nas-ssh.clixml`(DPAPI), 암호화 비밀구절은 `%LOCALAPPDATA%/agentos/backups/credentials/nas-backup-pass.clixml`(DPAPI, 이 Windows 사용자만 복호화). 둘 다 helper 스크립트가 파이프로만 넘기며 출력·기록하지 않는다. **PC를 잃으면 비밀구절도 잃는다** — 사장님이 보관할 사본은 `powershell -c "(Import-Clixml <경로>).Credential.GetNetworkCredential().Password"`로 한 번 꺼내 비밀번호 관리자에 넣어 둘 것(채팅·파일에 남기지 말 것).
+- 로그: `%LOCALAPPDATA%/agentos/backups/daily.log` (시작·각 단계 크기·NAS sha256·정리 목록·`done nas_copies=N`).
+- 복호화(복원 때): `openssl enc -d -aes-256-cbc -pbkdf2 -pass fd:3 3< <("%LOCALAPPDATA%/agentos/backups/credentials/backup-pass.sh") -in agentos-<시각>.tar.enc | gunzip | tar -xf -` → `fullbackup-<시각>/`(Paperclip, 위 복원 절차)와 `hermes-<시각>/`(프로필 폴더에 그대로 덮어쓰기; state.db는 게이트웨이를 멈춘 뒤).
+- 수동 실행·점검: `bash scripts/agentos-daily-backup.sh` → 마지막 줄 `DAILY_BACKUP_OK agentos-<시각>.tar.enc`. 스케줄러 상태: `schtasks /Query /TN AgentOS-Daily-Backup /V /FO LIST`.
+
 ## 빈틈 ③ — 고치지 않는 이유
 
 복원본에서 실행 기록(run-logs 66개), ACP 세션 2개, 프롬프트 캐시 9개에 원본 경로 문자열이 남는다(2026-10-04 측정, 합계 77개). 모두 **지난 기록**이고 Paperclip이 다시 읽어 동작을 바꾸는 파일이 아니다. 프롬프트 캐시는 다음 실행 때 새로 만들어진다. 기록을 고쳐 쓰면 "그때 실제로 무슨 경로에서 돌았는지"라는 증거가 사라지므로 그대로 둔다. 동작에 영향을 주는 지침·스킬·작업 폴더 설정은 위 스크립트가 고치고, B2 게이트가 0개임을 확인한다.

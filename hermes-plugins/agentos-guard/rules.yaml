@@ -270,6 +270,10 @@ roles:
         - '\bhermes(\.exe)?\s+(-p\s+\S+\s+)?(config\s+(set|edit|reset)|plugins?\b|auth\s+(add|remove|reset|logout)|profile\s+(delete|create|rename)|gateway\s+(stop|restart|uninstall)|update\b)'
         - '\bnode\s+.*hermes-bots\.mjs"?\s+(convert|archive|sync-soul|guard|retire)\b'   # hire stays open: the code bot tests the hire gate
         - '\b(drop\s+(table|database)|truncate\s+table)\b'
+        # Audit ⑤ T02: the youtube bot's helper script `pc_api.py patch` sends a status PATCH from inside python, so the
+        # guard never sees the done-comment body. Status changes go through curl (body visible); the other pc_api
+        # subcommands (get, comment, doc-put, attach) stay open.
+        - '\bpc_api\.py"?\s+patch\b'
         # no remote shells / containers from bots: the academy NAS and Docker are deployed only by the boss's Hermes (T32)
         - '\b(ssh|scp|sftp|rsync|plink|pscp|docker|docker-compose|podman|kubectl)\b'
         # dumping secrets into the transcript: printenv / env / set, echo of a *KEY/*TOKEN variable

@@ -297,6 +297,9 @@ function createProfile(profile, description, { gatewayKeyStep = true } = {}) {
     hermes(["-p", profile, "config", "set", "memory.user_profile_enabled", "true"]);
     // The template's effort is copied by --clone-from; pin new bots to the default instead (it was max by accident).
     hermes(["-p", profile, "config", "set", "agent.reasoning_effort", DEFAULT_REASONING]);
+    // Audit ⑤ T43: a bot starts in its own workspace folder (project-linked tasks already run in the project folder)
+    mkdirSync(path.join(profileHome(profile), "workspace"), { recursive: true });
+    hermes(["-p", profile, "config", "set", "terminal.cwd", path.join(profileHome(profile), "workspace").replace(/\\/g, "/")]);
     if (!existsSync(path.join(profileHome(profile), "config.yaml"))) throw new Error("config.yaml missing after create");
   });
   // T64: the memory plugin is installed NOW, never lazily on the bot's first run — a lazy install inside the running

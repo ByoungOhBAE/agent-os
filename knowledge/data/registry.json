@@ -479,7 +479,7 @@
       "from": [
         "pc-5910516a/MEMORY.md#8307d26ec43e"
       ],
-      "en": "agent-work rules: a first analysis of a video writes to agent-work/demo/<video id>/; a restart of a cancelled request (HER-17 pattern) writes to agent-work/restart/<request>/bot/ and only reads the original demo/<video id>/. Source env/setenv.sh first so uv, pip and HF caches and TMP stay inside agent-work/env (otherwise files once landed in the global uv cache). env/tools/extract_frames.py deletes frames/*/*.jpg in its target and vision_note.py writes to D/report/, so for new work extract frames with ffmpeg into B directly and keep viewing notes in B/vision_seen.json. runlog/progress (first argument = result folder) and pc_api.py (get/comment/doc-put/attach/patch; key only from the environment) live in env/tools/."
+      "en": "agent-work rules: a first analysis of a video writes to agent-work/demo/<video id>/; a restart of a cancelled request (HER-17 pattern) writes to agent-work/restart/<request>/bot/ and only reads the original demo/<video id>/. Source env/setenv.sh first so uv, pip and HF caches and TMP stay inside agent-work/env (otherwise files once landed in the global uv cache). env/tools/extract_frames.py deletes frames/*/*.jpg in its target and vision_note.py writes to D/report/, so for new work extract frames with ffmpeg into B directly and keep viewing notes in B/vision_seen.json. runlog/progress (first argument = result folder) and pc_api.py (get/comment/doc-put/attach; key only from the environment) live in env/tools/. `pc_api.py patch` is blocked by agentos-guard: status changes (done/blocked) go through curl so the guard can read the comment body."
     },
     {
       "id": "b-youtube-report",
