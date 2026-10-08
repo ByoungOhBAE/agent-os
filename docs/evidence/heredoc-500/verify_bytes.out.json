@@ -1,0 +1,55 @@
+{
+ "V1_argv_-c_bytes": "3",
+ "V1_stdin_bytes": "4",
+ "V1_expected_if_preserved": "4 (a + 2 backslashes + b)",
+ "V2_hermes_execute_hex": "61 5c 62",
+ "V2_expected_if_preserved": "61 5c 5c 62",
+ "V3_bot_failures": [
+  {
+   "profile": "pc-3656a1bc",
+   "msg": 217,
+   "double_backslashes_in_body": 1,
+   "json_valid_as_written": true,
+   "json_valid_after_collapse": false
+  },
+  {
+   "profile": "pc-adfb6817",
+   "msg": 140,
+   "double_backslashes_in_body": 4,
+   "json_valid_as_written": true,
+   "json_valid_after_collapse": false
+  },
+  {
+   "profile": "pc-adfb6817",
+   "msg": 142,
+   "double_backslashes_in_body": 4,
+   "json_valid_as_written": true,
+   "json_valid_after_collapse": false
+  },
+  {
+   "profile": "pc-adfb6817",
+   "msg": 146,
+   "double_backslashes_in_body": 4,
+   "json_valid_as_written": true,
+   "json_valid_after_collapse": false
+  },
+  {
+   "profile": "uac80-uc218-",
+   "msg": 12287,
+   "double_backslashes_in_body": 1,
+   "json_valid_as_written": true,
+   "json_valid_after_collapse": false
+  },
+  {
+   "profile": "uacc4-ud68d-",
+   "msg": 8401,
+   "double_backslashes_in_body": 6,
+   "json_valid_as_written": true,
+   "json_valid_after_collapse": false
+  }
+ ],
+ "V4_direct_python_status": 404,
+ "V4_hermes_terminal_heredoc_status": "500",
+ "V4_hermes_terminal_heredoc_no_backslash_status": "404",
+ "V4_hermes_terminal_heredoc_korean_no_backslash_status": "404"
+}

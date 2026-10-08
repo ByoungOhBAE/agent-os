@@ -1,0 +1,5 @@
+has \\     2xx         1   e.g. pc-3656a1bc#120
+has \\     500         4   e.g. pc-3656a1bc#216
+has \\     unknown     5   e.g. pc-3656a1bc#212
+no \\      2xx        24   e.g. pc-59bd3c1d#205
+no \\      unknown    74   e.g. pc-3656a1bc#134
