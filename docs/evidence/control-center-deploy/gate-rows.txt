@@ -1,0 +1,7 @@
+backup=/home/tahar/.paperclip/backups/project-hub-20261008T033913Z
+dump=/home/tahar/.paperclip/backups/project-hub-20261008T033913Z/pre-project-hub-20261008-123914.sql.gz (5759168B)
+before={"projects":3,"agents":19,"issues":138,"routines":1}
+after={"projects":3,"agents":19,"issues":138,"routines":1}
+now={"projects":3,"agents":19,"issues":138,"routines":1}
+ROWS_UNCHANGED_OK
+exit=0

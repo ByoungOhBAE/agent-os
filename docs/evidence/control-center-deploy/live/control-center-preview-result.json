@@ -1,0 +1,621 @@
+{
+  "at": "2026-10-08T03:40:28.212Z",
+  "url": "/HER/project-hub?project=7646bfc5-1286-4491-9070-e89895360565&tab=control",
+  "bundleSha256": "6ea2ed8d82953b4c8dc491f86f33f10460ddd706f02259c01157074d7aa336ec",
+  "expected": {
+    "bots": 16,
+    "approval": 0,
+    "blocked": 1,
+    "review": 0,
+    "failed": 4
+  },
+  "widths": {
+    "390": {
+      "vw": 390,
+      "overflowPage": 0,
+      "outside": [],
+      "outsideCount": 0,
+      "orphans": [],
+      "contrast": {
+        "checked": 428,
+        "min": 6.39,
+        "low": []
+      },
+      "heads": [
+        "H2 한눈 요약",
+        "H3 완료한 작업",
+        "H3 일한 봇",
+        "H3 실행 성공률",
+        "H3 토큰 사용량",
+        "H3 검수 통과율",
+        "H3 검수 없이 완료",
+        "H2 ① 오늘 사장님이 할 일 5건",
+        "H3 작업계획 스냅샷 매일 최신화",
+        "H3 학원 홍보 › 가을 김장 체험 후",
+        "H3 림버스 › 연결 확인내 Paper",
+        "H3 조직 정리림버스 봇 4개 편입 +",
+        "H3 학원 블로그가을 김장 체험 수업 ",
+        "H2 ② 봇 상태 신호등 16개 봇",
+        "H3 디자이너",
+        "H3 코드구현",
+        "H3 검수검토자",
+        "H3 비서실장",
+        "H3 계획수립가",
+        "H3 작업검수",
+        "H3 SNS문구",
+        "H3 개발자",
+        "H3 예비검수",
+        "H3 블로그",
+        "H3 화면디자인",
+        "H3 스킬탐색",
+        "H3 유튜브분석",
+        "H3 당근글",
+        "H3 블로그제목",
+        "H3 연결확인",
+        "H2 ③ 봇별 사용량 (토큰)",
+        "H3 입력 토큰",
+        "H3 출력 토큰",
+        "H3 금액",
+        "H3 봇별 사용량",
+        "H3 가장 큰 실행 5개",
+        "H2 ④ 검수 현황판",
+        "H3 검수 통과율",
+        "H3 반려 후 재작업",
+        "H3 검수 없이 완료",
+        "H3 작업검수",
+        "H3 예비검수",
+        "H3 검수검토자",
+        "H3 SNS문구",
+        "H3 개발자",
+        "H3 디자이너",
+        "H3 블로그",
+        "H3 유튜브분석",
+        "H3 코드구현",
+        "H3 계획수립가",
+        "H3 비서실장",
+        "H3 스킬탐색",
+        "H3 화면디자인"
+      ],
+      "h2": [
+        "한눈 요약",
+        "① 오늘 사장님이 할 일 5건",
+        "② 봇 상태 신호등 16개 봇",
+        "③ 봇별 사용량 (토큰)",
+        "④ 검수 현황판"
+      ],
+      "kpis": 6,
+      "kpiNames": [
+        "완료한 작업",
+        "일한 봇",
+        "실행 성공률",
+        "토큰 사용량",
+        "검수 통과율",
+        "검수 없이 완료"
+      ],
+      "kpiHasMethod": true,
+      "kpiHasDelta": [
+        "▼12건 나빠짐그 전 7일은 6.3일치 기록만 있음",
+        "▲4개 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▲8%p 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▼69% 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▼20%p 나빠짐그 전 7일은 6.3일치 기록만 있음",
+        "▼1건 좋아짐그 전 7일은 6.3일치 기록만 있음"
+      ],
+      "bots": 16,
+      "botStatesHaveText": true,
+      "filters": {
+        "approval": "0",
+        "blocked": "1",
+        "failed": "4",
+        "review": "0"
+      },
+      "kpiBots": "15 / 16",
+      "money": {
+        "hasUncounted": true,
+        "moneyNumbers": []
+      },
+      "englishCodes": [],
+      "dataStart": true,
+      "smallTargets": [],
+      "panelsInOrder": [
+        "kpi",
+        "todo",
+        "bots",
+        "usage",
+        "review"
+      ],
+      "band": "ok",
+      "contrastLight": {
+        "card": "oklch(100% 0 0)",
+        "checked": 428,
+        "min": 4.74,
+        "low": []
+      },
+      "tabStops": [
+        "완료한 작업 31건, 지난주보다 12건 줄었습니다. 나빠졌습니다.",
+        "일한 봇 16개 중 15개, 지난주보다 4개 늘었습니다. 좋아졌습니다.",
+        "실행 성공률 88퍼센트, 지난주보다 8%p 올랐습니다. 좋아졌습니다.",
+        "토큰 사용량 56,449,153 토큰, 지난주보다 69% 줄었습니다. 좋",
+        "검수 통과율 19퍼센트, 지난주보다 20%p 내렸습니다. 나빠졌습니다.",
+        "검수 없이 완료 25건, 지난주보다 1건 줄었습니다. 좋아졌습니다.",
+        "승인 대기0",
+        "막힌 작업1",
+        "실패한 실행 (24시간)4",
+        "검수 대기0",
+        "정리 필요: HER-108 작업계획 스냅샷 매일 최신화, 3일째"
+      ],
+      "dialog": {
+        "title": "작업계획 스냅샷 매일 최신화",
+        "h3": [
+          "무엇인가요?",
+          "왜 지금 필요한가요?",
+          "자료에 적힌 이유"
+        ],
+        "meta": [
+          "상태",
+          "출처",
+          "작업"
+        ],
+        "what": "매일 06:00 작업계획 스냅샷을 최신화한다.",
+        "status": "정리 필요 · 3일째 · 담당 코드구현",
+        "source": "Paperclip 작업 HER-108"
+      },
+      "dialogContrast": {
+        "dark": {
+          "checked": 16,
+          "min": 7.47,
+          "low": []
+        },
+        "light": {
+          "checked": 16,
+          "min": 4.74,
+          "low": []
+        }
+      }
+    },
+    "768": {
+      "vw": 768,
+      "overflowPage": 0,
+      "outside": [],
+      "outsideCount": 0,
+      "orphans": [],
+      "contrast": {
+        "checked": 428,
+        "min": 6.39,
+        "low": []
+      },
+      "heads": [
+        "H2 한눈 요약",
+        "H3 완료한 작업",
+        "H3 일한 봇",
+        "H3 실행 성공률",
+        "H3 토큰 사용량",
+        "H3 검수 통과율",
+        "H3 검수 없이 완료",
+        "H2 ① 오늘 사장님이 할 일 5건",
+        "H3 작업계획 스냅샷 매일 최신화",
+        "H3 학원 홍보 › 가을 김장 체험 후",
+        "H3 림버스 › 연결 확인내 Paper",
+        "H3 조직 정리림버스 봇 4개 편입 +",
+        "H3 학원 블로그가을 김장 체험 수업 ",
+        "H2 ② 봇 상태 신호등 16개 봇",
+        "H3 디자이너",
+        "H3 코드구현",
+        "H3 검수검토자",
+        "H3 비서실장",
+        "H3 계획수립가",
+        "H3 작업검수",
+        "H3 SNS문구",
+        "H3 개발자",
+        "H3 예비검수",
+        "H3 블로그",
+        "H3 화면디자인",
+        "H3 스킬탐색",
+        "H3 유튜브분석",
+        "H3 당근글",
+        "H3 블로그제목",
+        "H3 연결확인",
+        "H2 ③ 봇별 사용량 (토큰)",
+        "H3 입력 토큰",
+        "H3 출력 토큰",
+        "H3 금액",
+        "H3 봇별 사용량",
+        "H3 가장 큰 실행 5개",
+        "H2 ④ 검수 현황판",
+        "H3 검수 통과율",
+        "H3 반려 후 재작업",
+        "H3 검수 없이 완료",
+        "H3 작업검수",
+        "H3 예비검수",
+        "H3 검수검토자",
+        "H3 SNS문구",
+        "H3 개발자",
+        "H3 디자이너",
+        "H3 블로그",
+        "H3 유튜브분석",
+        "H3 코드구현",
+        "H3 계획수립가",
+        "H3 비서실장",
+        "H3 스킬탐색",
+        "H3 화면디자인"
+      ],
+      "h2": [
+        "한눈 요약",
+        "① 오늘 사장님이 할 일 5건",
+        "② 봇 상태 신호등 16개 봇",
+        "③ 봇별 사용량 (토큰)",
+        "④ 검수 현황판"
+      ],
+      "kpis": 6,
+      "kpiNames": [
+        "완료한 작업",
+        "일한 봇",
+        "실행 성공률",
+        "토큰 사용량",
+        "검수 통과율",
+        "검수 없이 완료"
+      ],
+      "kpiHasMethod": true,
+      "kpiHasDelta": [
+        "▼12건 나빠짐그 전 7일은 6.3일치 기록만 있음",
+        "▲4개 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▲8%p 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▼69% 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▼20%p 나빠짐그 전 7일은 6.3일치 기록만 있음",
+        "▼1건 좋아짐그 전 7일은 6.3일치 기록만 있음"
+      ],
+      "bots": 16,
+      "botStatesHaveText": true,
+      "filters": {
+        "approval": "0",
+        "blocked": "1",
+        "failed": "4",
+        "review": "0"
+      },
+      "kpiBots": "15 / 16",
+      "money": {
+        "hasUncounted": true,
+        "moneyNumbers": []
+      },
+      "englishCodes": [],
+      "dataStart": true,
+      "smallTargets": [],
+      "panelsInOrder": [
+        "kpi",
+        "todo",
+        "bots",
+        "usage",
+        "review"
+      ],
+      "band": "ok",
+      "contrastLight": {
+        "card": "oklch(100% 0 0)",
+        "checked": 428,
+        "min": 4.74,
+        "low": []
+      }
+    },
+    "1440": {
+      "vw": 1440,
+      "overflowPage": 0,
+      "outside": [],
+      "outsideCount": 0,
+      "orphans": [],
+      "contrast": {
+        "checked": 456,
+        "min": 6.39,
+        "low": []
+      },
+      "heads": [
+        "H2 한눈 요약",
+        "H3 완료한 작업",
+        "H3 일한 봇",
+        "H3 실행 성공률",
+        "H3 토큰 사용량",
+        "H3 검수 통과율",
+        "H3 검수 없이 완료",
+        "H2 ① 오늘 사장님이 할 일 5건",
+        "H3 작업계획 스냅샷 매일 최신화",
+        "H3 학원 홍보 › 가을 김장 체험 후",
+        "H3 림버스 › 연결 확인내 Paper",
+        "H3 조직 정리림버스 봇 4개 편입 +",
+        "H3 학원 블로그가을 김장 체험 수업 ",
+        "H2 ② 봇 상태 신호등 16개 봇",
+        "H3 디자이너",
+        "H3 코드구현",
+        "H3 검수검토자",
+        "H3 비서실장",
+        "H3 계획수립가",
+        "H3 작업검수",
+        "H3 SNS문구",
+        "H3 개발자",
+        "H3 예비검수",
+        "H3 블로그",
+        "H3 화면디자인",
+        "H3 스킬탐색",
+        "H3 유튜브분석",
+        "H3 당근글",
+        "H3 블로그제목",
+        "H3 연결확인",
+        "H2 ③ 봇별 사용량 (토큰)",
+        "H3 입력 토큰",
+        "H3 출력 토큰",
+        "H3 금액",
+        "H3 봇별 사용량",
+        "H3 가장 큰 실행 5개",
+        "H2 ④ 검수 현황판",
+        "H3 검수 통과율",
+        "H3 반려 후 재작업",
+        "H3 검수 없이 완료",
+        "H3 작업검수",
+        "H3 예비검수",
+        "H3 검수검토자",
+        "H3 SNS문구",
+        "H3 개발자",
+        "H3 디자이너",
+        "H3 블로그",
+        "H3 유튜브분석",
+        "H3 코드구현",
+        "H3 계획수립가",
+        "H3 비서실장",
+        "H3 스킬탐색",
+        "H3 화면디자인"
+      ],
+      "h2": [
+        "한눈 요약",
+        "① 오늘 사장님이 할 일 5건",
+        "② 봇 상태 신호등 16개 봇",
+        "③ 봇별 사용량 (토큰)",
+        "④ 검수 현황판"
+      ],
+      "kpis": 6,
+      "kpiNames": [
+        "완료한 작업",
+        "일한 봇",
+        "실행 성공률",
+        "토큰 사용량",
+        "검수 통과율",
+        "검수 없이 완료"
+      ],
+      "kpiHasMethod": true,
+      "kpiHasDelta": [
+        "▼12건 나빠짐그 전 7일은 6.3일치 기록만 있음",
+        "▲4개 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▲8%p 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▼69% 좋아짐그 전 7일은 6.3일치 기록만 있음",
+        "▼20%p 나빠짐그 전 7일은 6.3일치 기록만 있음",
+        "▼1건 좋아짐그 전 7일은 6.3일치 기록만 있음"
+      ],
+      "bots": 16,
+      "botStatesHaveText": true,
+      "filters": {
+        "approval": "0",
+        "blocked": "1",
+        "failed": "4",
+        "review": "0"
+      },
+      "kpiBots": "15 / 16",
+      "money": {
+        "hasUncounted": true,
+        "moneyNumbers": []
+      },
+      "englishCodes": [],
+      "dataStart": true,
+      "smallTargets": [],
+      "panelsInOrder": [
+        "kpi",
+        "todo",
+        "bots",
+        "usage",
+        "review"
+      ],
+      "band": "ok",
+      "contrastLight": {
+        "card": "oklch(100% 0 0)",
+        "checked": 456,
+        "min": 4.74,
+        "low": []
+      },
+      "tabStops": [
+        "완료한 작업 31건, 지난주보다 12건 줄었습니다. 나빠졌습니다.",
+        "일한 봇 16개 중 15개, 지난주보다 4개 늘었습니다. 좋아졌습니다.",
+        "실행 성공률 88퍼센트, 지난주보다 8%p 올랐습니다. 좋아졌습니다.",
+        "토큰 사용량 56,449,153 토큰, 지난주보다 69% 줄었습니다. 좋",
+        "검수 통과율 19퍼센트, 지난주보다 20%p 내렸습니다. 나빠졌습니다.",
+        "검수 없이 완료 25건, 지난주보다 1건 줄었습니다. 좋아졌습니다.",
+        "승인 대기0",
+        "막힌 작업1",
+        "실패한 실행 (24시간)4",
+        "검수 대기0",
+        "정리 필요: HER-108 작업계획 스냅샷 매일 최신화, 3일째"
+      ],
+      "dialog": {
+        "title": "작업계획 스냅샷 매일 최신화",
+        "h3": [
+          "무엇인가요?",
+          "왜 지금 필요한가요?",
+          "자료에 적힌 이유"
+        ],
+        "meta": [
+          "상태",
+          "출처",
+          "작업"
+        ],
+        "what": "매일 06:00 작업계획 스냅샷을 최신화한다.",
+        "status": "정리 필요 · 3일째 · 담당 코드구현",
+        "source": "Paperclip 작업 HER-108"
+      },
+      "dialogContrast": {
+        "dark": {
+          "checked": 16,
+          "min": 7.47,
+          "low": []
+        },
+        "light": {
+          "checked": 16,
+          "min": 4.74,
+          "low": []
+        }
+      }
+    }
+  },
+  "live": {
+    "before": "갱신됨 (10. 8. 12:40:30)",
+    "after": "갱신됨 (10. 8. 12:40:38)",
+    "attr": "polite"
+  },
+  "failureRuns": {
+    "kpi": {
+      "done": {
+        "value": "31건",
+        "unread": false
+      },
+      "bots": {
+        "value": "읽을 수 없음",
+        "unread": true
+      },
+      "success": {
+        "value": "읽을 수 없음",
+        "unread": true
+      },
+      "tokens": {
+        "value": "읽을 수 없음",
+        "unread": true
+      },
+      "passRate": {
+        "value": "19%",
+        "unread": false
+      },
+      "noReview": {
+        "value": "25건",
+        "unread": false
+      }
+    },
+    "states": {
+      "kpi": null,
+      "todo": "읽을 수 없음 — 작업·실행 기록을(를) 불러오지 못했습니다 (연결 실패).다시 시도",
+      "bots": "읽을 수 없음 — 봇 목록·실행 기록을(를) 불러오지 못했습니다 (연결 실패).다시 시도",
+      "usage": "읽을 수 없음 — 봇 실행 기록을(를) 불러오지 못했습니다 (연결 실패).다시 시도",
+      "review": null
+    },
+    "english": [],
+    "contrast": {
+      "dark": {
+        "checked": 175,
+        "min": 7.47,
+        "low": []
+      },
+      "light": {
+        "checked": 175,
+        "min": 4.74,
+        "low": []
+      }
+    }
+  },
+  "failureActivity": {
+    "unknownNote": 6,
+    "rework": "0",
+    "rowUnknown": 6,
+    "passNote": "기록을 읽지 못한 작업 6건은 빼고 셈",
+    "abortedActivityGets": 23
+  },
+  "alertProbe": {
+    "dark": {
+      "checked": 5,
+      "min": 11.14,
+      "low": []
+    },
+    "light": {
+      "checked": 5,
+      "min": 15.43,
+      "low": []
+    }
+  },
+  "injectedFailures": 27,
+  "requests": {
+    "total": 1186,
+    "nonGetBlocked": [],
+    "byPath": {
+      "GET /HER/project-hub": 6,
+      "GET /assets/index-wMXt3arR.js": 6,
+      "GET /assets/rolldown-runtime-BQ-vy_Pv.js": 6,
+      "GET /assets/createLucideIcon-CGilUhTf.js": 6,
+      "GET /assets/preload-helper-BATLnrmA.js": 6,
+      "GET /assets/zap-YiqxQxhe.js": 6,
+      "GET /assets/button-BIe6oudw.js": 6,
+      "GET /assets/EmptyState-Dt6VMcJi.js": 6,
+      "GET /assets/agents-CdFel6Du.js": 6,
+      "GET /assets/router-DzGuYT0_.js": 6,
+      "GET /assets/agent-icons-BAMzz-tq.js": 6,
+      "GET /assets/mention-chips-Dh9WQOes.js": 6,
+      "GET /assets/dist-NHlaU0DV.js": 6,
+      "GET /assets/dist-OkjaKPtq.js": 6,
+      "GET /assets/input-CyawYcBI.js": 6,
+      "GET /assets/AgentIconPicker-3ft0Fd9M.js": 6,
+      "GET /assets/dist-Dqqmm7he.js": 6,
+      "GET /assets/MarkdownEditor-CaxHh2QM.js": 6,
+      "GET /assets/alert-dialog-CY3MA_XF.js": 6,
+      "GET /assets/check-C4oAisKY.js": 6,
+      "GET /assets/chevron-right-DO1B-3S_.js": 6,
+      "GET /assets/checkbox-BRv7bhzI.js": 6,
+      "GET /assets/label-BXeKLUyX.js": 6,
+      "GET /assets/clipboard-BLCv_FhJ.js": 6,
+      "GET /assets/loader-circle-D4uAhtFr.js": 6,
+      "GET /assets/octagon-alert-CAAWiNUU.js": 6,
+      "GET /assets/StatusIcon-KHPFUJEY.js": 6,
+      "GET /assets/chevron-down-DCk_zlWz.js": 6,
+      "GET /assets/select-Dc8H5PNL.js": 6,
+      "GET /assets/minus-DMxat7Q9.js": 6,
+      "GET /assets/triangle-alert-CNetLnaX.js": 6,
+      "GET /assets/badge-BHR5Kyd3.js": 6,
+      "GET /assets/environments-C-CVxybo.js": 6,
+      "GET /assets/RoutineRunVariablesDialog-DZ1-BXiB.js": 6,
+      "GET /assets/use-adapter-capabilities-BkEYKv8k.js": 6,
+      "GET /assets/external-link-C32Y7fhN.js": 6,
+      "GET /assets/adapter-display-registry-BrNMqSsi.js": 6,
+      "GET /assets/rotate-ccw-CWpSkUcc.js": 6,
+      "GET /assets/shield-alert-DnRB63PH.js": 6,
+      "GET /assets/ToastContext-DKVyUjjA.js": 6,
+      "GET /assets/health-CWCUjdUz.js": 6,
+      "GET /assets/skeleton-BOpAM1W0.js": 6,
+      "GET /assets/managed-sandbox-environment-yqowlhe1.js": 6,
+      "GET /assets/AiConnectionCredentialStep-cVmwdDVM.js": 6,
+      "GET /assets/tabs-R2ND1j54.js": 6,
+      "GET /assets/MarkdownBody-F0IZMCdq.js": 6,
+      "GET /assets/builtInAgents-BkINkcOT.js": 6,
+      "GET /assets/index-BRS1oA-P.css": 6,
+      "GET /agentos-workplan.js": 6,
+      "GET /agentos-kanban.js": 6,
+      "GET /fonts/PretendardVariable.woff2": 6,
+      "GET /api/auth/get-session": 6,
+      "GET /api/adapters": 6,
+      "GET /api/health": 6,
+      "GET /api/instance/settings/experimental": 6,
+      "GET /api/companies": 6,
+      "GET /api/sidebar-preferences/me": 6,
+      "GET /api/plugins/ui-contributions": 6,
+      "GET /api/instance/settings/general": 6,
+      "GET /api/companies/:id/agents": 13,
+      "GET /api/companies/:id/projects": 20,
+      "GET /api/companies/:id/resource-memberships/me": 6,
+      "GET /api/companies/:id/inbox-dismissals": 6,
+      "GET /api/companies/:id/approvals": 13,
+      "GET /api/companies/:id/join-requests": 6,
+      "GET /api/companies/:id/dashboard": 7,
+      "GET /api/companies/:id/issues": 14,
+      "GET /api/companies/:id/heartbeat-runs": 11,
+      "GET /api/companies/:id/live-runs": 13,
+      "GET /api/companies/:id/sidebar-preferences/me": 6,
+      "GET /api/announcements/current": 6,
+      "GET /api/companies/:id/skills": 6,
+      "GET /api/companies/:id/routines": 6,
+      "GET /_plugins/:id/ui/index.js": 30,
+      "GET /fonts/InterVariable.woff2": 6,
+      "GET /api/issues/:id": 525,
+      "GET /api/issues/:id/activity": 138
+    }
+  },
+  "bundleHits": 6,
+  "pageErrors": [],
+  "problems": []
+}

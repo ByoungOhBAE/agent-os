@@ -1,0 +1,7 @@
+backup=/home/tahar/.paperclip/backups/project-hub-20261008T033913Z
+before={"projects":3,"agents":19,"issues":138,"routines":1}
+PROJECT_HUB_BUILD_OK
+Keep pnpm dev running in /mnt/c/Users/tahar/orca/workspaces/agent os/plugins/agentos-project-hub; Paperclip watches rebuilt dist output and reloads the plugin worker.
+after={"projects":3,"agents":19,"issues":138,"routines":1}
+health=200 status=ready
+DEPLOY_OK

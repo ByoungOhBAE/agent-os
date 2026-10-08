@@ -1,4 +1,4 @@
-# Gates: 관제센터 탭 미리보기 (HER-114 · 미배포)
+# Gates: 관제센터 탭 미리보기 (HER-114 · 2026-10-08 운영 반영됨 → `GATES-control-center-deploy.md`)
 
 OWNS: plugins/agentos-project-hub/src/model.ts, plugins/agentos-project-hub/src/ui/index.tsx, plugins/agentos-project-hub/src/ui/control-view.tsx, plugins/agentos-project-hub/src/control-model.ts, plugins/agentos-project-hub/src/control-css.ts, plugins/agentos-project-hub/tests/control.spec.ts, scripts/gates/control-center-preview*.mjs, docs/evidence/control-center-preview/**, GATES-control-center-preview.md
 

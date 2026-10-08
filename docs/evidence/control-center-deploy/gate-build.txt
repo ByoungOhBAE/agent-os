@@ -1,0 +1,13 @@
+ ✓ tests/board.spec.ts (14 tests) 6ms
+ ✓ tests/control.spec.ts (29 tests) 21ms
+
+ Test Files  4 passed (4)
+      Tests  75 passed (75)
+   Start at  12:40:14
+   Duration  2.48s (transform 461ms, setup 0ms, collect 862ms, tests 45ms, environment 1ms, prepare 3.28s)
+
+PROJECT_HUB_BUILD_OK
+
+unit tests passed: 75
+G1_PROJECT_HUB_BUILD_OK
+exit=0

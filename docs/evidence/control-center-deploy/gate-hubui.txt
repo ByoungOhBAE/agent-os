@@ -1,0 +1,7 @@
+expected {"7646bfc5-1286-4491-9070-e89895360565":{"name":"에이전트 os web dashboard","kanban":84,"routines":0,"plan":88,"outputs":24},"b261a418-9262-464e-be6f-9eeb5ed33d57":{"name":"academy-homepage","kanban":13,"routines":0,"plan":16,"outputs":14},"dee03ba0-bbc9-4aac-a067-f2993ff6ba73":{"name":"rimbus-company-project","kanban":8,"routines":0,"plan":14,"outputs":4},"none":{"name":"미분류","kanban":33,"routines":1}}
+[1440] kanban=84 plan=88 routines=0 outputs=24 none=33/1 align={"dx":0,"dw":0,"dIcon":0,"h":28} errors=0 writes=0
+[768] kanban=84 plan=88 routines=0 outputs=24 none=33/1 align={"dx":0,"dw":0,"dIcon":0,"h":28} errors=0 writes=0
+[375] kanban=84 plan=88 routines=0 outputs=24 none=33/1 align={"dx":0,"dw":0,"dIcon":0,"h":44} errors=0 writes=0
+counts before={"projects":3,"issues":138,"routines":1,"agents":19} after={"projects":3,"issues":138,"routines":1,"agents":19} shots=C:\Users\tahar\AppData\Local\hermes\cache\scratch\aph-gate
+G4_PROJECT_HUB_UI_OK
+exit=0

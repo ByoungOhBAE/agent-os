@@ -1,0 +1,9 @@
+ok   project-hub-build.mjs rc=0 15s G1_PROJECT_HUB_BUILD_OK
+ok   project-hub-snapshot.mjs rc=0 1s G2_SNAPSHOT_MAP_OK
+ok   project-hub-deployed.mjs rc=0 0s G3_DEPLOYED_OK
+ok   project-hub-ui.mjs rc=0 16s G4_PROJECT_HUB_UI_OK
+ok   check-regression.mjs rc=0 9s G7_REGRESSION_OK
+ok   check-workplan-ui.mjs rc=0 2s G5_WORKPLAN_OK
+ok   project-hub-plan-detail.mjs rc=0 5s G8_PLAN_DETAIL_OK
+HUB_REGRESSION_OK
+exit=0

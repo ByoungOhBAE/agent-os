@@ -1,0 +1,2 @@
+G5_WORKPLAN_OK
+exit=0
