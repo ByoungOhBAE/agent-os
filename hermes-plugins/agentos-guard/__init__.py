@@ -850,6 +850,10 @@ class Guard:
         self.deny_programs = {str(p).lower() for p in (t.get("deny_programs") or [])}
         self.max_calls = int(((r.get("budget") or {}).get("max_tool_calls")) or 0)
         self._counts: Dict[str, int] = {}
+        self._last_call: Dict[str, float] = {}
+        self._grace_used: Dict[str, int] = {}
+        self.budget_reset_idle = int(((r.get("budget") or {}).get("reset_after_idle_sec")) or 1800)
+        self.budget_grace = int(((r.get("budget") or {}).get("report_grace_calls")) or 3)
         self._lock = threading.Lock()
 
     # ---- individual checks: return a reason string when the call violates the role, else None ----
@@ -857,13 +861,40 @@ class Guard:
     def _check_budget(self, session_id: str) -> Optional[str]:
         if self.max_calls <= 0:
             return None
+        now = time.monotonic()
         with self._lock:
+            # The Paperclip session key is per ISSUE, so several wakes/runs on one issue share the counter.
+            # A gap longer than reset_after_idle_sec means a new run: start the budget over (audit T80).
+            last = self._last_call.get(session_id)
+            if last is not None and now - last > self.budget_reset_idle:
+                self._counts[session_id] = 0
+                self._grace_used[session_id] = 0
+            self._last_call[session_id] = now
             n = self._counts.get(session_id, 0) + 1
             self._counts[session_id] = n
         if n > self.max_calls:
-            return (f"툴 호출 예산 초과({n}/{self.max_calls}회, 세션 {session_id or '-'}). 더 이상 도구를 쓰지 말고 "
-                    f"현재 상태·한 일·남은 일을 댓글로 남긴 뒤 blocked 처리하거나 사장님 판단을 요청하세요.")
+            return (f"툴 호출 예산 초과({n}/{self.max_calls}회, 세션 {session_id or '-'}). 더 이상 작업 도구를 쓰지 말고, "
+                    f"이슈 댓글(curl POST …/issues/<id>/comments)로 현재 상태·한 일·남은 일을 남기고 blocked 로 바꾸세요(PATCH). "
+                    f"그 보고용 curl 은 {self.budget_grace}회까지 허용됩니다.")
         return None
+
+    _REPORT_CALL = re.compile(r"^\s*curl\b[^|;&]*/api/(companies/[^/\s\"']+/)?issues/[^/\s\"']+(/comments)?[\"']?(\s|$)")
+
+    def _budget_grace(self, tool_name: str, args: Dict[str, Any], session_id: str) -> bool:
+        """After the budget is spent, let the bot still REPORT: a plain curl comment/PATCH on an issue, a few times."""
+        if tool_name != "terminal" or self.budget_grace <= 0:
+            return False
+        cmd = args.get("command")
+        if not isinstance(cmd, str) or not self._REPORT_CALL.search(cmd):
+            return False
+        if re.search(r"\"status\"\s*:\s*\"(done|in_progress|todo|in_review)\"", cmd):
+            return False  # only blocked / comments may pass on grace
+        with self._lock:
+            used = self._grace_used.get(session_id, 0)
+            if used >= self.budget_grace:
+                return False
+            self._grace_used[session_id] = used + 1
+        return True
 
     def _check_tool(self, tool_name: str) -> Optional[str]:
         if tool_name in self.deny_tools:
@@ -1454,7 +1485,10 @@ class Guard:
     def evaluate(self, tool_name: str, args: Any, session_id: str = "") -> Optional[str]:
         """Return the violation reason, or None when the call is fine for this role."""
         args = args if isinstance(args, dict) else {}
-        reason = self._check_budget(session_id) or self._check_tool(tool_name)
+        reason = self._check_budget(session_id)
+        if reason is not None and self._budget_grace(tool_name, args, session_id):
+            reason = None  # budget spent, but this call is the allowed status report
+        reason = reason or self._check_tool(tool_name)
         if reason is None and (self.strict_issue or self.protect_write or self.protect_read or self.protect_other_profiles
                                or self.skills_own_only):
             reason = self._check_strict_tool(tool_name, args)

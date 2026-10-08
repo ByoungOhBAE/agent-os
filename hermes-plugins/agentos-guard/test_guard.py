@@ -340,6 +340,32 @@ class BudgetAndMode(unittest.TestCase):
         self.assertIn("예산 초과", w.evaluate("read_file", {}, "s1"))
         self.assertIsNone(w.evaluate("read_file", {}, "s2"))  # other session unaffected
 
+    def test_budget_grace_allows_status_report_only(self):
+        # T80: after the budget is spent the bot must still be able to leave a comment and mark the issue blocked
+        rules = {"roles": {"worker": {"budget": {"max_tool_calls": 2, "report_grace_calls": 2}}}}
+        w = mod.Guard(rules, "worker", "block")
+        for _ in range(2):
+            self.assertIsNone(w.evaluate("read_file", {}, "s1"))
+        self.assertIn("예산 초과", w.evaluate("read_file", {}, "s1"))
+        comment = "curl -s -X POST http://127.0.0.1:3100/api/issues/0b2c3d4e-1111-2222-3333-444455556666/comments -H 'Content-Type: application/json' -d '{\"body\": \"예산 초과로 멈춤\"}'"
+        blocked = "curl -s -X PATCH http://127.0.0.1:3100/api/issues/0b2c3d4e-1111-2222-3333-444455556666 -H 'Content-Type: application/json' -d '{\"status\": \"blocked\"}'"
+        done = "curl -s -X PATCH http://127.0.0.1:3100/api/issues/0b2c3d4e-1111-2222-3333-444455556666 -d '{\"status\": \"done\"}'"
+        self.assertIsNone(w.evaluate("terminal", {"command": comment}, "s1"))   # grace 1
+        self.assertIn("예산 초과", w.evaluate("terminal", {"command": done}, "s1"))  # done is never a grace call
+        self.assertIn("예산 초과", w.evaluate("terminal", {"command": "ls"}, "s1"))   # normal work stays blocked
+        self.assertIsNone(w.evaluate("terminal", {"command": blocked}, "s1"))   # grace 2
+        self.assertIn("예산 초과", w.evaluate("terminal", {"command": comment}, "s1"))  # grace exhausted
+        self.assertIn("허용", w.evaluate("read_file", {}, "s1"))  # message names the allowed report path
+
+    def test_budget_resets_after_idle_gap(self):
+        rules = {"roles": {"worker": {"budget": {"max_tool_calls": 2, "reset_after_idle_sec": 60}}}}
+        w = mod.Guard(rules, "worker", "block")
+        for _ in range(2):
+            self.assertIsNone(w.evaluate("read_file", {}, "s1"))
+        self.assertIn("예산 초과", w.evaluate("read_file", {}, "s1"))
+        w._last_call["s1"] -= 120  # simulate a new run after a 2-minute gap
+        self.assertIsNone(w.evaluate("read_file", {}, "s1"))
+
     def test_warn_mode_logs_but_passes(self):
         with tempfile.TemporaryDirectory() as d:
             log = Path(d) / "guard.jsonl"

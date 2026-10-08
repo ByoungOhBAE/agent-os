@@ -14,7 +14,9 @@
 #     inline_python_guard  : python -c "<code>" is allowed unless the code spawns/writes (see _PY_DANGER)
 #     redirect_guard       : `> file` / `>> file` only into scratch, Temp, $TMPDIR or *-evidence folders
 #     (shell -c / powershell -Command / wsl -- … are always refused: they would smuggle a new command line)
-#   budget.max_tool_calls  : per session_id; when exceeded every tool call is blocked
+#   budget.max_tool_calls  : per session_id; when exceeded work tool calls are blocked. The session key is per issue,
+#     so the counter restarts after reset_after_idle_sec (default 1800) of silence (= a new run), and after the budget
+#     is spent report_grace_calls (default 3) plain curl calls that comment on / PATCH the issue (not done) still pass.
 # mode (warn|block) and role come from config.yaml:
 #   plugins.entries.agentos-guard.settings: { role: chief, mode: warn }
 
