@@ -5,8 +5,9 @@
 #
 # Scheduled by the Paperclip routine '작업계획 스냅샷 매일 최신화'
 # (routine d1a60138-6b9c-4874-88c3-7849540e6fb7, trigger 매일 06:00 Asia/Seoul,
-#  assignee 대시보드개선_코드구현): the routine's agent runs this script via WSL.
-#   bash "/mnt/c/Users/tahar/orca/workspaces/agent os/scripts/cron-refresh-workplan.sh"
+#  assignee 대시보드개선_코드구현): the routine's agent runs this script from Git Bash
+#  (not inside WSL; step 2 calls `wsl` itself). Owner-approved deploy exception (2026-10-08).
+#   bash "/c/Users/tahar/orca/workspaces/agent os/scripts/cron-refresh-workplan.sh"
 set -euo pipefail
 
 GEN="C:/Users/tahar/orca/workspaces/agent os/scripts/gen-paperclip-workplan.mjs"

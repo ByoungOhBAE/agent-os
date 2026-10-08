@@ -1489,7 +1489,8 @@ class Guard:
             logger.warning("agentos-guard[warn] %s %s: %s", self.role, tool_name, reason)
             return None
         return {"action": "block",
-                "message": f"[agentos-guard] 차단: {reason}\n우회하지 말고, 이 일은 담당 봇에게 위임하거나 비서실장/사장님께 보고하세요."}
+                "message": f"[agentos-guard] 차단: {reason}\n우회하지 말고, 이 일은 담당 봇에게 위임하거나 "
+                           f"{'사장님께' if self.role == 'chief' else '비서실장에게'} 보고하세요."}
 
     def _redact(self, d: Dict[str, Any]) -> Dict[str, Any]:
         if not self._secret_values:
