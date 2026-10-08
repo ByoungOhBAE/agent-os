@@ -21,8 +21,10 @@ Scope: `docs/plans/점검-중간낮음-조치-계획.md` 묶음 ⑤(T17 T43 T47 
 
 - [x] G6 (T46): 안 쓰는 봇 2개(화면디자인·스킬탐색) — 보관 대신 **역할 축소**로 결정: 부서장 해제(G1), 스킬 180→30/27(④), figma 끔(② O7). 실행은 배정될 때만 비용이 들어 유지. ops-impact-log에 HER-111~114 실행 이력 행 추가.
 
-- [x] G7 게이트웨이 재시작(가드 규칙 반영) + 시험 프로필 정리 + 실제 작업 1회 — 아래 기록.
-  (재시작·실행 결과는 완료 보고서에 기재)
+- [x] G7 게이트웨이 재시작(가드 규칙 반영) + 시험 프로필 정리 + 실제 작업 1회
+  재시작: 실행 중 봇 0 확인 → `hermes gateway stop`(drained cleanly) → `Hermes_Gateway.vbs` 기동 → /health 200(10초), 감독자 새 pid 채택, 프로필 경로 /p/pc-ebb0943f 200 · `guard --status` 14 up-to-date · 시험 프로필 `pc-selftest-a38aba` 삭제(프로필 15 = 봇 14 + default)
+  실제 작업 HER-142(콘텐츠_당근글, academy 프로젝트, 검수 단계 → 검수_작업검수): 배정 즉시 깨어남 → 완료 댓글 **하나**(## 완료 4항목 + 기준|결과 표) + 문서 `daangn` → 검수 봇이 `workspace/review-evidence/review-HER-142-1.md`(③ K5 경로)에 증거를 남기고 승인 → **done**. 완료 댓글의 `pwd` = `/c/Users/tahar/AppData/Local/hermes/profiles/pc-3656a1bc/workspace`(G2 적용 확인). 가드 차단 0, 검수 실행 326k 입력 토큰·3분 25초.
+  관찰: 워커 실행 기록이 `cancelled`로 남음(검수 단계로 넘어가며 Paperclip이 실행을 닫는 것으로 보임, 댓글·문서는 모두 반영) — 다음 점검 때 Paperclip 실행 상태 기록 방식을 확인.
 
 ## 조치 없음(기록만)
 - T47: 학원 이슈 분류는 개선(academy 13건), 학원 홈페이지 **코드 봇은 없음** 그대로(채용은 사장님 결정).

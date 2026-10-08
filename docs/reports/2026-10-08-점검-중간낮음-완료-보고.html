@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<style>
+  :root{--ok:#2e9e5b;--warn:#d98b1e;--muted:var(--muted-foreground)}
+  body{color:var(--foreground);font-size:14px;line-height:1.5;max-width:980px}
+  h1{font-size:20px;margin:0 0 4px} h2{font-size:15px;margin:22px 0 8px;border-bottom:1px solid var(--border);padding-bottom:4px}
+  .sub{color:var(--muted);margin-bottom:14px}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+  .card{border:1px solid var(--border);background:var(--card);border-radius:10px;padding:10px 12px}
+  .card b{display:block;font-size:22px} .card span{color:var(--muted);font-size:12px}
+  table{border-collapse:collapse;width:100%;font-size:13px} th,td{border:1px solid var(--border);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--card)} td.c{text-align:center;white-space:nowrap}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;border:1px solid var(--border)}
+  .ok{color:var(--ok);border-color:var(--ok)} .warn{color:var(--warn);border-color:var(--warn)}
+  .bar{height:10px;background:var(--border);border-radius:5px;overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%;background:var(--accent)}
+  ul{margin:4px 0 0 18px;padding:0} li{margin:2px 0}
+  .todo{border-left:3px solid var(--warn);padding-left:10px}
+  code{font-size:12px}
+</style></head><body>
+<h1>AgentOS 점검 조치 — 중간·낮음 78개 완료 보고</h1>
+<div class="sub">2026-10-08 · 사장님 결정 D1 가(7묶음 전부) · D5 가(전권 위임, 보고 1회) · 커밋 267f8fb → e3b4811 → 13a4220 → 9b4caf2 → 0185196 (+보고서) · 모두 GitHub 푸시</div>
+
+<div class="grid">
+  <div class="card"><b>78 / 78</b><span>주제 처리 (조치 54 · 이미 해결 10 · 결정대로 유지 2 · 기록만 12)</span></div>
+  <div class="card"><b>7 / 7</b><span>묶음 완료 · 게이트 원장 6개(①~⑥) 전부 체크</span></div>
+  <div class="card"><b>14 봇</b><span>자기점검 2회차 · 실제 작업 HER-142 done</span></div>
+  <div class="card"><b>0</b><span>사장님 추가 결정 필요 · 남은 보류 2(사장님 몫)</span></div>
+</div>
+
+<h2>묶음별 결과</h2>
+<table>
+<tr><th style="width:120px">묶음</th><th>무엇이 문제였나</th><th>무엇을 바꿨나</th><th style="width:230px">어떻게 확인했나</th><th class="c">상태</th></tr>
+<tr><td><b>① 보안</b> 6<br><code>GATES-security-hardening</code></td><td>봇 서버 포트가 바깥에 열림, 비밀 파일 권한 느슨, 커밋 전 비밀 검사 없음, 공개 저장소에 개인 정보</td><td>웹훅 끔·방화벽 Private만·비밀 파일 권한 21개 축소·키 백업 암호화·커밋 전 비밀 검사 훅·제3자 이메일 비공개로</td><td>S1~S9, 전체 스캔 0건</td><td class="c"><span class="pill ok">완료</span></td></tr>
+<tr><td><b>② 운영 안정·비용</b> 9<br><code>GATES-ops-stability</code></td><td>봇 실행 시간 무제한, 동시 실행 20, 대체 모델=기본 모델, 토큰 집계 깨짐, 종료 원인 로그 없음</td><td>실행 3시간 제한·동시 1·대체 sonnet·가드 예산 보고 허용·Hermes 로컬 패치 #2 #3·figma 인증 실패 중단</td><td>O1~O10, 실제 실행 HER-140/141</td><td class="c"><span class="pill ok">완료</span></td></tr>
+<tr><td><b>③ 지시문·지식 정합</b> 26<br><code>GATES-instruction-consistency</code></td><td>Hermes "스킬로 저장하라" vs 정책 "스킬 고치지 마라", 작업 폴더·브랜치·완료 댓글 규칙이 문서마다 다름, 빈 기억 경로, 낡은 참조, 당근글 지시문 유실</td><td>19개 수정: 우선순위 1문장 + 공통 지식 1건, 역할별 정체성 문장(비서실장/검수/실무), 작업 폴더·브랜치 규칙, 완료 댓글 하나, 학원 글 규칙(A안), 옛 경로 28건, 당근글 AGENTS.md 복구. 이미 해결 7</td><td>K1~K8 — 자기점검 14봇 1회차 → 재발 3건 수정 → 2회차 재발 0</td><td class="c"><span class="pill ok">완료</span></td></tr>
+<tr><td><b>④ 스킬 체계</b> 6<br><code>GATES-skill-system</code></td><td>봇마다 스킬 180~191개 노출, 프리셋 적용 시 쓰는 스킬이 꺼짐, 동명 스킬 충돌, 비서실장 전용 스킬 덮어쓰기, 고용 템플릿이 실무 봇</td><td>실사용 집계 → extra 보존 → 프리셋 14개 적용(보이는 스킬 21~73), omh-plan→agentos-chief-plan, computer-use 중복 제거, 사본 보호, clean clone</td><td>S1~S6 — 같은 질문 1턴 입력 토큰 9~16% 감소, 답변 품질 변동 0</td><td class="c"><span class="pill ok">완료</span></td></tr>
+<tr><td><b>⑤ 조직·프로세스</b> 11<br><code>GATES-org-process</code></td><td>조직도 보고선이 지시서와 다름(실무 봇 밑 부서), 작업 폴더가 상위 폴더, 보조 스크립트로 완료 양식 우회, 시험 이슈가 통계에 섞임</td><td>전원 비서실장 직속(검수 부서 내부만 유지), cwd=각자 workspace, 가드 규칙 +1(107 tests), 「시험·점검」 프로젝트로 14건 분리, 안 쓰는 봇 2개 역할 축소</td><td>G1~G7 — 게이트웨이 재시작, 실제 작업 HER-142 작성→검수→done</td><td class="c"><span class="pill ok">완료</span></td></tr>
+<tr><td><b>⑥ 백업</b> 1<br><code>GATES-backup-offsite</code></td><td>백업이 같은 디스크에만, 봇 기억·세션은 백업 밖</td><td>Hermes 봇 상태 백업 추가 + 매일 03:30 암호화 사본 NAS로(7일 보관), 스케줄러 등록</td><td>B1~B3 — 스케줄러 실행 OK, 복원 시험(해시 356개 일치, DB 무결성 ok)</td><td class="c"><span class="pill ok">완료</span></td></tr>
+<tr><td><b>⑦ 참고</b> 7</td><td>게이트 원장이 없는 스크립트를 가리킴(T45)</td><td>D2 수동 판정으로 정정. 나머지 6개는 관찰 기록</td><td>GATES-gateway-crash D2</td><td class="c"><span class="pill ok">완료</span></td></tr>
+</table>
+
+<h2>수치로 본 변화</h2>
+<table>
+<tr><th>지표</th><th>전</th><th>후</th><th>근거</th></tr>
+<tr><td>봇에게 보이는 스킬 수</td><td>180~191</td><td>21~73 (콘텐츠 21, 검수 35, 비서실장 68, 코드 73)</td><td>④ S2</td></tr>
+<tr><td>같은 자기점검 질문 1턴 입력 토큰</td><td>45,592 / 35,561 / 25,255</td><td>41,688 / 30,018 / 22,316 (−9% / −16% / −12%)</td><td>④ S2 (비서실장 / 당근글 / 작업검수)</td></tr>
+<tr><td>자기점검 "충돌" 언급(14봇)</td><td>94 (P1 직후)</td><td>78 → 수정 뒤 재점검 5봇 32, ③ 주제 재발 0</td><td>③ K8</td></tr>
+<tr><td>보고선이 지시서와 다른 봇</td><td>5</td><td>0</td><td>⑤ G1</td></tr>
+<tr><td>가드 밖 상태 변경 경로</td><td>1 (pc_api.py patch)</td><td>0 (107 tests)</td><td>⑤ G3</td></tr>
+<tr><td>디스크 밖 백업 사본</td><td>0</td><td>매일 1 (NAS, 656 MB 암호화, 7일 보관)</td><td>⑥ B2</td></tr>
+</table>
+
+<h2>사장님이 하실 일 (2건)</h2>
+<div class="todo">
+<ul>
+<li><b>백업 암호화 비밀구절 사본 보관</b> — PC가 망가지면 NAS 사본을 풀 수 없습니다. <code>docs/ops-backup-restore.md</code> 「매일 NAS 사본」의 powershell 한 줄로 꺼내 비밀번호 관리자에 넣어 두세요(채팅·파일에 남기지 말 것).</li>
+<li><b>보류 유지 확인</b> — 운영·설치 봇(T49)·학원 홈페이지 코드 봇(T47)은 결정대로 채용하지 않았습니다. 필요해지면 말씀만 주세요.</li>
+</ul></div>
+
+<h2>솔직히 적는 한계</h2>
+<ul>
+<li>NAS→PC 내려받기가 느립니다(5~50 KB/s). 재해 복원은 학원 LAN에서 받거나 반나절을 잡아야 합니다. PC가 살아 있으면 PC 안 암호화본·평문 폴더로 바로 복원됩니다.</li>
+<li>자기점검은 봇의 자기보고입니다. 실제 작업 증거는 HER-142 한 건(작성 봇 + 검수 봇)입니다.</li>
+<li>HER-142에서 작성 봇의 실행 기록이 <code>cancelled</code>로 남았습니다(결과물·댓글은 정상). 검수 단계 전환 때 Paperclip이 실행을 닫는 것으로 보이며, 다음 점검 항목으로 남겼습니다.</li>
+<li>상류 paperclip 스킬 본문은 그대로 두고 머리에 주의 블록만 붙였습니다(전면 재작성 아님).</li>
+<li>Paperclip 회사 스킬 slug는 여전히 <code>omh-plan</code>(내용의 이름만 바뀜). 봇 동작엔 영향 없음.</li>
+</ul>
+
+<h2>기록 위치</h2>
+<ul>
+<li>공개(저장소): <code>docs/plans/점검-중간낮음-조치-계획.md</code> 진행 기록, <code>GATES-*.md</code> 6개, <code>docs/ops-backup-restore.md</code>, <code>docs/hermes-local-patches.md</code></li>
+<li>비공개(저장소 제외): <code>docs/audit/2026-10-agentos/</code>(bundle3-inventory-A/B, 전체 계획), <code>docs/hardening/2026-10-p3~p5/</code>(변경 전 사본·적용 스크립트·자기점검 원문), <code>%LOCALAPPDATA%/agentos/</code>(sec-fix, ops-fix, knowledge/backups, backups/daily.log)</li>
+</ul>
+</body></html>
