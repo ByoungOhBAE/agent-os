@@ -10,8 +10,8 @@ Scope: 사장님 지시 "왜 꺼졌는지 확실한 이유를 찾아" — 08:00 
   EVIDENCE: exit=0; shell=C:\WINDOWS\system32\cmd.exe; cwd=C:\Users\tahar\orca\workspaces\agent os; path=9da69b64fde4/55 entries; EXPECT=matched; output-sha256=dd4fe78379949c3a87c6787ace294b2572d7802af986364c143f10ac0721a851; output-bytes=310
 
 - [ ] D2: 08:02:48 종료 순간 이벤트 루프를 막고 있던 지점이 감시기 스택 덤프에서 특정된다(파일:줄, 함수), 그리고 그 지점이 실제 설치된 hermes-agent 소스에 같은 줄로 존재한다.
-  CHECK: "C:/Program Files/nodejs/node.exe" scripts/gates/gw-crash-stack.mjs
-  EXPECT: GW_BLOCKER_LOCATED
+  CHECK: (확인 스크립트 없음 — 2026-10-05 당시 스택 덤프가 파일에 남지 않아 작성하지 못함. 점검 T45로 2026-10-08 정정: 이제 vbs 기동 경로의 stderr가 `logs/gateway-stdio.log`에 남고(로컬 패치 #3) 종료 감시기 덤프 파일도 생기므로, 다음 exit 75 때 그 덤프에서 MainThread 프레임을 읽어 수동으로 판정한다. D2W가 대신 시점을 좁힌 상태.)
+  EXPECT: 다음 발생 때 수동 판정 (GW_BLOCKER_LOCATED 자동 게이트는 없음)
 
 - [x] D2W: 루프가 멈춘 시점이 원본 기록으로 좁혀진다 — 08:01:11 요청 처리(루프 살아 있음) 뒤, 종료 전에 왔어야 할 심장박동(08:01:25)이 없음, 같은 실행의 작업 스레드 기록도 08:01:24.881 뒤로 없음. 심장박동을 늦춘 사본에서는 FAIL(음성 대조 확인함).
   CHECK: "C:/Program Files/nodejs/node.exe" scripts/gates/gw-crash-timeline.mjs --window

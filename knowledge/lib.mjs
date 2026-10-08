@@ -81,7 +81,11 @@ export const entriesFor = (reg, scopes, kind) => (reg.entries ?? []).filter((e) 
 export function identityLine(bot) {
   // room bots live in a Hermes group chat room, not in Paperclip (no agentId)
   if (bot.room) return `I am the Hermes bot "${bot.name}" (profile ${bot.profile}) working with the owner and other bots in the group chat room "${bot.room}".`;
-  return `I am the Paperclip bot "${bot.name}" (agent ${bot.agentId}) running on Hermes profile ${bot.profile}. The owner's requests reach me as Paperclip tasks through the chief of staff (비서실장).`;
+  const base = `I am the Paperclip bot "${bot.name}" (agent ${bot.agentId}) running on Hermes profile ${bot.profile}.`;
+  // role from registry bots[].role (chief / reviewer / worker; missing = worker) — audit T30: one identity line per role
+  if (bot.role === "chief") return `${base} I am the chief of staff: the owner's requests reach me directly as Paperclip tasks and I plan, allocate and supervise.`;
+  if (bot.role === "reviewer") return `${base} I am a reviewer bot: work reaches me as Paperclip review stages or as review tasks assigned to me (never as implementation work); my position in the org chart is whatever Paperclip's reportsTo says.`;
+  return `${base} The owner's requests reach me as Paperclip tasks through the chief of staff (비서실장).`;
 }
 export function scopeLine(reg, bot) {
   const skills = scopesForBot(reg, bot.profile).filter((s) => s !== `bot:${bot.profile}` || entriesFor(reg, [s], "knowledge").length).map(skillName);

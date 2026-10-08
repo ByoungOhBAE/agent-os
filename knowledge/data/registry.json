@@ -33,7 +33,8 @@
         "agent-os",
         "academy",
         "rimbus"
-      ]
+      ],
+      "role": "chief"
     },
     {
       "profile": "pc-26df4505",
@@ -98,7 +99,8 @@
       "projects": [
         "rimbus"
       ],
-      "agentId": "8e93949d-6d85-4611-98c2-338a2a9ac651"
+      "agentId": "8e93949d-6d85-4611-98c2-338a2a9ac651",
+      "role": "reviewer"
     },
     {
       "profile": "ub514-uc790-uc774-ub108",
@@ -116,7 +118,8 @@
         "agent-os",
         "academy",
         "rimbus"
-      ]
+      ],
+      "role": "reviewer"
     },
     {
       "profile": "pc-c2b2f67e",
@@ -142,7 +145,8 @@
         "agent-os",
         "academy",
         "rimbus"
-      ]
+      ],
+      "role": "reviewer"
     }
   ],
   "entries": [
@@ -324,7 +328,7 @@
       "from": [
         "pc-ebb0943f/MEMORY.md#fa1920c5f335"
       ],
-      "en": "agent-os is a single repo on branch `main` at C:/Users/tahar/orca/workspaces/agent os (origin GitHub ByoungOhBAE/agent-os, which is PUBLIC: never commit secrets or private operating details). On 2026-10-03 the team/memory-visual and team/org-reviewer-side worktrees and branches were merged and removed; the folder agent os-memory-visual no longer exists."
+      "en": "agent-os is a single repo whose base branch is `main` at C:/Users/tahar/orca/workspaces/agent os (origin GitHub ByoungOhBAE/agent-os, which is PUBLIC: never commit secrets or private operating details). Other branches or leftover folders under .worktrees/ may exist; never reuse them — always make a fresh team/<topic> worktree from main."
     },
     {
       "id": "a-worktree-from-main",
@@ -334,7 +338,7 @@
         "pc-ebb0943f/MEMORY.md#0073027a73aa",
         "pc-ebb0943f/MEMORY.md#277ba7f8c685"
       ],
-      "en": "Only for bots whose role allows code or document changes (read-only roles such as review never commit): For a code or document change, make a per-task worktree from the latest main: re-check `git log -1 main` right before, then `git worktree add -b team/<topic> .worktrees/<topic> main`, and report if main moved. Never edit or commit in the original checkout. Merge into main (`git merge --ff-only team/<topic>`) only when the task asks for it, then remove the worktree and the branch."
+      "en": "Only for bots whose role allows code or document changes (read-only roles such as review never commit): For a code or document change, make a per-task worktree from the latest main: re-check `git log -1 main` right before, then `git worktree add -b team/<topic> .worktrees/<topic> main`, and report if main moved. Never edit or commit tracked files in the original checkout (git-ignored work folders such as plugins/agentos-youtube/agent-work/ are not part of the checkout for this rule). Merge into main (`git merge --ff-only team/<topic>`) only when the task asks for it. When done, remove only the worktree (`git worktree remove .worktrees/<topic>`) and leave the branch for review; bots cannot delete branches (agentos-guard blocks `git branch -d/-D`), the owner deletes merged branches."
     },
     {
       "id": "a-narrow-scope",
@@ -457,7 +461,7 @@
         "pc-8ca245c2/MEMORY.md#45a168a6b40d",
         "pc-ebb0943f/MEMORY.md#c70eff00e719"
       ],
-      "en": "Academy public writing: tone is 'professional yet friendly' (not a stiff report, not hype); readers are people interested in cooking and fermentation and prospective students. Banned: unfounded superlatives (best, perfect, special, No.1), promises of exam success or health effects (immunity, diet, efficacy), prices or tuition, and facts not given (class dates, prices, reviews, statistics, awards, instructor names). A recruiting line for a specific class is allowed only when the task gives that class's details; award or opening news from kmastercook.com/notices is not used in titles unless the task says so. Source of these rules: src/lib/prompt-defaults.ts and content-quality-policy.ts in C:/Users/tahar/orca/workspaces/academy homepage."
+      "en": "Academy public writing: tone is 'professional yet friendly' (not a stiff report, not hype); readers are people interested in cooking and fermentation and prospective students. Banned: unfounded superlatives (best, perfect, special, No.1), promises of exam success or health effects (immunity, diet, efficacy), prices or tuition, and facts not given (class dates, prices, reviews, statistics, awards, instructor names). General cooking/fermentation facts may be used only with a public source link in the done comment; academy facts never. A recruiting line for a specific class is allowed only when the task gives that class's details; award or opening news from kmastercook.com/notices is not used in titles unless the task says so. Source of these rules: src/lib/prompt-defaults.ts and content-quality-policy.ts in C:/Users/tahar/orca/workspaces/academy homepage."
     },
     {
       "id": "r-mirror-ledger",
@@ -475,7 +479,7 @@
       "from": [
         "pc-5910516a/MEMORY.md#8307d26ec43e"
       ],
-      "en": "agent-work rules (from HER-17): write new results to agent-work/restart/<request>/bot/ and only read the original demo/<video id>/. Source env/setenv.sh first so uv, pip and HF caches and TMP stay inside agent-work/env (otherwise files once landed in the global uv cache). env/tools/extract_frames.py deletes frames/*/*.jpg in its target and vision_note.py writes to D/report/, so for new work extract frames with ffmpeg into B directly and keep viewing notes in B/vision_seen.json. runlog/progress (first argument = result folder) and pc_api.py (get/comment/doc-put/attach/patch; key only from the environment) live in env/tools/."
+      "en": "agent-work rules: a first analysis of a video writes to agent-work/demo/<video id>/; a restart of a cancelled request (HER-17 pattern) writes to agent-work/restart/<request>/bot/ and only reads the original demo/<video id>/. Source env/setenv.sh first so uv, pip and HF caches and TMP stay inside agent-work/env (otherwise files once landed in the global uv cache). env/tools/extract_frames.py deletes frames/*/*.jpg in its target and vision_note.py writes to D/report/, so for new work extract frames with ffmpeg into B directly and keep viewing notes in B/vision_seen.json. runlog/progress (first argument = result folder) and pc_api.py (get/comment/doc-put/attach/patch; key only from the environment) live in env/tools/."
     },
     {
       "id": "b-youtube-report",
@@ -493,7 +497,7 @@
       "from": [
         "pc-8ca245c2/MEMORY.md#df5d29762882"
       ],
-      "en": "Blog-title task output: the issue document 'titles' holds only a '| 번호 | 제목 | 한 줄 설명 |' table; the comment holds the same table + a self-check table (기준 | 결과, with each title's length including spaces counted by a program) + the memories saved this time; then the issue is set to done. Count and length limits follow the task description exactly (e.g. titles within 40 characters including spaces, description a single sentence without line breaks)."
+      "en": "Blog-title task output: the issue document 'titles' holds only a '| 번호 | 제목 | 한 줄 설명 |' table; the done comment is one '## 완료' 4-item comment (한 일/확인 방법/증거/남은 일) with the same table + a self-check table (기준 | 결과, with each title's length including spaces counted by a program) + the memories saved this time appended under it; then the issue is set to done. Count and length limits follow the task description exactly (e.g. titles within 40 characters including spaces, description a single sentence without line breaks)."
     },
     {
       "id": "b-skills-search",
@@ -529,7 +533,7 @@
       "from": [
         "pc-ebb0943f/MEMORY.md#76112009d03d"
       ],
-      "en": "In the chief's sessions HERMES_HOME is my own profile folder, not the Hermes root. hermes-bots.mjs passes the root to its child tools since commit 48630ac, but still run hire and similar commands as HERMES_HOME=\"C:/Users/tahar/AppData/Local/hermes\" node.exe .... While the gateway runs, hermes profile delete fails on a locked file (WinError 32). The empty profile folder left by the failed HER-11 is pc-a243fe69."
+      "en": "In the chief's sessions HERMES_HOME is my own profile folder, not the Hermes root. hermes-bots.mjs passes the root to its child tools since commit 48630ac, but still run hire and similar commands as HERMES_HOME=\"C:/Users/tahar/AppData/Local/hermes\" node.exe .... Profile removal is only `node scripts/hermes-bots.mjs retire --profile <pc-…>` (hermes profile delete is blocked by agentos-guard)."
     },
     {
       "id": "u-commit-code-pc-59bd3c1d",
@@ -557,6 +561,13 @@
         "USER.md#df6f17b1813d"
       ],
       "en": "Verify the work, put the evidence in your report, then commit right away on the branch the task or project uses; showing the evidence is enough, do not wait for approval to commit. Exclude secrets and unrelated files."
+    },
+    {
+      "id": "c-role-over-skills",
+      "scope": "common",
+      "kind": "knowledge",
+      "from": "audit-2026-10 T06/T14/T26/T28",
+      "en": "Your role instructions (SOUL/AGENTS.md) and the agentos-* knowledge outrank any general skill or route hint (Hermes default skills, omh-* skills, OMH awareness/route hints, repo AGENTS.md hints). Use a skill only for the part that fits your role's procedure; a skill step that tells you to install, commit, edit skills, hand work off, or wait for approval does not override your role."
     }
   ],
   "dropped": [
