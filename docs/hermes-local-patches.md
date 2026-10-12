@@ -3,6 +3,14 @@
 Hermes(`%LOCALAPPDATA%/hermes/hermes-agent`)를 업데이트하면 아래 패치가 사라지거나 충돌할 수 있습니다.
 **`hermes update` 뒤에는 이 목록을 하나씩 확인합니다.** 원본 사본은 운영 PC의 로컬 백업 폴더에 있습니다.
 
+## 현재 상태 (2026-10-13 확인)
+
+- `hermes update`는 로컬 수정을 `git stash`(hermes-update-autostash-*)로 치우고 되돌려 놓지 않는다.
+- 2026-10-11 업데이트(c152ba5a82)로 **#1·#2·#4가 풀린 상태**다: `_candidate_pool_exhausted` 마지막 줄이 원래대로,
+  `cached_input_tokens` 0건, `_write_windows_cmd_script` 0건. 수정본은 `stash@{0}`(4개 파일)에 남아 있다. #3은 미확인.
+- 예전 `/journey` 기억 카드 한국어 표시 수정(`agent/learning_graph.py`)은 2026-09-17 업데이트 때 `stash@{1}`로 빠진 뒤
+  다시 적용되지 않았다. 기억 원문을 한국어로 바꿨으므로 더는 필요 없다(지식 항목 `a-journey-display`도 삭제).
+
 ## 1. 백업 모델 전환이 Claude Code 로그인을 '소진'으로 오판 (2026-10-07)
 - 파일: `agent/chat_completion_helpers.py` `_candidate_pool_exhausted()` 마지막 줄
 - 원래: `return until is None or until - time.time() > 600`

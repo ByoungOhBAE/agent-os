@@ -398,15 +398,6 @@
       "en": "The plugin SDK test harness createTestHarness returns configured:false when localFolders is unset; verify that write functions are never called by using a vi.fn fake ctx."
     },
     {
-      "id": "a-journey-display",
-      "scope": "project:agent-os",
-      "kind": "knowledge",
-      "from": [
-        "hermes-root/MEMORY.md#0819ac9b7d8b"
-      ],
-      "en": "Hermes /journey memory cards are translated to Korean only in the display layer (learning_graph.py view); never change the source text, IDs, cursor, or edit behaviour."
-    },
-    {
       "id": "k-worktrees",
       "scope": "project:academy",
       "kind": "knowledge",
