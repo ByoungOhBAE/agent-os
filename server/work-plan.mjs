@@ -16,11 +16,8 @@ const DEFAULT_FOLDERS = [
     label: "학원 홈페이지",
     root: path.join(workspacesRoot, "academy homepage"),
   },
-  {
-    id: "rimbus-company-project",
-    label: "림버스 회사 프로젝트",
-    root: path.join(workspacesRoot, "rimbus company project"),
-  },
+  // rimbus-company-project was removed on purpose (HER-153/HER-154): another
+  // agent owns that project's planning now, so AgentOS no longer shows it.
 ];
 
 function configuredFolders() {

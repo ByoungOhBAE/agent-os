@@ -134,7 +134,8 @@ describe("workPlanFolderRoots", () => {
     expect(path.resolve(roots[0].root)).toBe(path.resolve(dir));
   });
 
-  it("includes the three project folders by default", () => {
-    expect(workPlanFolderRoots().map((f) => f.id)).toEqual(["agent-os", "academy-homepage", "rimbus-company-project"]);
+  it("includes only the AgentOS and academy folders by default (rimbus dropped, HER-154)", () => {
+    expect(workPlanFolderRoots().map((f) => f.id)).toEqual(["agent-os", "academy-homepage"]);
+    expect(listWorkPlanFolders().map((f) => f.id)).not.toContain("rimbus-company-project");
   });
 });
