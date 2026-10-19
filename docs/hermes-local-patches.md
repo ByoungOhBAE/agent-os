@@ -3,11 +3,17 @@
 Hermes(`%LOCALAPPDATA%/hermes/hermes-agent`)를 업데이트하면 아래 패치가 사라지거나 충돌할 수 있습니다.
 **`hermes update` 뒤에는 이 목록을 하나씩 확인합니다.** 원본 사본은 운영 PC의 로컬 백업 폴더에 있습니다.
 
-## 현재 상태 (2026-10-13 확인)
+## 현재 상태 (2026-10-19 재적용)
 
 - `hermes update`는 로컬 수정을 `git stash`(hermes-update-autostash-*)로 치우고 되돌려 놓지 않는다.
-- 2026-10-11 업데이트(c152ba5a82)로 **#1·#2·#4가 풀린 상태**다: `_candidate_pool_exhausted` 마지막 줄이 원래대로,
-  `cached_input_tokens` 0건, `_write_windows_cmd_script` 0건. 수정본은 `stash@{0}`(4개 파일)에 남아 있다. #3은 미확인.
+- 2026-10-11 업데이트(c152ba5a82)로 #1·#2·#4가 8일간 풀려 있었다. 2026-10-19에 `stash@{0}`의 diff
+  (`git diff stash@{0}^1 stash@{0}`)를 `git apply`로 다시 적용했다(충돌 없음, 줄 위치만 이동). 적용 전 파일 사본은
+  `%LOCALAPPDATA%/agentos/hermes-local-patches/pre-reapply-20261019/`.
+  - 확인: py_compile 4개 통과, `patch_regression.py` 18/18, `patch_background.py` 2/2, 게이트웨이 재시작 후
+    실제 봇 턴(스킬탐색) 답 `4 404`(#4), 그 턴의 usage에 `model=claude-opus-5-5`·`cached_input_tokens` 있음(#2).
+  - #1은 upstream 줄이 그대로라 다시 적용했다. 실제 동작은 사용 한도 상황에서만 확인된다(로그 `Fallback activated`).
+  - 사장님 데스크톱 Hermes 앱은 다시 시작해야 #4가 적용된다(그 전까지 앱 터미널은 역슬래시를 반으로 줄임).
+- #3(vbs stderr)은 미확인.
 - 예전 `/journey` 기억 카드 한국어 표시 수정(`agent/learning_graph.py`)은 2026-09-17 업데이트 때 `stash@{1}`로 빠진 뒤
   다시 적용되지 않았다. 기억 원문을 한국어로 바꿨으므로 더는 필요 없다(지식 항목 `a-journey-display`도 삭제).
 
