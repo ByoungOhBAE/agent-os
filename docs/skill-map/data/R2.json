@@ -1,0 +1,113 @@
+{
+ "reviewer": "R2",
+ "seed": 20261027,
+ "checked": [
+  "1) 전체 257행: use/patch/last_used를 .usage.json과 대조, prov를 .bundled_manifest(58개 이름)·.hub/lock.json(5개)·OMH 경로로 재계산, rel 경로 존재·frontmatter name 대조 (257행)",
+  "1-보조) 번들 SKILL.md 폴더 md5를 매니페스트와 대조(60행 중 33행 원본 그대로), OMH 103행 sha256을 ~/.omh/manifest.json과 대조(102행 일치, omh-plan만 수정됨)",
+  "2) 병합 15행 + 보관 5행 = 20행: SKILL.md 직접 읽어 reason의 파일:줄 인용 확인, lessons_to_port 문장이 원본에 실제로 있는지, merge_into 대상에 grep 0건 주장 재grep(19개 원본→대상 쌍, 결과 reviews/r2new/grep_targets.json), 사용자 교훈 줄(owner/사장님/user/accepted) 누락 대조",
+  "2) 번들 끄기 35행 + 허브 끄기 1행 = 36행: 인용 줄 번호·platforms·related_skills·명령 설치 여부(command -v manim/latex/jq/songsee/go/xurl/memo/gws/himalaya/box/ntn/obsidian/bun/codex/soffice)·설정 파일 존재(~/.config/himalaya, google_token.json, competitor-watches)·.env 키 이름 존재 여부(값은 안 봄) 확인",
+  "2) missing_refs/stale_refs 경로 ls 확인: union_worker.py, CONNECTORS.md, taste-skill/blocks, web-perf references/, cal-shots.mjs, bench2 스크립트, hero-studio 29행 경로, CourseThumbRotator THUMB_HOLD_MS, computer-use 링크·.skill-lock.json·skill_manager_batch.py:186-196",
+  "2) build-dashboard·data-visualization 원본 동일 주장: GitHub 고정 커밋 원본을 받아 sha256 비교 → 동일 확인",
+  "3) 무작위 표본(seed 20261027, random.sample): OMH 끄기 85행 중 15행 + 유지 115행 중 15행 = 30행 근거 재확인 (목록 reviews/r2new/sample.json)",
+  "3-보조) 판정 규칙 점검: 끄기 122행 전체에서 '대체 스킬 없음+환경 맞음+낡음 없음' 행 검색",
+  "4) 계획 문서 1장 수치 재계산: build_skills_system_prompt() 실행(스냅샷 캐시는 작업 폴더로 돌려 실제 캐시 미변경), inventory-baseline.json과 비교"
+ ],
+ "not_checked": [
+  "유지 100행·OMH 끄기 70행(표본 밖)의 reason 인용 줄",
+  "병합 대상 스킬 쪽 references 안의 비영문 동의어(같은 뜻 다른 표현)까지의 의미상 중복 — 문자열 grep만 함",
+  "OMH 플러그인 경로힌트 '규칙 N개' 숫자 자체(awareness.py 다른 표)",
+  "omh-frontend의 '38회 전부 09-07~09-28' 주장 — .usage.json엔 last_used_at만 있어 시작일은 확인 불가",
+  "Orca 최신 매니페스트(computer-use 1865바이트) 주장 — Orca 앱 내부 파일은 열지 않음",
+  "세션 기록 기반 주장(claude -p 약 12건, orca 호출 0건 등)"
+ ],
+ "findings": [
+  {
+   "id": "R2-1",
+   "severity": "medium",
+   "target": "academy-content-truth-audit",
+   "finding": "옮길 교훈 목록(lessons_to_port 17줄)에 사장님 규칙·현장 교훈 몇 줄이 빠져 있다. 병합 후 보관하면 이 줄들이 사라진다. 대상 academy-content-accuracy에도 없다.",
+   "evidence": "truth-audit SKILL.md:15 \"Treat 'we don't run X' as a site-wide purge ... banner-studio examples\"(accuracy에 purge/site-wide/banner-studio 0건); :13 'Only the owner knows what is true. Never guess-delete, pre-select a recommended value'(accuracy에 guess/pre-select 0건); :40 'ask per claim group in ONE clarify form ... record his choice in the skill'; :45 'docs/** work files (facts.json strengths, channels.json, check_copy.py)'(accuracy에 facts.json 0건); :47 'ChatLog assistant rows (role=assistant only)'(accuracy엔 스크립트 SKIP 목록에만 있음). 위 5줄 모두 lessons_to_port에 없음.",
+   "suggestion": "lessons_to_port에 :13, :15, :40, :45, :47 다섯 줄을 추가한다. :48(RSC payload)은 accuracy:102에 SiteSetting 직렬화 이야기가 일부 있으니 합칠 때 함께 본다."
+  },
+  {
+   "id": "R2-2",
+   "severity": "medium",
+   "target": "computer-use (computer-use/, computer-use.rollback-broken/)",
+   "finding": "Orca가 넣은 사본 2개가 prov=bundled, use=31로 적혀 있다. 31회는 이름으로 쌓인 기록이라 번들판(autonomous-ai-agents/computer-use)의 것이고, 같은 Orca 출처인 orchestration은 local로 분류돼 기준이 다르다. 그래서 31회가 세 번 집계된다. 또 위쪽 computer-use/는 링크가 아니라 진짜 폴더인데 action이 'remove-orca-link'로 적혀 있다.",
+   "evidence": ".usage.json 'computer-use' use 31 키가 하나뿐이고, 경로 키 'autonomous-ai-agents/computer-use'(use 0, patch 3)가 따로 있음. ls -la: 'computer-use'는 drwxr-xr-x 진짜 폴더, 'computer-use.rollback-broken'은 링크(-> ~/.agents/skills/computer-use). diff -r 결과 둘 내용 동일. ~/.agents/.skill-lock.json: source stablyai/orca, updatedAt 2026-09-04T22:38:48Z. orchestration 행은 prov=local(링크, lock source stablyai/orca). build_skills_system_prompt 결과 위쪽 computer-use/는 목록에 없음(이름 충돌로 못 불러옴).",
+   "suggestion": "두 행 prov를 'orca'(또는 orchestration과 같은 local)로 바꾸고 use는 '측정 불가(이름 공유)'로 표시한다. action은 computer-use/ = 폴더 보관(.archive 이동), rollback-broken = 링크만 rm으로 나눈다. 번들 행에는 경로 키 patch 3이 있다고 메모한다."
+  },
+  {
+   "id": "R2-3",
+   "severity": "medium",
+   "target": "ulw-research / omh-browser, omh-terminal, omh-apps, omh-content-operator, omh-data-analysis, omh-materials-package, omh-live-info, omh-media-input, omh-external-connector-readiness, omh-prompt-import-readiness, omh-physical-device-readiness",
+   "finding": "ulw-research는 'OMH 플러그인이 검색 전마다 이 워크플로를 기본으로 가리키니 끄면 꺼진 스킬을 가리킨다'는 이유로 유지됐다. 그런데 같은 표의 나머지 도구군(브라우저·파일·데이터·셸·연결·실시간·미디어 등)이 가리키는 OMH 스킬 10여 개는 모두 끄기다. 같은 근거에 다른 판정이 나온 셈이다.",
+   "evidence": "plugins/omh/awareness.py:689 GENERIC_TOOL_CHECKPOINT_ROUTES의 primary_workflow: image→img-summary, file→materials-package, search→research, data→data-analysis, content→content-operator, media_input→media-input-operator, command→command-operator, connector→connector-operator, live_info→live-info-operator, external_connector_readiness, prompt_import_readiness, physical_device_readiness, browser→browser-operator, coding→ultrawork. 판정: research·ultrawork만 유지, 나머지에 대응하는 omh-* 행은 전부 끄기(reason에 '플러그인 경로힌트 규칙 1개'라고만 적음).",
+   "suggestion": "규칙을 하나로 정한다. (a) 꺼진 스킬을 가리키는 힌트를 허용한다면 ulw-research도 multi-source-research-survey로 대체해 끈다. (b) 허용하지 않는다면 끄기 전에 OMH 라우팅을 바꾸거나 그 도구군 기본 스킬을 유지한다. 어느 쪽이든 판정문에 적는다."
+  },
+  {
+   "id": "R2-4",
+   "severity": "low",
+   "target": "web-perf",
+   "finding": "'core-web-vitals·web-quality-audit에서 preconnect 미검출'이라는 grep 주장이 틀리다. 다만 옮길 교훈(쓰지 않는 preconnect 제거)은 여전히 고유하다. 또 머리말이 말하는 references/ 사본이 실제로 없는데, 이 내용이 missing_refs가 아니라 stale_refs에 들어가 있다.",
+   "evidence": "web/web-quality-audit/SKILL.md:56 '* **Preconnect to origins.** Add <link rel=\"preconnect\">'(추가 권장 문구). web/web-perf/SKILL.md:6 'links ... repointed to local references/ copies (MEASUREMENT.md/RUM.md)' 인데 ls web/web-perf → SKILL.md 하나뿐. core-web-vitals에는 TTFB<800ms만 있고 FCP/TBT/Speed Index 기준은 0건.",
+   "suggestion": "병합 판정은 유지한다. reason 문구를 'web-quality-audit:56엔 추가 권장만 있고 미사용 제거 규칙은 없음'으로 고치고, references 사본 누락을 missing_refs로 옮긴다."
+  },
+  {
+   "id": "R2-5",
+   "severity": "low",
+   "target": "verdicts.json 전체(hermes-agent, omh-plan, hermes-skill-library-curation)",
+   "finding": "판정 파일을 만든 뒤에 사용 기록과 스킬 폴더가 바뀌었다. 숫자 불일치 2행은 이 시간차 때문이다. 판정에 없는 새 스킬도 1개 생겼다.",
+   "evidence": "verdicts.json 수정 04:04:57, .usage.json 04:06:44. hermes-agent 판정 80/9 → 사용 기록 82/11, omh-plan 117/15 → 118/16. 나머지 255행은 use·patch·last_used 날짜 모두 일치. 새 skills/autonomous-ai-agents/hermes-skill-library-curation/SKILL.md(10-27 04:08, created_by agent)로 현재 SKILL.md는 258개이고 판정은 257행. omh-plan SKILL.md도 판정 뒤에 수정됨. prov 재계산 불일치 0건.",
+   "suggestion": "적용 직전에 use/patch를 다시 읽어 갱신하고, hermes-skill-library-curation 행을 추가한다(local, 유지 후보)."
+  },
+  {
+   "id": "R2-6",
+   "severity": "low",
+   "target": "product-price-monitor (+ coupang-price-refresh, naver-blog-photo-sourcing 등)",
+   "finding": "reason에는 '사용 0회'라고 적혀 있는데 같은 행의 use는 1이다. 기준선 때는 0이었고, 10-26 감사 중에 열어 본 것으로 보인다. 감사 기간에 생긴 사용 기록이 다른 행에도 섞여 있다.",
+   "evidence": "inventory-baseline.json use: product-price-monitor 0 → 판정 1(last 10-26), coupang-price-refresh 0→2, naver-blog-photo-sourcing 3→6, chatgpt-desktop-image-gen 13→15, ai-image-print-design 21→23, academy-design-variants 51→53, academy-detail-blocks 38→39(모두 10-26).",
+   "suggestion": "reason 문구를 'use 1(감사 중 열람으로 추정)'으로 고친다. 사용 횟수를 근거로 쓰는 행은 기준선 값(10-26 이전)을 함께 적는다."
+  },
+  {
+   "id": "R2-7",
+   "severity": "low",
+   "target": "multi-bot-orchestration",
+   "finding": "reason에 '패치 0회'라고 적혀 있지만 실제 패치는 1회다(만든 날 1회). 판정에는 영향이 없다.",
+   "evidence": ".usage.json multi-bot-orchestration patch_count 1, last_patched_at 2026-09-04. 판정 행 patch=1.",
+   "suggestion": "문구만 '패치 1회(생성 당일)'로 고친다."
+  },
+  {
+   "id": "R2-8",
+   "severity": "low",
+   "target": "union-alpha-worker",
+   "finding": "signals.user_lessons=true인데 lessons_to_port가 비어 있다. opencode 스킬에 없는 사용자 쪽 운용 규칙이 있다.",
+   "evidence": "union-alpha-worker SKILL.md:30 '가벼운 질문은 %LOCALAPPDATA%/Temp/union-chat을 --cwd로', :49 고정 질문 '1+1 결과는?' 확인 절차. grep 'union-chat|1+1' opencode/SKILL.md → 0건. 그 밖의 인용(SKILL.md:19·26·43·51-52, opencode:199-205 Union Alpha 절, opencode/scripts/union_worker.py 실재, 자기 폴더엔 SKILL.md만 있음)은 모두 맞음.",
+   "suggestion": "user_lessons를 false로 고치거나, 위 2줄을 opencode 'Union Alpha worker on Windows' 절로 옮기는 항목을 추가한다."
+  },
+  {
+   "id": "R2-9",
+   "severity": "low",
+   "target": "omh-voice-input, omh-people-ops",
+   "finding": "끄기 122행 중 대체 스킬(overlap_with)이 비어 있고 환경도 맞는(ok/partial) 행이 이 둘이다. reason도 '일반 틀/실질 한 줄/0회 사용'뿐이라 '사용 횟수만으로 끄지 말 것' 규칙에 가장 가깝다.",
+   "evidence": "omh-voice-input: overlap_with [], env_fit ok, stale/missing 없음. omh-people-ops: overlap_with [], env_fit partial, reason '일반 대화로 충분하고 0회 사용'(SKILL.md:75-76은 일반 체크리스트 줄 맞음). 두 행 SKILL.md sha256은 OMH 매니페스트와 동일(사용자 수정 없음).",
+   "suggestion": "대체 수단을 명시하거나(예: voice-input → Hermes 기본 clarify 규칙), '내용 없는 공통 틀'이 끄기 사유임을 판정 기준에 적는다. 그렇게 하지 않으면 보류로 둔다."
+  },
+  {
+   "id": "R2-10",
+   "severity": "low",
+   "target": "skill-map-plan.md 1장",
+   "finding": "1장 수치를 다시 계산했다. 목록 수치는 스킬이 늘어난 만큼 바뀌었다. '한 번도 안 쓴 91개'와 '출처별 번들 53'은 전체가 아니라 목록에 보이는 스킬만 센 값인데, 표에 그렇다는 표시가 없다.",
+   "evidence": "build_skills_system_prompt() 현재값: 24,084자(계획 23,974, +110), 스킬 줄 250(계획 249), 분류 줄 26(같음). SKILL.md 258개 = Hermes 155 + OMH 103(계획 256: +shopping-part-finder 10-26, +hermes-skill-library-curation 10-27). 목록에서 빠진 8개 = 자동 숨김 7개(apple×4·xurl·python-debugpy 플랫폼, sdlc-review 칸반 환경) + 이름 충돌로 빠진 computer-use/ 1개. 계획의 '256−7=249'와 비교하면 충돌판 1개 차이는 설명되지 않음. 안 쓴 스킬: 기준선 전체 98(번들 30), 그중 보이는 것 91(=계획). 현재 전체 97, 보이는 것 90(OMH 58·번들 22·로컬 9·허브 1). 1~2회 사용: 66 → 68. 설치 기준 출처별: local 88(+2), bundled 60, OMH 103, hub 5. 계획의 53은 보이는 번들 수이고, 39행 '기본 제공 번들 (53)'도 같은 값.",
+   "suggestion": "표에 '(목록에 보이는 것 기준)'을 붙이고 설치 기준 번들 60·안 쓴 스킬 98도 같이 적는다. 현재값(258/250/24,084자)으로 갱신한다."
+  },
+  {
+   "id": "R2-11",
+   "severity": "low",
+   "target": "검수 범위 요약(맞은 것)",
+   "finding": "나머지 인용과 주장은 직접 확인한 결과 맞았다. 다만 표본 밖의 행과 세션 기록 기반 주장은 확인하지 못했다.",
+   "evidence": "병합·보관 20행: lessons_to_port 문장은 모두 원본에 있음(요약·번역된 줄도 해당 절 확인). grep 0건 주장은 web-perf preconnect 하나만 틀림. review-animations의 'asymmetr' 검색 결과는 광학 정렬 이야기라 주장 유지. 번들·허브 끄기 36행: 인용 줄(architecture-diagram:12·56-61·69-77, baoyu-infographic:212·PORT_NOTES 18, humanizer 한국어 0건, sdlc-review:13-14, coupang-price-refresh:8·28, requesting-code-review:238 vs mirror-ledger:47, node-inspect:79·177, python-debugpy:7, xurl:7, design-taste-frontend 1206줄/87,253B·153·169·173·192·649·825)과 미설치 명령·없는 설정 모두 확인. 표본 30행: omh-plan:76·104·109, ulw-interview '한 번에 1질문', awareness.py:6221·689, academy-admin-structure:125, xlsx_recalc.py:68 + soffice PATH 없음, codex:29 + PATH 없음, gateway-platform-toggle:16·79, mirror-ledger 62,974B 확인. OMH 매니페스트 sha 동일 주장 14건 모두 맞음.",
+   "suggestion": "R2-1~R2-10만 고치면 된다. 표본 밖 유지 100행과 OMH 끄기 70행은 다른 검수자가 보거나 추가 표본으로 확인한다."
+  }
+ ]
+}

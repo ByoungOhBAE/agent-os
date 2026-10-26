@@ -1,7 +1,8 @@
 # 스킬 지도 만들기 + 중복·낡은 스킬 정리 — 계획
 
-상태: **1차 승인** (2026-10-26, Q1~Q5 전부 추천안) · 실행 시작 승인 대기 · 아직 아무것도 옮기거나 끄지 않음
-작성: 2026-10-26 · 대상: Hermes `default` 프로필
+상태: **판정표 승인 대기 (2단계)** · 2026-10-26 1차 승인(Q1~Q5 전부 추천안) · 아직 아무것도 옮기거나 끄지 않음
+작성: 2026-10-26 · 대상: Hermes `default` 프로필 · 이전 판: `v1/skill-map-plan.v1.md`
+진행: 0단계 백업 완료(`hermes/backups/skill-map-20261027-pre-audit`, SKILL.md 154+103) · 1단계 감사 완료(258개 판정 `verdicts.json`: 원 세션 9레인 + 재감사 4개 + 새 스킬 1개) · 검토 R1 15건 · 검수 R2 11건 → 26건 전부 반영(11장) · 판정 관문 `gates/verdicts_gate.py` 통과 · 이어받음: 원 세션의 R1·R2가 결과 없이 끊겨 10-27 04시 이 세션이 다시 돌림
 
 ---
 
@@ -9,103 +10,88 @@
 
 | 요청 글 | 실제 | 그래서 |
 |---|---|---|
-| "지도 파일 하나를 만들어 에이전트가 그 지도에서 고르게" | Hermes는 매 대화 시작 때 **스킬 목록을 분류별로 묶어 자동으로** 에이전트에게 보여 준다. 분류 이름 = 스킬 **폴더 이름**, 분류 설명 = 그 폴더의 `DESCRIPTION.md`. 따로 만든 md 파일은 에이전트가 일부러 열어 보지 않는 한 안 읽힌다. | 지도는 두 겹으로 만든다. ① **매번 자동으로 보이는 지도** = 폴더를 큰 분류로 다시 묶고 분류마다 「포함 / 제외」 설명을 붙임. ② **상세 지도** `SKILLS_MAP.md` = 스킬마다 방식·능력·대체 관계·판정을 적은 파일 하나 (정리·추가 때 기준표). |
-| "분류만 보고 다른 분류는 안 뒤지게" | 지금 목록은 249개 스킬이 26개 분류에 섞여 한꺼번에 보인다. 분류 이름도 `creative`, `operator`, `guide`처럼 뜻이 겹친다. | 분류 수를 12개 안팎으로 줄이고, 분류 설명에 "이 분류가 아닌 것"을 적어 1차 판단이 바로 되게 한다. |
+| "지도 파일 하나를 만들어 에이전트가 그 지도에서 고르게" | Hermes는 매 대화 시작 때 **스킬 목록을 분류별로 묶어 자동으로** 에이전트에게 보여 준다. 분류 이름 = 스킬 **폴더 이름**, 분류 설명 = 그 폴더의 `DESCRIPTION.md`. 따로 만든 md 파일은 에이전트가 일부러 열어 보지 않는 한 안 읽힌다. | 지도는 두 겹. ① **매번 자동으로 보이는 지도** = 폴더를 큰 분류로 다시 묶고 분류마다 「포함 / 제외 / 고르는 기준」 설명. ② **상세 지도** `SKILLS_MAP.md` = 스킬마다 방식·능력·대체 관계·판정. |
+| "분류만 보고 다른 분류는 안 뒤지게" | Hermes에는 "분류를 먼저 고르고 그 분류만 펼치는" 기능이 없다(R1-15). 정리 뒤에도 남은 스킬은 분류별로 한꺼번에 보인다. | 기능으로 막는 게 아니라 **찾기 쉽게** 만든다: 분류 줄 26 → 14, 스킬 줄 250 → 약 114, 분류마다 넣는 것·넣지 않는 것·같은 분류 안 고르는 기준. 실제로 그렇게 고르는지는 A8에서 확인. |
 
 ---
 
-## 1. 지금 상태 (실측, 2026-10-26)
+## 1. 지금 상태 (실측)
 
-출처: `skills/.usage.json`(사용 기록), `.bundled_manifest`, `.hub/lock.json`, Hermes 자체 목록 생성 함수 `build_skills_system_prompt()` 실행 결과. 원자료: `inventory-baseline.json`.
+출처: `skills/.usage.json`, `.bundled_manifest`, `.hub/lock.json`, Hermes 목록 생성 함수 `build_skills_system_prompt()` 실행 결과. 원자료: `inventory-baseline.json`.
 
-| 항목 | 값 |
-|---|---|
-| 설치된 SKILL.md | **256개** (Hermes 153 + OMH 103) |
-| 매 대화 목록에 보이는 스킬 | **249개**, 분류 줄 **26개** (macOS 전용 등 7개는 자동 숨김) |
-| 목록 크기 | **23,974자** (매 대화 시스템 프롬프트에 들어감) |
-| 한 번도 안 쓴 스킬 | **91개** — OMH 58 · 기본 제공 23 · 직접 만든 것 9 · 허브 1 |
-| 1~2회만 쓴 스킬 | 66개 |
-| 이름 충돌 | `computer-use` 3벌 (Hermes 기본 cua-driver판 1 + Orca CLI판 2, 그중 하나는 `computer-use.rollback-broken` 폴더) → 한 벌은 **아예 불러올 수 없음** (목록에 "rename one" 경고가 뜸) |
-| 출처별 | 직접 만든 것 88 · 기본 제공(번들) 53 · OMH 103 · 허브 5 |
+| 항목 | 기준선 10-26 | 현재 10-27 (R2-10 재계산) |
+|---|---|---|
+| 설치된 SKILL.md | 256 (Hermes 153 + OMH 103) | **258** (Hermes 155 + OMH 103; +shopping-part-finder, +hermes-skill-library-curation) |
+| 매 대화 목록에 보이는 스킬 줄 / 분류 줄 | 249 / 26 | **250 / 26** (자동 숨김 7 + 이름 충돌로 빠진 1) |
+| 목록 크기 | 23,974자 | **24,084자** |
+| 한 번도 안 쓴 스킬 | 91 *(목록에 보이는 것 기준)* · 설치 기준 98 | 97 (설치 기준) |
+| 출처별 | 직접 88 · 번들 53 *(보이는 것 기준, 설치 기준 60)* · OMH 103 · 허브 5 | |
+| 이름 충돌 | `computer-use` 3벌 → `skill_view('computer-use')`가 10/21·10/23·10/24에 "Ambiguous" 실패(logs/errors.log) | |
 
-> 사용 기록은 9월 초부터 쌓인 약 7주치다. "안 씀"은 "쓸모없음"이 아니라 **판정 후보**일 뿐이다.
+> 사용 기록은 약 7주치. "안 씀"은 판정 후보일 뿐.
 
 ### 정리 방법이 출처마다 다르다 (코드 확인)
 
 | 출처 | 그냥 지우거나 옮기면 | 안전한 방법 |
 |---|---|---|
-| 직접 만든 것 (88) | 문제 없음 | 폴더 이동 · `hermes curator archive`(보관, 복구 가능) |
-| 기본 제공 번들 (53) | 옮겨도 `hermes update` 때 **원래 자리로 되돌아감** (`tools/skills_sync.py` `_recover_renamed_skill`) · 지우면 다시 안 생김 | 옮길 거면 번들 자동 추가·갱신을 끔(`hermes skills opt-out`) · 안 쓰는 건 `skills.disabled`로 끔 |
-| OMH (103) | `~/.omh/manifest.json`이 관리 → OMH 갱신 때 되살아날 수 있음 | 파일은 두고 `skills.disabled`로 끔 |
-| 허브 (5) | `lock.json` 설치 경로가 바뀌어 허브 갱신이 꼬임 | 새 분류에 로컬 사본을 두고 허브 등록 해제(원 주소는 지도에 기록) |
-| Orca가 넣은 것 (`computer-use`, `orchestration`, `.rollback-broken`) | Orca 동기화가 다시 만들 수 있음 | 감사에서 소유자 확인 후 결정 |
+| 직접 만든 것 | 문제 없음. 단 큐레이터가 14일 안 쓰면 '오래됨', 30일이면 **자동 보관**(curator.py:32) | 폴더 이동 · `hermes curator archive` · 지도에 남기는 건 **pin**(R1-2) |
+| 기본 제공 번들 | 원본 그대로인 사본을 옮기면 `hermes update` 때 원위치(`skills_sync.py:225-260`) | **opt-out 먼저**, 그다음 이동(R1-8) · 안 쓰는 건 `skills.disabled` |
+| OMH | `~/.omh/manifest.json`이 관리, 봇 프로필 13개가 같은 폴더를 씀 | 파일은 그대로 · 끄기=`skills.disabled` · 남기는 15개는 기본 프로필 폴더에 **같은 이름 사본**(R1-1, Hermes는 기본 폴더를 먼저 씀) |
+| 허브 | 설치 경로가 바뀌면 허브 갱신이 꼬임 | 새 분류에 로컬 사본 + `hermes skills uninstall`, 원 주소는 지도에 |
+| Orca가 넣은 것 | Orca가 다시 만들 수 있음 · 큐레이터는 번들 이름이라 거절(skill_usage.py:617-653) | `computer-use/` 진짜 폴더는 백업 폴더로, `.rollback-broken` 링크는 **링크만** rm, `orchestration`은 이름으로 끄기 |
 
 ---
 
 ## 2. 목표 / 하지 않는 것
 
 **목표**
-1. 큰 분류 12개 안팎의 지도. 에이전트가 분류 설명만 보고 1차 결정 → 그 분류 안에서만 고름 → 없으면 스킬 없이 진행.
-2. `SKILLS_MAP.md` 한 파일에 스킬마다 **어떤 방식으로(도구·명령·스크립트·절차·정책) 어떤 능력을** 주는지 기록.
-3. 같은 일을 하는 스킬 묶음마다 하나만 남기고, 떨어지거나 낡은 쪽은 좋은 교훈만 옮긴 뒤 보관/끄기.
+1. 큰 분류 12개(+하위 2)의 지도. 에이전트가 분류 설명으로 1차 결정 → 그 분류 안에서 고름 → 없으면 스킬 없이 진행.
+2. `SKILLS_MAP.md` 한 파일에 스킬마다 **방식·능력·이럴 때·대신 쓰지 말 것·판정**.
+3. 중복 묶음마다 하나만 남기고, 떨어지거나 낡은 쪽은 교훈을 옮긴 뒤 보관/끄기.
 4. 새 스킬이 생기면 지도에 없는 게 바로 드러나는 검사.
 
 **하지 않는 것**
-- 다른 프로필(봇 프로필 18개)의 스킬, Claude Code·Codex용 `~/.claude/skills`·`~/.agents/skills` — 이번 범위 밖.
-- 영구 삭제 — 모든 정리는 보관(archive) 또는 끄기(disabled)로, 되돌릴 수 있게.
-- 스킬 내용 개선 작업 전반 — 병합 때 교훈을 옮기는 것까지만.
-- (선택지 Q5에서 고르지 않으면) Hermes 본체 코드 수정.
+- 다른 프로필(봇 프로필)의 스킬, `~/.claude/skills`·`~/.agents/skills`, OMH 폴더 안 파일 — 손대지 않음.
+- 영구 삭제 — 보관·끄기만.
+- 스킬 내용 개선 전반 — 교훈 옮기기와 academy-code-audit 줄이기까지만.
+- Hermes 본체·OMH 플러그인 코드 수정(Q5). 칸반 설정 변경.
 
 ---
 
-## 3. 분류 초안 (감사 후 확정)
+## 3. 분류 (확정안)
 
-| 폴더 | 이름 | 넣는 것 | 넣지 않는 것 → 어디로 |
-|---|---|---|---|
-| `design` | 디자인 | 화면·UI 디자인, 디자인 시스템, 모션, 피그마, UX 평가 | 차트·대시보드 → data-viz / 이미지·인쇄물 → visual-content |
-| `data-viz` | 데이터 시각화 | 대시보드, 차트, KPI 화면 | 문서 파일 만들기 → documents |
-| `visual-content` | 이미지·영상·도식 | AI 이미지, 전단·배너, 다이어그램, 인포그래픽, 영상·애니메이션 | 화면 UI → design |
-| `documents` | 문서·보고서 | Word/PDF/PPT/Excel, 보고서 묶음, 회의록·할 일 뽑기 | 조사 자체 → research |
-| `research` | 조사 | 다중 출처 조사, 경쟁사, 인용, 웹·유튜브·레딧 읽기, 막힌 페이지 | 광고 경쟁 조사 → marketing |
-| `marketing` | 마케팅·광고 | 광고 집행, 카피, 가격·할인, 소비자 심리 | 학원 사이트 글 → academy |
-| `academy` | 학원 (kmastercook) | 홈페이지·LMS·상담앱·시간표 앱·콘텐츠 | 범용 Next.js 개발 → coding |
-| `coding` | 개발 일반 | 디버깅, 테스트, 코드 리뷰, GitHub, Next.js·React | 사이트 품질 측정 → web-quality |
-| `web-quality` | 웹 품질·검증 | 성능, 접근성, 라이브 반영 확인, 탐색 QA | |
-| `agents-hermes` | 에이전트·Hermes 운영 | Hermes 설정, AgentOS 봇, 위임(Claude Code·Codex 등), 메모리·스킬 관리 | |
-| `pc-ops` | PC·NAS·파일 | NAS 배포, 윈도 자원, 파일 정리, 데스크톱 조작, 보안 공지 확인 | |
-| `apps` | 외부 앱 연결 | 구글·노션·에어테이블·메일·옵시디언 등 | |
-| `workflow` | 작업 방식 (OMH 등) | 계획, 검토·검수, 진행 규율(unlazy) | 실제 작업 기술 → 해당 분류 |
+| 폴더 | 이름 | 남는 수 | 넣는 것 | 넣지 않는 것 → 어디로 |
+|---|---|---|---|---|
+| `design` | 디자인 | 9 | 화면·UI, 디자인 원칙, 모션, 피그마 | 차트 → data-viz / 이미지·도식 → visual-content |
+| `data-viz` | 데이터 시각화 | 1 | 대시보드, 차트, KPI 화면 | 문서 파일 → documents |
+| `visual-content` | 이미지·도식 | 3 | AI 이미지, 전단·배너, 다이어그램 | 화면 UI → design |
+| `documents` | 문서·보고서 | 8 | Word/PDF/PPT/Excel, 보고서, 회의록·할 일 뽑기 | 조사 → research |
+| `research` | 조사 | 11 | 다중 출처 조사, 경쟁사 화면, 웹·유튜브·레딧, 지도, 쇼핑 찾기 | 광고 경쟁 조사 → marketing |
+| `marketing` | 마케팅·광고 | 7 | 광고 집행·키워드, 카피, 가격·할인, 심리 | 학원 사이트 글 → academy |
+| `academy` | 학원 | 21 | 홈페이지·LMS·상담앱·시간표앱·콘텐츠·정책 | 범용 Next.js → coding |
+| `coding` | 개발 | 12 | 디버깅·테스트·코드 리뷰·GitHub·Next.js·React | 웹 품질 측정 → web-quality |
+| `web-quality` | 웹 품질·검증 | 8 | 속도, 접근성, 라이브 반영 확인, 탐색 QA | |
+| `agents-hermes` | 에이전트·Hermes | 12 | Hermes 설정, 코딩 위임(Claude Code·Codex·OpenCode), 기억·스킬 관리 | |
+| `agents-hermes/agentos` | └ AgentOS | 7 | AgentOS 봇 조직·대시보드·권한 | |
+| `agents-hermes/omh` | └ OMH 관리 | 5 | OMH 플러그인 자체 관리 | |
+| `pc-ops` | PC·NAS·파일 | 5 | NAS 배포, 윈도 자원, 파일 정리, 데스크톱 조작, 보안 공지 | |
+| `workflow` | 작업 방식 | 5 | 계획, 결정, 진행 규율(unlazy), 실행 | 실제 작업 기술 → 해당 분류 |
 
-학원 스킬이 20개를 넘으면 `academy/site`, `academy/apps`처럼 한 단계 더 나눈다(Hermes가 중첩 분류를 지원함).
+`apps`(외부 앱) 분류는 남는 게 maps 하나라 없앰(R1-6). 학원은 하위 폴더 6개가 2~8개씩이라 오히려 줄만 늘어 하나로 둠.
+같은 분류 안 비슷한 스킬은 분류 설명에 고르는 기준을 한 줄씩(R1-7). 예: 홈페이지·랜딩=frontend-design / 관리 화면=interface-design / 시안 HTML=claude-design / 배색=ui-ux-pro-max · 속도: 웹 지표=core-web-vitals, 종합 점검=web-quality-audit, 웹이 아닌 프로그램=ulw-perf.
 
 ---
 
-## 4. 중복 의심 묶음 (가설 — 감사에서 확정)
+## 4. 판정 결과 요약 (판정표 `verdict-table.html`)
 
-| # | 묶음 | 스킬 |
+| 판정 | 수 | 내용 |
 |---|---|---|
-| D1 | 데스크톱 조작 | computer-use ×3 (이름 충돌) |
-| D2 | 파일 정리 | local-file-cleanup / local-file-library-cleanup |
-| D3 | 네이버 블로그 사진 | naver-blog-photo-harvest / naver-blog-photo-sourcing |
-| D4 | 학원 콘텐츠 사실 검사 | academy-content-accuracy / academy-content-truth-audit |
-| D5 | 학원 상세 블록·히어로 | academy-detail-blocks / academy-detail-image-block · academy-hero-studio / hero-studio-figma-export |
-| D6 | 화면 디자인 (가장 큼) | frontend-design, design-taste-frontend, redesign-existing-projects, interface-design, claude-design, ui-ux-pro-max, popular-web-designs, web-design-guidelines, ux-heuristics, information-architecture, omh-frontend, omh-design-quality-gate, omh-design-orchestration |
-| D7 | 도식·인포그래픽 | architecture-diagram, baoyu-diagram, baoyu-infographic, illustrated-design-report |
-| D8 | 대시보드·차트 | build-dashboard, data-visualization, kpi-dashboard-design, omh-data-analysis |
-| D9 | 모션 | design-motion-principles, review-animations, game-feel |
-| D10 | 웹 성능·품질 | core-web-vitals, web-perf, web-quality-audit, ulw-perf |
-| D11 | 접근성 | web-accessibility-wcag, omh-accessibility-audit |
-| D12 | 코드 리뷰·정리 | requesting-code-review, omh-code-review, simplify-code, omh-ai-slop-cleaner, delegated-code-audit |
-| D13 | 디버깅 | systematic-debugging, agent-pipeline-diagnosis, omh-agent-debug, omh-build-failure-triage |
-| D14 | 계획 | omh-plan, ulw-plan, ulw-interview, omh-decide, spike |
-| D15 | 조사 | multi-source-research-survey, omh-research-brief, ulw-research, omh-best-practice-research, omh-source-finder, omh-research-department, grounded-citations |
-| D16 | 경쟁사 화면 비교 | competitor-page-screenshot-benchmark, class-platform-ui-benchmark, calendar-ux-benchmark, competitor-profiling |
-| D17 | 회의·할 일 뽑기 | meeting-action-items, document-to-action-items, teams-meeting-pipeline, omh-meeting-brief |
-| D18 | 보고서 묶음 | illustrated-design-report, desktop-report-folder, omh-report-package, omh-materials-package, omh-deliverable-package |
-| D19 | 화면 검증 | live-web-change-verification, dogfood, omh-visual-qa, omh-verification-gate, playwright-best-practices |
-| D20 | 코딩 위임 | claude-code, codex, opencode, union-alpha-worker, ulw-maestro, omh-executor-runtime-readiness |
-| D21 | 메모리·스킬 관리 | hermes-memory-curation, omh-memory-sync, omh-memory-new, omh-rules-distill · find-skills, omh-skill-scout, omh-skill, omh-skill-health |
-| D22 | OMH 안내용 덮개 | omh-browser, omh-files, omh-terminal, omh-live-info 등 `guide` 18개 — 기본 동작에 정책만 덧씌움 |
+| 유지 | 114 | 직접 72 · 번들 23 · OMH 15(사본) · 허브 4 |
+| 병합 | 14 | 교훈을 남는 스킬로 옮긴 뒤 보관 (예: build-dashboard·data-visualization → kpi-dashboard-design) |
+| 보관 | 5 | union-alpha-worker, competitor-profiling, web-design-guidelines, computer-use Orca 사본 2 |
+| 끄기 | 125 | OMH 88 · 번들 35 · 허브 1(design-taste-frontend) · Orca 1(orchestration) |
+
+중복 묶음 D1~D22(이전 판 4장)는 전부 이 판정으로 정리됨. 묶음별 결론: `cluster_notes.json`.
 
 ---
 
@@ -113,14 +99,16 @@
 
 | 기준 | 확인 방법 |
 |---|---|
-| 실제로 쓰이나 | `.usage.json` 사용 횟수·마지막 사용일 |
-| 구체적인가 | 실제 명령·경로·스크립트가 있는가 vs 일반론만 있는가 · 딸린 `scripts/`·`references/` 파일이 실제로 있는가 |
-| 낡았나 | 없어진 경로·저장소·도구를 가리키는가 (예: 옛 `academy website` 폴더, 이미 바뀐 절차) |
-| 이 환경에 맞나 | Windows·한국어·이 사용자의 스택(Next.js, NAS, Whale)과 맞는가 |
-| 사용자 규칙이 담겼나 | 이 사용자가 고쳐 준 교훈(Local practice)이 들어 있는가 — 들어 있으면 지우지 말고 옮김 |
-| 대신할 것이 있나 | 같은 묶음의 다른 스킬이 같은 일을 더 잘하는가 |
+| 실제로 쓰이나 | `.usage.json` 사용 횟수·마지막 사용일(기준선 10-26 이전 값 병기, R2-6) |
+| 구체적인가 | 실제 명령·경로·스크립트가 있는가 · 딸린 파일이 실제로 있는가 |
+| 낡았나 | 없어진 경로·저장소·도구를 가리키는가 |
+| 이 환경에 맞나 | Windows·한국어·이 사용자의 스택 |
+| 사용자 규칙이 담겼나 | 있으면 지우지 말고 옮김(port_to) |
+| 대신할 것이 있나 | 같은 묶음의 다른 스킬이 더 잘하는가 |
+| **내용 없는 공통 틀인가** (R2-9) | OMH 공통 틀에 이름만 바꾼 형식이고 사용자 수정이 없으면 끄기 근거가 됨 |
+| **추천 문구는 근거 아님** (R1-3) | OMH 추천 문구(경로 힌트)가 가리킨다는 이유로는 남기지 않음 |
 
-**판정 5가지**: 유지 · 병합(교훈을 남는 스킬로 옮긴 뒤 보관) · 보관(archive) · 끄기(disabled, 번들·OMH·허브용) · 분류만 이동.
+사용 횟수만으로는 끄지 않음. 판정: 유지 · 병합 · 보관 · 끄기.
 
 ---
 
@@ -128,12 +116,12 @@
 
 | 단계 | 내용 | 바꾸는 것 |
 |---|---|---|
-| 0. 백업·기준선 | `skills/`·`~/.omh/skills`·`config.yaml` tar 백업 + `hermes skills snapshot` · 기준선 수치 저장(위 표) | 없음 |
-| 1. 감사 (읽기만) | 분류 묶음별 하위 에이전트 병렬 감사 → 스킬마다 방식·능력·품질 신호·중복 상대·판정 제안·근거 JSON. 감사자 2명 교차 확인(검토/검수)으로 판정 근거 재확인 | 없음 |
-| 2. 정리안 승인 | 판정표(유지/병합/보관/끄기/이동) + 확정 분류표를 보여 주고 승인받음 | 없음 |
-| 3. 실행 | ① 병합(교훈 옮기기) ② 보관·끄기 ③ `hermes skills opt-out`(번들 자동 추가·갱신 끄기, Q3) 후 폴더 재배치 + 분류별 `DESCRIPTION.md` ④ `SKILLS_MAP.md` ⑤ 지도 검사 스크립트 ⑥ 다른 스킬·크론·봇 설정 속 옛 이름 참조 고치기 | 스킬 폴더, `config.yaml`(`hermes config set`으로만) |
-| 4. 검증 | 아래 7장 관문 전부 | 없음 |
-| 5. 마무리 | 계획·검사 스크립트·지도 사본 커밋·푸시(agent os) · 보고서 | git |
+| 0. 백업 | 완료 | 없음 |
+| 1. 감사 + 검토·검수 | 완료 | 없음 |
+| **2. 판정표 승인** | ← 지금 | 없음 |
+| 3. 실행 | 순서 고정: ① 관문 재실행(판정 이후 새로 생기거나 바뀐 SKILL.md 확인, 사용 숫자 재갱신) ② **pin 91개**(R1-2) ③ 교훈 옮기기(port_to 전부, 딸린 파일 2개 포함 R1-14) + academy-code-audit 줄이기 ④ 병합 원본·보관 대상 보관(Orca 2개는 수동) ⑤ `skills.disabled`에 끄기 125개(`hermes config set`) ⑥ **opt-out 표시 파일 확인 → 그다음** 폴더 재배치(R1-8), 허브 4개 로컬화, OMH 15개 사본 ⑦ 분류별 `DESCRIPTION.md`(workflow 설명에 "추천 문구가 가리킨 OMH 워크플로가 목록에 없으면 불러오지 말고 지도에서 고른다") ⑧ `SKILLS_MAP.md` ⑨ 검사 스크립트 + 주 1회 크론 ⑩ 다른 스킬·크론·봇 설정 속 옛 이름 참조 고치기 | 스킬 폴더, `config.yaml` |
+| 4. 검증 | 7장 관문 전부 | 없음 |
+| 5. 마무리 | 커밋·푸시(agent os) · 보고서 | git |
 
 ---
 
@@ -142,14 +130,14 @@
 | # | 기준 | 증거 |
 |---|---|---|
 | A1 | 목록에 보이는 스킬 전부가 `SKILLS_MAP.md`에 정확히 한 번, 지도의 스킬은 전부 실제로 있음 | 검사 스크립트: 차이 0 |
-| A2 | 분류 12개 안팎, 분류마다 `DESCRIPTION.md`에 포함/제외 설명, 폴더 없는 단독 분류(지금의 `unlazy`, `computer-use` 같은 것) 0 | Hermes `build_skills_system_prompt()` 실제 출력 |
-| A3 | 이름 충돌 0 — "rename one" 경고 사라짐 | 같은 출력 |
-| A4 | 목록 크기 감소 (기준 23,974자 · 249개) | 같은 출력 전후 비교 |
-| A5 | 지운 것 0 — 보관한 건 `.archive/`에 있고 `hermes curator restore`로 복구됨, 끈 건 `skills.disabled`에 있음 | 1개 골라 실제 복구→재보관 시험 |
-| A6 | 병합한 스킬의 고유 교훈이 남는 스킬에 들어 있음 | 병합마다 핵심 규칙 문장 grep |
-| A7 | 활성 스킬·크론 작업·봇 프로필 설정에 보관/끈 이름 참조 0 | grep |
-| A8 | **실제 대화에서 지도대로 고르는가** — 새 Hermes 세션(`hermes chat -q`)에 5가지 실제형 요청(학원 배너 디자인, 광고 성과 대시보드, 경쟁 학원 조사, NAS 배포, 계획 세우기)을 넣고 세션 기록에서 불러온 스킬이 지도와 맞는지 | 세션 로그 |
-| A9 | `hermes update` 뒤에도 유지 | opt-out 표시 파일 존재 확인 + 검사 스크립트 재실행 (다음 update 때) |
+| A2 | 분류 줄 = 14(12분류 + 하위 2), 분류마다 `DESCRIPTION.md` 포함/제외/고르는 기준, OMH 분류 이름(planner·tracker 등)·단독 분류 0 | `build_skills_system_prompt()` 실제 출력 |
+| A3 | 이름 충돌 0, 스킬 폴더 안 링크 0(orchestration은 끄기라 목록에 없음) | 같은 출력 + `ls -la` |
+| A4 | 목록 크기: 스킬 줄 250 → **114±3**, 글자 24,084 → **절반 이하 목표** | 같은 출력 전후 비교 |
+| A5 | 지운 것 0 — 보관은 `.archive/`에서 `hermes curator restore`로 복구됨(직접 만든 것 1개로 실제 복구→재보관 시험), 끄기는 `skills.disabled`, Orca 2개는 백업 폴더에 있음 | 시험 결과 |
+| A6 | port_to 교훈이 남는 스킬에 전부 들어 있음 | 옮긴 문장마다 grep |
+| A7 | 활성 스킬·크론·봇 설정에 보관/끈 이름 참조 0 | grep |
+| A8 | 새 Hermes 세션(`hermes chat -q`)에 실제형 요청 9개(학원 배너 디자인, 광고 성과 대시보드, 경쟁 학원 조사, NAS 배포, 계획 세우기 + 추천 문구를 부르는 엑셀 표 분석·PPT 만들기·홍보 이미지·공지 문구) → 세션 기록에서 불러온 스킬이 지도와 맞는지, "disabled" 오류 횟수 | 세션 로그 |
+| A9 | `hermes update` 뒤에도 유지 | `.no-bundled-skills` 확인 + 검사 스크립트(옛 분류 폴더 재생성·번들 새 버전·OMH 원본 변경 알림) |
 
 ---
 
@@ -157,11 +145,14 @@
 
 | 위험 | 대비 |
 |---|---|
-| 다른 세션이 동시에 스킬을 고치는 중 폴더 이동 | 이동은 한 번에 짧게, 이동 전 최근 5분 내 수정된 SKILL.md 확인 |
-| 번들 스킬이 update 때 원위치 → 지도 어긋남 | Q3 선택에 따라 opt-out 또는 번들 제자리 유지 |
-| 끈 OMH 스킬을 OMH 안내 문구가 계속 추천 | 감사에서 OMH 라우팅 표 확인, 필요하면 OMH 기능 끄기(`capability-toggle`)로 함께 끔 |
-| 큐레이터가 직접 만든 스킬을 30·90일 뒤 자동 보관 | 지도에서 「유지」인데 드물게 쓰는 스킬은 `hermes curator pin` |
-| 안 쓴 것 = 쓸모없음으로 오판 | 사용 횟수만으로 끄지 않음 — 5장 기준 전부 + 대체 스킬이 있을 때만 |
+| 다른 세션이 동시에 스킬을 고치는 중 폴더 이동 | 실행 직전 관문 재실행 + 판정 이후 바뀐 SKILL.md 확인 |
+| 번들 스킬이 update 때 원위치 | opt-out 먼저, 이동 직후 update 금지 · 대가: 번들 새 버전이 자동으로 안 들어옴(검사기가 알림) |
+| OMH 추천 문구가 꺼진 스킬을 계속 가리킴(끌 설정 없음, R1-3) | workflow 분류 설명의 안내 한 줄 + A8에서 오류 수 측정. ~~capability-toggle로 함께 끔~~(효과 없음) |
+| OMH 사본 15개에 OMH 업데이트가 안 들어옴 | 검사기가 OMH 원본이 바뀌면 알림 · 장점: omh-plan의 사장님 교훈이 OMH 덮어쓰기에서 보호됨 |
+| 큐레이터가 '유지' 스킬을 자동 보관 | 실행 첫 단계 pin 91개 |
+| Orca가 링크를 다시 만듦 | 검사기의 링크·같은 이름 검사가 알림 |
+| 칸반 리뷰를 쓰게 되면 sdlc-review가 꺼져 있음 | 지도 꺼진 것 표에 "쓰면 다시 켜기" |
+| 안 쓴 것 = 쓸모없음 오판 | 5장 기준 전부 + 끄기는 설정 한 줄이라 즉시 되돌림 |
 
 ---
 
@@ -169,12 +160,12 @@
 
 ```markdown
 ## design — 디자인
-포함: 화면·UI 디자인, 디자인 시스템, 모션, 피그마 · 제외: 차트(→data-viz), 이미지·인쇄물(→visual-content)
+포함: 화면·UI, 디자인 원칙, 모션, 피그마 · 제외: 차트(→data-viz), 이미지·도식(→visual-content)
+고르는 기준: 홈페이지·랜딩=frontend-design / 관리 화면=interface-design / 시안 HTML=claude-design / 배색=ui-ux-pro-max
 
 | 스킬 | 방식 | 능력 | 이럴 때 | 대신 쓰지 말 것 | 판정 |
 |---|---|---|---|---|---|
 | figma-mcp-design | Figma MCP 도구 호출 | 편집 가능한 피그마 화면 생성 | 피그마로 보내 달라 | — | 유지 |
-| frontend-design | 절차·원칙 문서 | 화면 디자인 방향 잡기 | 새 화면 설계 | design-taste-frontend(흡수됨) | 유지 |
 ```
 
 ---
@@ -183,13 +174,50 @@
 
 | 질문 | 답 | 반영 |
 |---|---|---|
-| Q1 지도 파일 형식 | Markdown 한 파일 `SKILLS_MAP.md` + 검사 스크립트 | 위치: `skills/SKILLS_MAP.md`(실사용) · 사본·검사기는 agent os 저장소 |
-| Q2 분류 체계 | 3장 13개 초안대로, 감사 후 세부 조정 | 학원 20개 넘으면 `academy/…` 하위 분류 |
-| Q3 번들 스킬 처리 | 새 분류로 옮기고 자동 추가·갱신 끔 | 3단계에 `hermes skills opt-out` 추가 · A9 관문 · 새 번들 스킬은 검사기가 「지도에 없음」으로 알림 |
-| Q4 정리 승인 방식 | 판정표를 보고 한 번 더 승인 | 2단계에서 반드시 멈춤 · 1단계(감사)까지는 바꾸는 것 없음 |
-| Q5 2단계 목록 | 하지 않음 | Hermes 본체 수정 없음 (하지 않는 것 목록 유지) |
+| Q1 지도 파일 형식 | Markdown 한 파일 + 검사 스크립트 | `skills/SKILLS_MAP.md` · 사본·검사기는 agent os |
+| Q2 분류 체계 | 13개 초안, 감사 후 조정 | 확정 12분류 + 하위 2(apps 없앰, 학원 하나로) |
+| Q3 번들 스킬 처리 | 새 분류로 옮기고 자동 추가·갱신 끔 | opt-out 먼저 → 이동 |
+| Q4 정리 승인 방식 | 판정표를 보고 한 번 더 승인 | ← 지금 단계 |
+| Q5 2단계 목록 | 하지 않음 | 본체 수정 없음 |
 
 기술적 세부 결정 (에이전트가 정함):
-- OMH 스킬은 파일을 지우지 않고 `skills.disabled`로 끈다 — OMH 갱신 때 되살아나는 것을 막기 위해.
-- 허브 스킬 5개는 새 분류에 로컬 사본으로 두고 허브 등록을 해제한다 — 설치 경로가 바뀌면 허브 갱신이 꼬이므로. 원 주소는 지도에 남긴다.
-- 지도 검사 스크립트는 `agent os/scripts/skill-map-check.mjs`, 주 1회 크론(에이전트 호출 없는 스크립트 전용)으로 "지도에 없는 새 스킬"만 알림.
+- OMH 끄기는 `skills.disabled`(OMH 폴더 무수정). 남기는 OMH 15개는 기본 프로필 폴더에 같은 이름 사본(봇은 OMH 원본 계속 사용).
+- 허브 4개는 로컬 사본 + 허브 등록 해제, 원 주소는 지도에.
+- 지도에서 남기는 직접·허브·OMH 사본 스킬은 pin. 새로 생기는 스킬만 큐레이터가 관리.
+- 검사 스크립트 `agent os/scripts/skill-map-check.mjs`, 주 1회 크론(에이전트 호출 없는 스크립트 전용).
+- 학원 하위 분류는 만들지 않음(21개 한 분류).
+
+---
+
+## 11. 검토(R1)·검수(R2) 반영표
+
+원문: `reviews/R1.json`, `reviews/R2.json` · 결정: `reviews/reviews.json` · 관문이 모든 번호의 결정과 이 표를 검사함.
+
+| 번호 | 심각도 | 지적 | 결정 |
+|---|---|---|---|
+| R1-1 | 높음 | 남기는 OMH 스킬은 OMH 폴더라 못 옮겨 OMH 분류 7개가 목록에 남음 | 반영 — 기본 프로필에 같은 이름 사본(OMH 원본·봇 무수정) |
+| R1-2 | 높음 | 큐레이터가 '유지' 스킬을 자동 보관할 수 있음(이미 오래됨 6개) | 반영 — 실행 첫 단계 pin 91개 |
+| R1-3 | 중간 | OMH 추천 문구가 꺼진 스킬을 가리킴, 판정 기준 엇갈림 | 반영 — 능력 기준 하나, ulw-research·omh-executor-runtime-readiness 끄기, 분류 설명 안내 한 줄, A8 측정 |
+| R1-4 | 중간 | 끄는 스킬의 교훈에 옮길 곳 필드 없음 | 반영 — port_to 필드 + 글에만 있던 교훈 3건 목록화 + 관문 규칙 |
+| R1-5 | 중간 | academy-code-audit를 범용 스킬에 합치면 학원 분류에 점검 스킬 없음 | 반영 — 유지(겹치는 절차만 줄임) |
+| R1-6 | 중간 | 분류 배치 어긋남(도식·할 일 뽑기·위임·apps 단독) | 반영 — 재배치, apps 없앰, agentos·omh 하위 분류 |
+| R1-7 | 중간 | 같은 분류 안 비슷한 스킬 고르는 기준 없음 | 반영 — 분류 설명·지도에 기준 한 줄 |
+| R1-8 | 중간 | opt-out 부작용·순서 | 반영 — opt-out 먼저, 검사기 알림, 보고서에 고지 |
+| R1-9 | 중간 | Orca 사본 처리 함정(큐레이터 거절, 링크 대상) | 반영 — 수동 처리, 링크만 rm, 검사기 링크 검사 |
+| R1-10 | 낮음 | orchestration 끄기 기록 | 반영 |
+| R1-11 | 중간 | 판정 뒤 새 스킬 1개 | 반영 — 행 추가, 실행 직전 재검사 |
+| R1-12 | 중간 | omh-capability-toggle 위험 | 반영 — 끄기 |
+| R1-13 | 낮음 | 칸반 리뷰가 꺼지는 스킬을 부름 | 반영 — 지도에 "쓰면 다시 켜기" |
+| R1-14 | 낮음 | 병합 원본 딸린 파일 2개 처리 없음 | 반영 — references로 옮김 |
+| R1-15 | 낮음 | "분류만 보기"는 기능으로 강제 안 됨 | 반영 — 0장·보고서에 명시 |
+| R2-1 | 중간 | truth-audit 사장님 교훈 5줄 누락 | 반영 — 옮길 목록에 추가 |
+| R2-2 | 중간 | computer-use Orca 사본 출처·사용 횟수·조치 오기 | 반영 — R1-9와 함께 |
+| R2-3 | 중간 | 추천 문구 근거 판정 엇갈림 | 반영 — R1-3과 같음 |
+| R2-4 | 낮음 | web-perf grep 주장 오류 | 반영 — 문구·missing_refs 수정 |
+| R2-5 | 낮음 | 판정 뒤 사용 숫자 변화·새 스킬 | 반영 — 갱신 |
+| R2-6 | 낮음 | 감사 중 열람으로 늘어난 사용 횟수 | 반영 — 메모, 기준선 병기 |
+| R2-7 | 낮음 | 패치 횟수 오기 | 반영 — 메모 |
+| R2-8 | 낮음 | union-alpha-worker 교훈 2줄 | 반영 — opencode로 옮김 |
+| R2-9 | 낮음 | 대체 없이 끄는 2개 | 반영 — "공통 틀" 기준 명시 |
+| R2-10 | 낮음 | 1장 수치 기준 표시·갱신 | 반영 — 1장 갱신 |
+| R2-11 | 낮음 | 표본 밖 미확인 범위 | 반영 — 기록, 끄기는 즉시 되돌릴 수 있어 진행 |

@@ -1,0 +1,1020 @@
+[
+ {
+  "finding": "R2-5",
+  "skill": "hermes-agent",
+  "field": "use",
+  "old": 80,
+  "new": 82
+ },
+ {
+  "finding": "R2-5",
+  "skill": "hermes-agent",
+  "field": "patch",
+  "old": 9,
+  "new": 11
+ },
+ {
+  "finding": "R2-5",
+  "skill": "hermes-memory-curation",
+  "field": "use",
+  "old": 5,
+  "new": 6
+ },
+ {
+  "finding": "R2-5",
+  "skill": "omh-plan",
+  "field": "use",
+  "old": 117,
+  "new": 119
+ },
+ {
+  "finding": "R2-5",
+  "skill": "omh-plan",
+  "field": "patch",
+  "old": 15,
+  "new": 18
+ },
+ {
+  "finding": "R1-11",
+  "skill": "hermes-skill-library-curation",
+  "field": "row",
+  "new": "added 유지"
+ },
+ {
+  "finding": "R1-3",
+  "skill": "ulw-research",
+  "rel": "ultrawork/ulw-research/SKILL.md",
+  "field": "verdict",
+  "old": "유지",
+  "new": "끄기"
+ },
+ {
+  "finding": "R1-3",
+  "skill": "ulw-research",
+  "rel": "ultrawork/ulw-research/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "disable(skills.disabled)"
+ },
+ {
+  "finding": "R1-3",
+  "skill": "ulw-research",
+  "rel": "ultrawork/ulw-research/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "multi-source-research-survey"
+ },
+ {
+  "finding": "R1-3",
+  "skill": "ulw-research",
+  "rel": "ultrawork/ulw-research/SKILL.md",
+  "field": "reason",
+  "old": "사장님 조사 생존자는 multi-source-research-survey지만, OMH 플러그인이 검색 도구 사용 전마다 'research'를 기본 워크플로로 지목(awareness.py GENERIC_TOOL_CHECKPOINT_ROUTES search_tools primary_workflow) → 끄면 매 검색마다 꺼진 스킬을 가리킴. 연구 계열 중 이것 하나만 남기는 것을 권장. (사용 1회, 마지막 2026-09-17; OMH 워크플로 'research', 플러그인 경로힌트 규칙 1개)",
+  "new": "능력 기준: 다중 출처 조사는 multi-source-research-survey(사용 16회, 사장님 교훈 포함)가 맡음. OMH 경로 힌트가 가리킨다는 이유는 판정 근거로 쓰지 않기로 함(R1-3/R2-3). 힌트가 꺼진 스킬을 가리킬 때는 workflow 분류 설명의 안내 한 줄로 대응."
+ },
+ {
+  "finding": "R1-3",
+  "skill": "omh-executor-runtime-readiness",
+  "rel": "handoff-guide/omh-executor-runtime-readiness/SKILL.md",
+  "field": "verdict",
+  "old": "유지",
+  "new": "끄기"
+ },
+ {
+  "finding": "R1-3",
+  "skill": "omh-executor-runtime-readiness",
+  "rel": "handoff-guide/omh-executor-runtime-readiness/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "disable(skills.disabled)"
+ },
+ {
+  "finding": "R1-3",
+  "skill": "omh-executor-runtime-readiness",
+  "rel": "handoff-guide/omh-executor-runtime-readiness/SKILL.md",
+  "field": "reason",
+  "old": "본문은 공통 틀 위주지만 OMH core 프로필 구성원이고, 플러그인이 '코덱스 세션 상태/작업 시작해' 같은 한국어 문장을 이 워크플로로 돌림(awareness.py:6225-6251). 사장님은 codex 스킬을 최근(10-24)까지 사용 → 끄면 그 힌트가 꺼진 스킬을 가리킴. (사용 0회, 마지막 없음; OMH 워크플로 'executor-runtime-readiness', 플러그인 경로힌트 규칙 1개)",
+  "new": "본문이 OMH 공통 틀이고 사용 0회. 코딩 위임은 claude-code·codex 스킬이 실제 명령으로 맡음. OMH 경로 힌트가 가리킨다는 이유는 판정 근거로 쓰지 않기로 함(R1-3/R2-3)."
+ },
+ {
+  "finding": "R1-12",
+  "skill": "omh-capability-toggle",
+  "rel": "tracker/omh-capability-toggle/SKILL.md",
+  "field": "verdict",
+  "old": "유지",
+  "new": "끄기"
+ },
+ {
+  "finding": "R1-12",
+  "skill": "omh-capability-toggle",
+  "rel": "tracker/omh-capability-toggle/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "disable(skills.disabled)"
+ },
+ {
+  "finding": "R1-12",
+  "skill": "omh-capability-toggle",
+  "rel": "tracker/omh-capability-toggle/SKILL.md",
+  "field": "reason",
+  "old": "OMH 배관: omh.exe(C:/Users/tahar/AppData/Local/omh/venv/Scripts)에 capability-policy 명령 실존, 플러그인 tools/capability_tool.py·capability_families.json이 뒷받침. 이번 정리(OMH 스킬 끄기)의 실행 수단. use 0.",
+  "new": "정리는 skills.disabled로 하므로 실행 수단이 아님. 남겨 두면 OMH 기능군을 통째로 끌 위험(retain_knowledge를 끄면 memory.provider=omh 기억 공급자가 꺼짐). 봇 프로필도 같은 OMH 폴더를 씀."
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-routing",
+  "rel": "guide/omh-routing/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-decide",
+  "rel": "operator/omh-decide/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-curriculum-design",
+  "rel": "planner/omh-curriculum-design/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-plan",
+  "rel": "planner/omh-plan/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-code-review",
+  "rel": "reviewer/omh-code-review/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-legal-compliance-review",
+  "rel": "reviewer/omh-legal-compliance-review/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-security-safety-review",
+  "rel": "reviewer/omh-security-safety-review/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-agent-ops-review",
+  "rel": "tracker/omh-agent-ops-review/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-cancel",
+  "rel": "tracker/omh-cancel/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-context-budget-review",
+  "rel": "tracker/omh-context-budget-review/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-doctor",
+  "rel": "tracker/omh-doctor/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "omh-skill",
+  "rel": "tracker/omh-skill/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "ulw-maestro",
+  "rel": "ultrawork/ulw-maestro/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "ulw-perf",
+  "rel": "ultrawork/ulw-perf/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-1",
+  "skill": "ulw-work",
+  "rel": "ultrawork/ulw-work/SKILL.md",
+  "field": "action",
+  "old": "keep+move",
+  "new": "local-copy(shadow OMH original; OMH files untouched)"
+ },
+ {
+  "finding": "R1-5",
+  "skill": "academy-code-audit",
+  "rel": "productivity/academy-code-audit/SKILL.md",
+  "field": "verdict",
+  "old": "병합",
+  "new": "유지"
+ },
+ {
+  "finding": "R1-5",
+  "skill": "academy-code-audit",
+  "rel": "productivity/academy-code-audit/SKILL.md",
+  "field": "merge_into",
+  "old": "delegated-code-audit",
+  "new": null
+ },
+ {
+  "finding": "R1-5",
+  "skill": "academy-code-audit",
+  "rel": "productivity/academy-code-audit/SKILL.md",
+  "field": "action",
+  "old": "port-lessons+archive",
+  "new": "keep-thin"
+ },
+ {
+  "finding": "R1-5",
+  "skill": "academy-code-audit",
+  "rel": "productivity/academy-code-audit/SKILL.md",
+  "field": "reason",
+  "old": "파이프라인(12-30행 1~7단계)은 delegated-code-audit(L5) 1~10단계와 같은 내용이고 그쪽이 더 자세함(BRIEF·consolidate 스크립트 포함). 이 스킬의 고유 가치는 교훈 줄들인데 grep 결과 delegated-code-audit에 next build·SESSION_SECRET·tiptap 0건, nas-docker-deployment에 BACKUP_KEEP·cb=·perf-measure·backfill-thumbs 0건. 사용 11회라 지우지 말고 교훈만 각 대상으로 옮긴 뒤 보관. (반대안: 이 스킬을 '학원판 래퍼'로 남기고 파이프라인만 지워 delegated-code-audit 링크로 대체 — 사장님이 스킬 수를 줄이길 원하면 병합, 아니면 이쪽.)",
+  "new": "학원 사이트 전용 점검이라 academy 분류에 남겨야 함(분류만 보고 고르기). 겹치는 1~7단계 절차만 지우고 \"delegated-code-audit 절차를 따른다\" 한 줄로 바꾼 뒤 학원 교훈 줄은 그대로 둠. 사용 11회."
+ },
+ {
+  "finding": "R1-6",
+  "skill": "baoyu-diagram",
+  "rel": "creative/baoyu-diagram/SKILL.md",
+  "field": "category",
+  "old": "data-viz",
+  "new": "visual-content"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "document-to-action-items",
+  "rel": "productivity/document-to-action-items/SKILL.md",
+  "field": "category",
+  "old": "workflow",
+  "new": "documents"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "omh-cancel",
+  "rel": "tracker/omh-cancel/SKILL.md",
+  "field": "category",
+  "old": "workflow",
+  "new": "agents-hermes/omh"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "omh-doctor",
+  "rel": "tracker/omh-doctor/SKILL.md",
+  "field": "category",
+  "old": "workflow",
+  "new": "agents-hermes/omh"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "omh-skill",
+  "rel": "tracker/omh-skill/SKILL.md",
+  "field": "category",
+  "old": "workflow",
+  "new": "agents-hermes/omh"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "omh-agent-ops-review",
+  "rel": "tracker/omh-agent-ops-review/SKILL.md",
+  "field": "category",
+  "old": "workflow",
+  "new": "agents-hermes/omh"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "omh-routing",
+  "rel": "guide/omh-routing/SKILL.md",
+  "field": "category",
+  "old": "agents-hermes",
+  "new": "agents-hermes/omh"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "claude-code",
+  "rel": "autonomous-ai-agents/claude-code/SKILL.md",
+  "field": "category",
+  "old": "coding",
+  "new": "agents-hermes"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "codex",
+  "rel": "autonomous-ai-agents/codex/SKILL.md",
+  "field": "category",
+  "old": "coding",
+  "new": "agents-hermes"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "opencode",
+  "rel": "autonomous-ai-agents/opencode/SKILL.md",
+  "field": "category",
+  "old": "coding",
+  "new": "agents-hermes"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "ulw-maestro",
+  "rel": "ultrawork/ulw-maestro/SKILL.md",
+  "field": "category",
+  "old": "coding",
+  "new": "agents-hermes"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "maps",
+  "rel": "productivity/maps/SKILL.md",
+  "field": "category",
+  "old": "apps",
+  "new": "research"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "multi-agent-control-plane",
+  "rel": "autonomous-ai-agents/multi-agent-control-plane/SKILL.md",
+  "field": "category",
+  "old": "agents-hermes",
+  "new": "agents-hermes/agentos"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "agentos-bot-profile-config",
+  "rel": "software-development/agentos-bot-profile-config/SKILL.md",
+  "field": "category",
+  "old": "agents-hermes",
+  "new": "agents-hermes/agentos"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "agentos-dashboard-development",
+  "rel": "software-development/agentos-dashboard-development/SKILL.md",
+  "field": "category",
+  "old": "agents-hermes",
+  "new": "agents-hermes/agentos"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "agentos-guard-plugin",
+  "rel": "software-development/agentos-guard-plugin/SKILL.md",
+  "field": "category",
+  "old": "agents-hermes",
+  "new": "agents-hermes/agentos"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "agentos-ops-hardening",
+  "rel": "software-development/agentos-ops-hardening/SKILL.md",
+  "field": "category",
+  "old": "agents-hermes",
+  "new": "agents-hermes/agentos"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "agentos-org-verification",
+  "rel": "software-development/agentos-org-verification/SKILL.md",
+  "field": "category",
+  "old": "agents-hermes",
+  "new": "agents-hermes/agentos"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "agentos-paperclip-admin-api",
+  "rel": "software-development/agentos-paperclip-admin-api/SKILL.md",
+  "field": "category",
+  "old": "agents-hermes",
+  "new": "agents-hermes/agentos"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "design-taste-frontend",
+  "rel": "creative/design-taste-frontend/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "frontend-design"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "design-taste-frontend",
+  "rel": "creative/design-taste-frontend/SKILL.md",
+  "field": "lessons_to_port",
+  "old": [],
+  "new": [
+   "작업 전 '이 화면은 ○○를 위한 ○○ 분위기' 한 줄 선언 (design-taste-frontend:25-26)",
+   "개편 때 사용자 승인 없이 주소(URL)·메뉴 이름·폼 항목 이름·로고·법적 문구를 바꾸지 말 것 (design-taste-frontend:825-831)",
+   "전체 높이 화면은 h-screen 대신 min-h-[100dvh] (design-taste-frontend:153)"
+  ]
+ },
+ {
+  "finding": "R1-4",
+  "skill": "requesting-code-review",
+  "rel": "software-development/requesting-code-review/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "omh-code-review"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "requesting-code-review",
+  "rel": "software-development/requesting-code-review/SKILL.md",
+  "field": "lessons_to_port",
+  "old": [],
+  "new": [
+   "커밋 전 리뷰는 diff만 주고 fail-closed JSON(통과/실패+이유)으로 판정받는다 (requesting-code-review:139-175)"
+  ]
+ },
+ {
+  "finding": "R1-4",
+  "skill": "meeting-action-items",
+  "rel": "productivity/meeting-action-items/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "document-to-action-items"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "meeting-action-items",
+  "rel": "productivity/meeting-action-items/SKILL.md",
+  "field": "lessons_to_port",
+  "old": [],
+  "new": [
+   "회의록도 문서로 취급한다(같은 절차로 할 일·담당·기한을 뽑음)"
+  ]
+ },
+ {
+  "finding": "R1-4",
+  "skill": "omh-agent-debug",
+  "rel": "operator/omh-agent-debug/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "agent-pipeline-diagnosis"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "omh-design-quality-gate",
+  "rel": "operator/omh-design-quality-gate/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "frontend-design"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "omh-frontend",
+  "rel": "operator/omh-frontend/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "frontend-design"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "omh-visual-qa",
+  "rel": "operator/omh-visual-qa/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "live-web-change-verification"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "omh-accessibility-audit",
+  "rel": "reviewer/omh-accessibility-audit/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "web-accessibility-wcag"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "omh-verification-gate",
+  "rel": "reviewer/omh-verification-gate/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "unlazy"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "competitor-profiling",
+  "rel": "research/competitor-profiling/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "multi-source-research-survey"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "build-dashboard",
+  "rel": "creative/build-dashboard/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "kpi-dashboard-design"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "data-visualization",
+  "rel": "creative/data-visualization/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "kpi-dashboard-design"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "redesign-existing-projects",
+  "rel": "creative/redesign-existing-projects/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "frontend-design"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "review-animations",
+  "rel": "creative/review-animations/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "design-motion-principles"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "multi-bot-orchestration",
+  "rel": "multi-bot-orchestration/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "agentos-bot-profile-config"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "academy-content-truth-audit",
+  "rel": "productivity/academy-content-truth-audit/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "academy-content-accuracy"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "academy-detail-image-block",
+  "rel": "productivity/academy-detail-image-block/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "academy-detail-blocks"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "hero-studio-figma-export",
+  "rel": "productivity/hero-studio-figma-export/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "academy-hero-studio"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "local-file-library-cleanup",
+  "rel": "productivity/local-file-library-cleanup/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "local-file-cleanup"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "calendar-ux-benchmark",
+  "rel": "research/calendar-ux-benchmark/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "competitor-page-screenshot-benchmark"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "class-platform-ui-benchmark",
+  "rel": "research/class-platform-ui-benchmark/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "competitor-page-screenshot-benchmark"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "naver-blog-photo-sourcing",
+  "rel": "research/naver-blog-photo-sourcing/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "naver-blog-photo-harvest"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "vercel-composition-patterns",
+  "rel": "software-development/vercel-composition-patterns/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "vercel-react-best-practices"
+ },
+ {
+  "finding": "R1-4",
+  "skill": "web-perf",
+  "rel": "web/web-perf/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "core-web-vitals"
+ },
+ {
+  "finding": "R2-1",
+  "skill": "academy-content-truth-audit",
+  "rel": "productivity/academy-content-truth-audit/SKILL.md",
+  "field": "lessons_to_port",
+  "old": [
+   "When presenting the audit, first explain in plain Korean what 실사표 is and why it is done: example data is mixed in, and untrue courses, reviews or figures risk visitor trust and false-advertising exposure (fake reviews especially).",
+   "When the owner asks only to LOCATE a phrase or claim, change nothing; scan and report.",
+   "Report as a visual dashboard (`::preview`), not a decision widget: KPI cards, then sections by visibility — ① visible now, hardcoded ② visible now from DB ③ chatbot verbatim sources ④ unpublished rows ⑤ code-only.",
+   "\"지워도 계속 되살아난다\" (claim keeps coming back): The cause is usually an instruction source rather than the live data. ... Ready-made: `scripts/instruction-source-scan.py`.",
+   "One shared code constant can fan a sentence out to many surfaces (e.g. `funding.ts` `VOUCHER.notPayable` fed 7 course pages, /tuition, FAQ and the chatbot).",
+   "Measure before/after with a BAD-phrase regex, not the bare topic word: correct copy (「실습 재료비는 교습비에 포함」) keeps the word on the page, so \"재료비 count\" never reaches 0.",
+   "Text baked into hero/banner IMAGES: download the HeroSlide images and read them; alt text alone can't be fixed in DB.",
+   "Other sessions edit the same copy in parallel, so never recommend from an earlier scan.",
+   "Find the LIVE sha ... and classify every hit: gone live / fixed in code but awaiting deploy / still present (code or DB) / unpublished. A committed but undeployed fix is still visible to visitors — say so.",
+   "Capacity sweep needs the loose variants too. ... Scan for `소수|정예|선착|밀착|일대일|1:1`, then read the context.",
+   "Also check our Naver blog (blog.naver.com/a5445380; b2750838 is a competitor). Its 2025-12~2026-01 posts share a pasted footer: 「선착순 10명모집 기능장수업」 ... Only the owner can edit it.",
+   "「조리기능장 직강」 is true and stays (owner re-confirmed 2026-10-24, along with the Naver Place line 「이수진 원장이 직접 가르치는」).",
+   "Build the decision widget ... one `<select data-key=\"<type>:<id>\" data-rec=\"<recommended>\">` per item ... Regenerate it from FRESH live data every time.",
+   "If the owner says they sent it unchanged and no payload arrived, treat it as accepting every recommended value; the widget's `data-rec` is the decision.",
+   "Check zero states before hiding the last items of a kind ... Release that code BEFORE the data change, so the live page is never blank in between.",
+   "Item checklist (where untrue content hides): published courses, manual ScheduleEntry rows, seed notices (~45–50자, 7–8월), all reviews, expired hero banners, Instructor coursesJson/worksJson, capacity claims, pass-rate numbers, facility descriptions, ChatFaq, refund text.",
+   "(이동) scripts/claim-scan.mjs, scripts/instruction-source-scan.py → academy-content-accuracy/scripts/"
+  ],
+  "new": [
+   "When presenting the audit, first explain in plain Korean what 실사표 is and why it is done: example data is mixed in, and untrue courses, reviews or figures risk visitor trust and false-advertising exposure (fake reviews especially).",
+   "When the owner asks only to LOCATE a phrase or claim, change nothing; scan and report.",
+   "Report as a visual dashboard (`::preview`), not a decision widget: KPI cards, then sections by visibility — ① visible now, hardcoded ② visible now from DB ③ chatbot verbatim sources ④ unpublished rows ⑤ code-only.",
+   "\"지워도 계속 되살아난다\" (claim keeps coming back): The cause is usually an instruction source rather than the live data. ... Ready-made: `scripts/instruction-source-scan.py`.",
+   "One shared code constant can fan a sentence out to many surfaces (e.g. `funding.ts` `VOUCHER.notPayable` fed 7 course pages, /tuition, FAQ and the chatbot).",
+   "Measure before/after with a BAD-phrase regex, not the bare topic word: correct copy (「실습 재료비는 교습비에 포함」) keeps the word on the page, so \"재료비 count\" never reaches 0.",
+   "Text baked into hero/banner IMAGES: download the HeroSlide images and read them; alt text alone can't be fixed in DB.",
+   "Other sessions edit the same copy in parallel, so never recommend from an earlier scan.",
+   "Find the LIVE sha ... and classify every hit: gone live / fixed in code but awaiting deploy / still present (code or DB) / unpublished. A committed but undeployed fix is still visible to visitors — say so.",
+   "Capacity sweep needs the loose variants too. ... Scan for `소수|정예|선착|밀착|일대일|1:1`, then read the context.",
+   "Also check our Naver blog (blog.naver.com/a5445380; b2750838 is a competitor). Its 2025-12~2026-01 posts share a pasted footer: 「선착순 10명모집 기능장수업」 ... Only the owner can edit it.",
+   "「조리기능장 직강」 is true and stays (owner re-confirmed 2026-10-24, along with the Naver Place line 「이수진 원장이 직접 가르치는」).",
+   "Build the decision widget ... one `<select data-key=\"<type>:<id>\" data-rec=\"<recommended>\">` per item ... Regenerate it from FRESH live data every time.",
+   "If the owner says they sent it unchanged and no payload arrived, treat it as accepting every recommended value; the widget's `data-rec` is the decision.",
+   "Check zero states before hiding the last items of a kind ... Release that code BEFORE the data change, so the live page is never blank in between.",
+   "Item checklist (where untrue content hides): published courses, manual ScheduleEntry rows, seed notices (~45–50자, 7–8월), all reviews, expired hero banners, Instructor coursesJson/worksJson, capacity claims, pass-rate numbers, facility descriptions, ChatFaq, refund text.",
+   "(이동) scripts/claim-scan.mjs, scripts/instruction-source-scan.py → academy-content-accuracy/scripts/",
+   "SKILL.md:13 Only the owner knows what is true. Never guess-delete, and pre-select a recommended value for every item.",
+   "SKILL.md:15 Treat \"we don't run X\" as a site-wide purge of X across code, data, the chatbot and the banner-studio examples; keep the owner's personal credentials unless told otherwise, and ask about them explicitly.",
+   "SKILL.md:40 Before asking what to change, ask per claim group in ONE clarify form (bullet 전체를 옮김)",
+   "SKILL.md:45 Repo docs/** work files that other sessions feed into copy (facts.json strengths, channels.json, check_copy.py) — bullet 전체",
+   "SKILL.md:47 ChatLog assistant rows (role=assistant only) to see what the bot actually said and when — bullet 전체 (:48 RSC payload는 accuracy:102와 합칠 때 함께 봄)"
+  ]
+ },
+ {
+  "finding": "R2-2",
+  "skill": "computer-use",
+  "rel": "computer-use/SKILL.md",
+  "field": "prov",
+  "old": "bundled",
+  "new": "orca"
+ },
+ {
+  "finding": "R2-2",
+  "skill": "computer-use",
+  "rel": "computer-use/SKILL.md",
+  "field": "use",
+  "old": 31,
+  "new": null
+ },
+ {
+  "finding": "R2-2",
+  "skill": "computer-use",
+  "rel": "computer-use/SKILL.md",
+  "field": "action",
+  "old": "remove-orca-link",
+  "new": "manual: move real folder to hermes/backups/skill-map-<date>/orca-computer-use (no curator; name is bundled)"
+ },
+ {
+  "finding": "R2-2",
+  "skill": "computer-use",
+  "rel": "computer-use.rollback-broken/SKILL.md",
+  "field": "prov",
+  "old": "bundled",
+  "new": "orca"
+ },
+ {
+  "finding": "R2-2",
+  "skill": "computer-use",
+  "rel": "computer-use.rollback-broken/SKILL.md",
+  "field": "use",
+  "old": 31,
+  "new": null
+ },
+ {
+  "finding": "R2-2",
+  "skill": "computer-use",
+  "rel": "computer-use.rollback-broken/SKILL.md",
+  "field": "action",
+  "old": "remove-orca-link",
+  "new": "manual: rm the symlink only (no -r, no trailing slash); never touch ~/.agents/skills/computer-use"
+ },
+ {
+  "finding": "R1-10",
+  "skill": "orchestration",
+  "rel": "orchestration/SKILL.md",
+  "field": "prov",
+  "old": "local",
+  "new": "orca"
+ },
+ {
+  "finding": "R1-10",
+  "skill": "orchestration",
+  "rel": "orchestration/SKILL.md",
+  "field": "review_notes",
+  "new": "지도 꺼진 것 표: Orca 다중 에이전트 조율이 필요하면 다시 켜기. 링크 검사의 알려진 예외."
+ },
+ {
+  "finding": "R2-2",
+  "skill": "computer-use",
+  "rel": "autonomous-ai-agents/computer-use/SKILL.md",
+  "field": "review_notes",
+  "new": "번들판 경로 키 사용 기록: patch 3 (autonomous-ai-agents/computer-use)."
+ },
+ {
+  "finding": "R1-13",
+  "skill": "sdlc-review",
+  "rel": "devops/sdlc-review/SKILL.md",
+  "field": "review_notes",
+  "new": "칸반 리뷰(review_dispatch)를 쓰게 되면 다시 켤 것."
+ },
+ {
+  "finding": "R1-13",
+  "skill": "requesting-code-review",
+  "rel": "software-development/requesting-code-review/SKILL.md",
+  "field": "review_notes",
+  "new": "칸반 여러 작업자 검증을 쓰게 되면 다시 켤 것."
+ },
+ {
+  "finding": "R1-14",
+  "skill": "review-animations",
+  "rel": "creative/review-animations/SKILL.md",
+  "field": "review_notes",
+  "new": "딸린 파일 STANDARDS.md → design-motion-principles/references/review-animations-standards.md 로 옮김"
+ },
+ {
+  "finding": "R1-14",
+  "skill": "multi-bot-orchestration",
+  "rel": "multi-bot-orchestration/SKILL.md",
+  "field": "review_notes",
+  "new": "딸린 파일 references/orchestrator-soul-template.md → agentos-bot-profile-config/references/ 로 옮김"
+ },
+ {
+  "finding": "R2-4",
+  "skill": "web-perf",
+  "rel": "web/web-perf/SKILL.md",
+  "field": "reason",
+  "old": "Cloudflare 원본(local 설치, use 1·2026-10-12). LCP/INP/CLS 내용은 core-web-vitals와 겹치고 도구 의존(DevTools MCP)은 이 PC에 없음. 고유한 것은 '영향 없는 건 권하지 말기' 원칙과 코드베이스 분석 절뿐 — core-web-vitals·web-quality-audit에서 grep 0건 확인(Speed Index·barrel·core-js·ruthless·preconnect 미검출).",
+  "new": "Cloudflare 원본(local 설치, use 1·2026-10-12). LCP/INP/CLS 내용은 core-web-vitals와 겹치고 도구 의존(DevTools MCP)은 이 PC에 없음. 고유한 것은 '영향 없는 건 권하지 말기' 원칙과 코드베이스 분석 절뿐 — core-web-vitals·web-quality-audit에서 grep 0건 확인(Speed Index·barrel·core-js·ruthless·preconnect(web-quality-audit:56엔 추가 권장만 있고 쓰지 않는 preconnect 제거 규칙은 없음) 미검출)."
+ },
+ {
+  "finding": "R2-4",
+  "skill": "web-perf",
+  "rel": "web/web-perf/SKILL.md",
+  "field": "signals",
+  "old": {
+   "concrete": true,
+   "missing_refs": [],
+   "stale_refs": [
+    "머리말 주석(6)이 'references/ 로컬 사본(MEASUREMENT.md/RUM.md)'을 말하지만 이 폴더엔 SKILL.md 하나뿐",
+    "핵심 도구인 Chrome DevTools MCP 미설정(config mcp_servers: figma만)"
+   ],
+   "env_fit": "partial",
+   "user_lessons": false
+  },
+  "new": {
+   "concrete": true,
+   "missing_refs": [
+    "references/MEASUREMENT.md",
+    "references/RUM.md"
+   ],
+   "stale_refs": [
+    "머리말 주석(6)이 'references/ 로컬 사본(MEASUREMENT.md/RUM.md)'을 말하지만 이 폴더엔 SKILL.md 하나뿐",
+    "핵심 도구인 Chrome DevTools MCP 미설정(config mcp_servers: figma만)"
+   ],
+   "env_fit": "partial",
+   "user_lessons": false
+  }
+ },
+ {
+  "finding": "R2-6",
+  "skill": "product-price-monitor",
+  "rel": "productivity/product-price-monitor/SKILL.md",
+  "field": "review_notes",
+  "new": "사용 1회는 10-26 감사 중 열람으로 추정(기준선 0회)."
+ },
+ {
+  "finding": "R2-7",
+  "skill": "multi-bot-orchestration",
+  "rel": "multi-bot-orchestration/SKILL.md",
+  "field": "review_notes",
+  "new": "패치 1회(생성 당일) — 사유 문구의 \"패치 0회\"는 오기."
+ },
+ {
+  "finding": "R2-8",
+  "skill": "union-alpha-worker",
+  "rel": "autonomous-ai-agents/union-alpha-worker/SKILL.md",
+  "field": "port_to",
+  "old": null,
+  "new": "opencode"
+ },
+ {
+  "finding": "R2-8",
+  "skill": "union-alpha-worker",
+  "rel": "autonomous-ai-agents/union-alpha-worker/SKILL.md",
+  "field": "lessons_to_port",
+  "old": [],
+  "new": [
+   "union-alpha-worker:30 가벼운 질문은 %LOCALAPPDATA%/Temp/union-chat 을 --cwd로(실제 저장소 금지)",
+   "union-alpha-worker:49 고정 질문(1+1 결과는?)으로 워커가 실제로 도는지 확인"
+  ]
+ },
+ {
+  "finding": "R2-9",
+  "skill": "omh-voice-input",
+  "rel": "guide/omh-voice-input/SKILL.md",
+  "field": "review_notes",
+  "new": "끄기 근거 = 내용 없는 OMH 공통 틀(매니페스트 sha256 동일, 사용자 수정 없음) — 판정 기준 5장에 \"공통 틀\" 규칙 추가."
+ },
+ {
+  "finding": "R2-9",
+  "skill": "omh-people-ops",
+  "rel": "operator/omh-people-ops/SKILL.md",
+  "field": "review_notes",
+  "new": "끄기 근거 = 내용 없는 OMH 공통 틀(매니페스트 sha256 동일, 사용자 수정 없음) — 판정 기준 5장에 \"공통 틀\" 규칙 추가."
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-admin-structure",
+  "field": "category",
+  "old": "academy/site",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-ai-chat",
+  "field": "category",
+  "old": "academy/site",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-channel-feed",
+  "field": "category",
+  "old": "academy/site",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-code-audit",
+  "field": "category",
+  "old": "academy/site",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-consult-alert-app",
+  "field": "category",
+  "old": "academy/apps",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-content-accuracy",
+  "field": "category",
+  "old": "academy/content",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-content-generator",
+  "field": "category",
+  "old": "academy/content",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-design-variants",
+  "field": "category",
+  "old": "academy/site",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-detail-blocks",
+  "field": "category",
+  "old": "academy/site",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-discount-policy-revision",
+  "field": "category",
+  "old": "academy/policy",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-hero-studio",
+  "field": "category",
+  "old": "academy/site",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-lms-accounts",
+  "field": "category",
+  "old": "academy/lms",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-lms-development",
+  "field": "category",
+  "old": "academy/lms",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-school-partnership",
+  "field": "category",
+  "old": "academy/policy",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-search-visibility",
+  "field": "category",
+  "old": "academy/site",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "privacy-policy-revision",
+  "field": "category",
+  "old": "academy/policy",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-competitor-discount-survey",
+  "field": "category",
+  "old": "academy/policy",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-exam-reference-sourcing",
+  "field": "category",
+  "old": "academy/content",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-6",
+  "skill": "academy-course-scheduler",
+  "field": "category",
+  "old": "academy/apps",
+  "new": "academy"
+ },
+ {
+  "finding": "R1-2",
+  "field": "pin",
+  "new": 91
+ }
+]

@@ -1,0 +1,298 @@
+[
+ [
+  "L1",
+  "[화면 디자인 원칙 묶음] frontend-design·design-taste-frontend·redesign-existing-projects·claude-design·interface-design·omh-frontend가 모두 'AI 티 없는 화면'을 말하지만 규칙이 서로 충돌함(예: 살짝 섞인 검정 #0B0B0B·#111을 frontend-design은 AI 티로, redesign-existing-projects는 권장). 둘로 나눠 남기는 것을 추천: ① 홈페이지·랜딩 = frontend-design(73줄, 한글 글꼴과 충돌 없음) ② 관리자·대시보드 = interface-design(사용 15회·최근 10-25). design-taste-frontend는 끄기(1206줄, 한글 미지원 글꼴 권장), redesign-existing-projects는 핵심 4줄을 frontend-design에 옮긴 뒤 보관."
+ ],
+ [
+  "L1",
+  "[OMH 짝] omh-frontend(사용 38회)는 '랜딩페이지·레이아웃·AI 티' 같은 한국어 호출어를 잡아 계획서·점검 문서만 만드는 '관문' 역할이고, 실제 디자인 감각 내용은 references/taste-foundations.md에 있음. 위 생존자(frontend-design/interface-design)와 경쟁하지 않고 앞단 관문으로 공존 가능. 단 omh-design-quality-gate(사용 1회)·omh-design-orchestration(사용 0회)은 omh-frontend와 같은 줄(Materials 레인)에서 계획서만 더 만드는 구조라 L8 담당이 끄기를 검토할 것. omh-design-quality-gate가 'ui ux pro max'를 호출어로 쓰고 있어 실제 도구인 ui-ux-pro-max와 이름이 헷갈림."
+ ],
+ [
+  "L1",
+  "[보조 도구] ui-ux-pro-max(실제 검색 스크립트, 실행 확인)와 design-md(npx CLI, 주인 폴더에 DESIGN.md 2개 존재)는 원칙 문서가 아닌 '실행 도구'라 위 묶음과 겹치지 않음 → 둘 다 유지. popular-web-designs는 해외 IT 브랜드 견본뿐이고 연결 스킬(generative-widgets)도 없어 끄기."
+ ],
+ [
+  "L1",
+  "[사용성·구조 묶음] ux-heuristics(사용성 점검, 최근 사용)와 information-architecture(메뉴·URL 구조, academy-admin-structure가 참조)는 역할이 달라 둘 다 유지. web-design-guidelines는 접근성 점검 쪽(L5 web-accessibility-wcag·web-quality-audit)과 겹치므로 L5 결과에 따라 보관 여부 확정."
+ ],
+ [
+  "L1",
+  "[움직임 묶음] 생존자 = design-motion-principles(사용 35회, 로컬 추가 교훈 있음, 만들기+점검 모두 가능). review-animations는 같은 Emil Kowalski 기준이라 'hover 조건·비대칭 시간·통과/차단 판정' 3줄만 옮기고 보관. game-feel은 게임식 과장 반응이라 성격이 달라 유지(mirror-ledger-development가 직접 참조)."
+ ],
+ [
+  "L1",
+  "[참고] .usage.json 기준 frontend-design·design-md·game-feel의 마지막 사용 시각이 2026-10-10 11:00:57~11:01:04로 몇 초 차이 → 실제 작업이 아니라 일괄 불러오기일 가능성. 사용 횟수만으로 우열을 가리지 말 것."
+ ],
+ [
+  "L2",
+  "도식 묶음(architecture-diagram · baoyu-diagram · baoyu-infographic · illustrated-design-report): 사장님·부모님이 보는 쉬운 그림 보고서는 illustrated-design-report가 생존자(실제 구현 3개가 저장소에 있음). 기술 구조도는 baoyu-diagram 하나만 남기고 architecture-diagram은 끄기(색표·기법이 똑같은 하위 기능). baoyu-infographic은 fal(image_generate) 경로라 사장님 규칙과 충돌하므로 끄기."
+ ],
+ [
+  "L2",
+  "대시보드·차트 묶음(build-dashboard · data-visualization · kpi-dashboard-design, L7의 omh-data-analysis): kpi-dashboard-design이 생존자(사장님 상호작용 규칙 + Playwright 점검). build-dashboard·data-visualization은 원본 그대로 가져온 복사본(sha256 동일)이라 교훈 몇 줄(데이터 크기 기준, 막대는 0에서 시작, 제목에 결론 등)만 kpi로 옮기고 정리. 실제 학원 차트는 Chart.js·matplotlib가 아닌 직접 그린 SVG."
+ ],
+ [
+  "L2",
+  "이미지 생성 묶음(chatgpt-desktop-image-gen · ai-image-print-design): 둘 다 유지 — 앞은 'ChatGPT 앱을 어떻게 조작하나', 뒤는 '전단·배너를 어떻게 설계·검증하나'. 다만 '정확한 픽셀 크기를 프롬프트에 적기'가 두 곳에 중복(chatgpt-desktop-image-gen:168-173, ai-image-print-design:202-207)이고 chatgpt-desktop-image-gen:37의 '30–45초'는 :157 '2–3분'과 모순 → 정리 때 한쪽만 남기도록 손질 권장."
+ ],
+ [
+  "L2",
+  "회의·할 일 묶음(meeting-action-items · document-to-action-items · teams-meeting-pipeline, L8 omh-meeting-brief/omh-operating-rhythm): 셋 다 사용 0회. teams는 계정이 없어 끄기, meeting-action-items는 document-to-action-items와 절차가 같아 끄기, document-to-action-items만 낮은 확신으로 유지(공문·MOU용). 회의 기록 자체는 omh-operating-rhythm이 담당."
+ ],
+ [
+  "L2",
+  "보고서 정리 묶음(illustrated-design-report · desktop-report-folder, L8 omh-report-package/materials/deliverable): 만들기=illustrated-design-report, 모아두기=desktop-report-folder로 역할이 겹치지 않음. OMH 패키지 스킬들은 범용 틀이라 이 두 사장님 전용 스킬이 우선."
+ ],
+ [
+  "L2",
+  "문서 묶음(docx · pdf · powerpoint · xlsx): 모두 유지. 공통 환경 문제 — 필요한 Python 라이브러리가 Hermes Python에 없고 LibreOffice(soffice)가 PATH에 없음. docx:147에만 있는 이 PC 교훈('uv run --with …', soffice 경로 C:/Program Files/LibreOffice/program/soffice.exe)을 pdf·powerpoint·xlsx에도 넣어야 함. docx는 번들 스킬인데 사장님 교훈이 들어 있어 Hermes 업데이트로 덮일 위험 — 교훈을 별도 로컬 메모로도 보존 권장."
+ ],
+ [
+  "L2",
+  "미디어 묶음(ascii-video · manim-video · p5js · songwriting-and-ai-music · gif-search · songsee): 모두 사용 0회이고 요리학원 업무와 무관. manim·songsee·gif-search는 필수 도구/키가 없음(manim·LaTeX·songsee·go·jq 미설치, TENOR_API_KEY 없음). 전부 끄기. 영상 분석은 video-visual-analysis(화면)·youtube-content(자막)가 유지되어 충분."
+ ],
+ [
+  "L2",
+  "humanizer는 영어 전용 패턴이라 끄기; 한국어 광고 문구의 'AI 티 빼기'는 copywriting(L3)의 No AI Tells 절이 담당."
+ ],
+ [
+  "L3",
+  "연구 묶음: multi-source-research-survey(사용 16, 사장님 승인 흐름·저장소 함정 보유)가 생존자. grounded-citations(출처 장부 스크립트)·blocked-page-recovery(막힌 페이지)·reddit-reading(레딧)은 그 하위 도구로 유지. competitor-profiling은 SaaS·Firecrawl 전제라 보관하고 원칙 3줄만 이식. OMH 연구 스킬(omh-research-brief·ulw-research·omh-source-finder·omh-research-department·omh-best-practice-research, 사용 0~2)과는 역할이 겹치지만 이 PC 실전 교훈은 로컬 스킬에만 있으니 OMH 쪽 판정은 L7에서."
+ ],
+ [
+  "L3",
+  "경쟁사 화면 비교 묶음: competitor-page-screenshot-benchmark(사용 7, 53줄)를 생존자로 두고 class-platform-ui-benchmark·calendar-ux-benchmark를 references/class-platforms.md·references/calendar-ux.md로 흡수. 세 스킬 모두 'browser_exec 화면 크기 조절 무효 → 로컬 Playwright, 근거번호 표, png 존재 확인'을 반복함."
+ ],
+ [
+  "L3",
+  "네이버 블로그 사진 묶음: naver-blog-photo-harvest(넓은 범위·검증 규칙)를 생존자로, naver-blog-photo-sourcing의 교훈 9개(SearchList 검색 API, post_ct 본문 시작점, 하이픈 호스트 정규식 등)를 이식. academy-school-partnership:26의 스킬 이름 언급도 함께 고칠 것. academy-exam-reference-sourcing(L4)도 같은 기법을 씀 — 그쪽은 시험 사진 전용이라 유지."
+ ],
+ [
+  "L3",
+  "광고 묶음: naver-searchad-keyword-survey(사용 73)와 kakao-keywordad-bulk(사용 10) 둘 다 유지. 단 ad-channels.md:80(매체유형 '검색매체 파트너' 포함 권장)과 kakao-keywordad-bulk:21('검색매체 파트너는 거부')이 충돌 — 카카오 실행 세부는 kakao-keywordad-bulk를 정본으로 하고 ad-channels.md 카카오 대량관리 절은 링크로 줄이는 정리 권장. 두 스킬이 쓰는 scratch PowerShell 도우미(real.ps1·realclick.ps1 등)는 scratch 24h 정리로 사라져 있으니, 영구 위치(스킬 scripts/ 또는 _workspace)로 옮겨야 매번 다시 안 만든다."
+ ],
+ [
+  "L3",
+  "마케팅 원문 묶음(coreyhaines31/marketingskills: ads·copywriting·marketing-psychology·offers·pricing): 모두 원문 그대로 + 학원 규칙 한 줄. 10-20~10-22 사이 1~7회 사용돼 유지. SaaS·구글/메타 중심이라 사장님 채널엔 일반 원칙만 맞음. ~/.agents/skills 에 copywriting·marketing-psychology 사본(내용 다름, 다른 에이전트용)이 있음 — 범위 밖, 기록만."
+ ],
+ [
+  "L3",
+  "가격 묶음: coupang-price-refresh(사장님 결정·실측 차단 한도) 유지, product-price-monitor(주기 감시)는 사장님의 '말할 때만 갱신' 결정·쿠팡 차단과 맞지 않아 끄기."
+ ],
+ [
+  "L3",
+  "잘 안 맞는 번들: xurl(윈도우 미지원·미설치) 끄기, arxiv·llm-wiki·competitor-news-monitor(사용 0, OMH·학원 전용 스킬이 대신함) 끄기. rss-feeds는 가벼운 범용 도구라 일단 유지(low)."
+ ],
+ [
+  "L4",
+  "【내용 정확성】 academy-content-accuracy(41회) ← academy-content-truth-audit(12회) 병합 권장. 같은 '전 테이블 스캔→ChatFaq 우선→숨김·백업·일괄 적용' 절차가 두 번 적혀 있음. 생존자는 accuracy(사장님 결정이 가장 많이 쌓임). truth-audit의 '찾기만 하는 보고', '지워도 되살아나는 원인(스킬·메모리) 스캔', 결정 위젯, 빈 화면 확인, 점검 목록을 accuracy/references로, claim-scan.mjs·instruction-source-scan.py를 accuracy/scripts로 옮김. truth-audit 86행(HTTP 200)은 낡아 버림."
+ ],
+ [
+  "L4",
+  "【상세페이지】 academy-detail-blocks(38회) ← academy-detail-image-block(15회) 병합 권장. 그림 블록은 상세 블록의 한 종류. 14행 썸네일 5.2초 규칙은 코드(3000ms)·사장님 규칙과 어긋나 옮기지 말 것. 또 academy-design-variants 67-75행 「Detail blocks」 절도 detail-blocks와 중복이라 링크로 줄이면 좋음."
+ ],
+ [
+  "L4",
+  "【배너 스튜디오】 academy-hero-studio(34회) ← hero-studio-figma-export(10회) 병합 권장(references/figma-export.md). 내보내기 스킬의 업로드 경로(홌페이지제작)와 장면 형식이 낡아 지금 그대로 쓰면 실패함. 일반 Figma 규칙은 figma-mcp-design에 이미 있음."
+ ],
+ [
+  "L4",
+  "【코드 점검】 academy-code-audit(11회) vs delegated-code-audit(L5, 1회): 절차는 같고 delegated 쪽이 더 완전함. academy-code-audit의 일반 교훈(실제 next build, 비밀값 경고, tiptap)은 delegated로, 배포·속도·캐시·백업 교훈은 nas-docker-deployment로, 사진 크기 규칙은 academy-design-variants로 옮긴 뒤 보관 권장. L5 감사 결과도 절차 원본=delegated-code-audit로 같음(L5는 academy 쪽을 학원 고유 교훈만 남긴 얇은 스킬로 두자는 안). 둘 중 택1: ①병합 후 보관(스킬 수 감소) ②academy-code-audit를 파이프라인 없이 교훈만 남겨 유지."
+ ],
+ [
+  "L4",
+  "【할인】 academy-competitor-discount-survey(74회, 44KB)가 조사+세칙+홍보 이미지+Figma 포스터를 다 품음. 48-70행 세칙 파이프라인은 academy-discount-policy-revision과 중복 → 세칙 관련 줄을 discount-policy-revision으로 모으고, 홍보 이미지(121-147행)는 references/discount-promo-set.md로 몰아 competitor-survey는 '조사·전략'만 남기길 권장(병합이 아니라 정리·분할)."
+ ],
+ [
+  "L4",
+  "【겹치는 작은 절】 academy-admin-structure 92-95행(채널 허브) ↔ academy-channel-feed 38-42행 / admin-structure 109-110행(폼 더티 체크) ↔ academy-detail-blocks 208-215행 / detail-blocks 256-258행(관리자 메뉴 추가) ↔ admin-structure 137행. 각각 한 곳만 정본으로 두고 나머지는 링크 한 줄로."
+ ],
+ [
+  "L4",
+  "【LMS】 academy-lms-development(흐름) · academy-lms-accounts(계정 코드 지도) · academy-course-scheduler(프로그램)는 역할이 달라 유지. lms-accounts(5회)는 스킬 수를 줄이고 싶으면 lms-development의 references로 접을 수 있음."
+ ],
+ [
+  "L4",
+  "【낡은 경로 점검 결과】 디스크에 옛 폴더 'academy website'·'academy-homepage-v6'가 아직 있으나 L4 스킬은 이를 쓰지 않음(competitor-survey 81행은 'v6 사본 무시'라고 바르게 적음). 낡은 참조는 design-variants 8행(디자인-변형 워크트리), hero-studio-figma-export 29행(홌페이지제작), design-variants 146행(과정 분류 순서), course-scheduler 8·36행 및 lms-development 46행(v5 exe 이름·v6.8), consult-alert-app 72행(오픈빌더 운영 중), content-generator 33-34행. 그 밖에 저장소·스크립트 경로 약 240개를 확인했고 모두 실재."
+ ],
+ [
+  "L4",
+  "【묶음(하위 분류) 제안】 academy 22개를 한 칸에 두면 찾기 어려움 → academy/site(홈페이지 코드·화면: admin-structure, design-variants, detail-blocks, hero-studio, search-visibility, ai-chat, channel-feed, code-audit) · academy/content(사실·문구·사진: content-accuracy, content-generator, exam-reference-sourcing) · academy/lms(lms-development, lms-accounts) · academy/apps(consult-alert-app, course-scheduler) · academy/policy(할인·개인정보·학교: discount-policy-revision, competitor-discount-survey, privacy-policy-revision, school-partnership). 병합 후 18개 → 다섯 묶음에 3~8개씩."
+ ],
+ [
+  "L4",
+  "【크기】 course-scheduler 80KB, competitor-survey 44KB, design-variants 40KB, content-accuracy·consult-alert-app 35KB. 불러올 때마다 맥락을 많이 먹으므로 버전별 기록·Pitfalls를 references로 빼는 정리가 병합보다 효과가 큼."
+ ],
+ [
+  "L5",
+  "웹 성능: core-web-vitals(생존, 참조 5개 충실) ← web-perf 병합(원칙·코드베이스 분석 절만 이식). web-quality-audit는 종합 감사 입구로 유지. ulw-perf(L7)는 웹이 아닌 시스템 전반 병목 탐색이라 별개. 세 스킬 모두 Chrome DevTools MCP 전제인데 이 PC엔 미설정 — 실제로는 npx lighthouse·로컬 Playwright 실측(live-web-change-verification, academy-code-audit의 perf-measure.mjs)으로 대체됨."
+ ],
+ [
+  "L5",
+  "접근성: web-accessibility-wcag(생존, 실제 점검 절차·코드 예시) vs omh-accessibility-audit(L9, 계획/증거 틀, use 1) — L9에서 omh 쪽 끄기 검토 권장. web-accessibility-wcag의 ../web-quality-audit 링크는 폴더가 달라 깨져 있음."
+ ],
+ [
+  "L5",
+  "코드 리뷰·정리: 전체 감사는 delegated-code-audit(범용 원본, 스크립트 포함) + academy-code-audit(L4, 학원 전용판 — 절차 중복이므로 학원 고유 교훈만 남기고 delegated를 가리키게 정리 권장). 커밋 전 리뷰 requesting-code-review는 git add -A 지시가 사장님 규칙과 충돌해 끄기, 리뷰는 omh-code-review(use 6)로. 정리는 simplify-code를 생존자로, omh-ai-slop-cleaner(L7) 끄기 검토. sdlc-review는 칸반 미사용(작업 4건 모두 보관, 실행 0)이라 끄기."
+ ],
+ [
+  "L5",
+  "디버깅: systematic-debugging(생존, use 10) + test-driven-development(use 32)가 기본. node-inspect-debugger·python-debugpy는 Hermes 개발자용·Windows 부적합으로 끄기. agent-pipeline-diagnosis(L6)·omh-agent-debug(L8)·omh-build-failure-triage(L9)는 대상이 달라(봇 파이프라인/에이전트 실행/빌드 분류) 공존 가능."
+ ],
+ [
+  "L5",
+  "화면 검증: live-web-change-verification(생존, 사장님 실전 교훈·보고 형식) + playwright-best-practices(일반 참고서) + dogfood(탐색형 버그 찾기, 도구명·클라우드 브라우저 제약으로 효용 제한). omh-visual-qa(L8, use 16)·omh-verification-gate(L9)는 '증거 틀' 역할이라 실측은 이쪽 스킬이 담당. academy-code-audit·live-web-change-verification·nextjs-development에 같은 교훈(조회수 digest 예외, 방문로그 오염, npm test PATH)이 중복 — 원본은 live-web-change-verification으로."
+ ],
+ [
+  "L5",
+  "React: vercel-react-best-practices(생존) ← vercel-composition-patterns 병합(같은 Vercel 출처, 둘 다 use 0). web-design-guidelines(L1, Vercel UI 규칙)는 L1 판단."
+ ],
+ [
+  "L5",
+  "대형 프로젝트 스킬: mirror-ledger-development(63KB)·nextjs-development(51KB)는 유지하되 날짜별·학원 전용 절을 references나 academy 스킬로 옮기면 로딩 비용과 잘림이 줄어듦."
+ ],
+ [
+  "L6",
+  "D1 computer-use 3중복: 남길 것 = autonomous-ai-agents/computer-use(Hermes computer_use 도구용, list_windows 136회/27세션, 사장님 메모리 MEMORY.md:11과 일치). 나머지 2개는 Orca 앱(stablyai/orca)의 안내 껍데기: Orca 스킬 관리자가 '감지된 에이전트 폴더'에 Hermes(%LOCALAPPDATA%/hermes/skills, Orca app.asar의 'home-hermes' 대상)를 포함해 9/5 07:38 업데이트 때 ~/.agents/skills/computer-use 링크를 넣음 → 이후 Hermes skill_manage 일괄 작업 실패 롤백(tools/skill_manager_batch.py:186-196)이 링크를 'computer-use.rollback-broken'으로 옮기고 같은 내용을 진짜 폴더 'computer-use'로 복사(링크는 rmtree로 못 지워 남음). 결과: skill_view('computer-use')가 10/21·10/23·10/24에 'Ambiguous'로 실패. 조치: (1) skills/computer-use 폴더와 skills/computer-use.rollback-broken 링크를 지우거나 .archive로 옮김(링크는 rm만 — 대상 ~/.agents/skills/computer-use는 Claude Code가 ~/.claude/skills 링크로 사용 중) (2) config skills.disabled에 'computer-use'를 넣으면 번들까지 숨겨지므로 금지 (3) Orca 재생성 위험 높음(Orca 매니페스트에 더 새 computer-use revision 9가 있음) → Orca 설정에서 스킬 설치 대상 'Hermes home'을 해제하고, Orca 업데이트 뒤 `ls -la %LOCALAPPDATA%/hermes/skills | grep '^l'`로 링크 재등장 확인. 별도로 Hermes 롤백 코드가 심볼릭 링크 스킬을 만나면 '.rollback-broken' 링크를 남기는 버그로 보임(보고 가치 있음)."
+ ],
+ [
+  "L6",
+  "orchestration(Orca): 같은 경로로 들어온 Orca 링크. 이름이 유일하므로 skills.disabled: [orchestration]으로 끄는 게 안전하고 Orca가 링크를 다시 만들어도 계속 숨겨짐. Hermes에선 orca orchestration 호출 0건, 본문이 Hermes delegate_task 사용을 막는 문장(SKILL.md:32-33) 포함."
+ ],
+ [
+  "L6",
+  "unlazy: 허브 설치본(hermes/skills/unlazy)과 ~/.agents/skills/unlazy(전체 원본, Claude Code용 링크)가 따로 있음 — 이름 충돌은 아님(.agents는 Hermes 검색 경로가 아님, external_dirs는 ~/.omh/skills뿐). Hermes 사본엔 scripts/가 없어 검사기는 .agents 원본을 씀(SKILL.md:10-12). 로컬 교훈 17회 패치 → 허브 업데이트 전 백업 필수."
+ ],
+ [
+  "L6",
+  "D2 local-file-cleanup vs local-file-library-cleanup: 같은 날(10/08) 생긴 사실상 같은 스킬. 남길 것 = local-file-cleanup(스크립트 5개 + C드라이브·도커 vhdx·Temp 누수 교훈, 10/25까지 관리). local-file-library-cleanup의 고유 규칙(헷갈리는 건 모아서 허가, 지난 정리 결과 찾기 4단계, 로컬↔NAS 중복 규칙 1~7, SteamLibrary·게임 엔진 표지·SMB 장시간 작업 백그라운드) + references 3개를 옮긴 뒤 보관. 설명문은 'PC·NAS 파일 정리·중복 제거·디스크 용량 조사' 하나로."
+ ],
+ [
+  "L6",
+  "코딩 위임 묶음(claude-code·codex·opencode·union-alpha-worker): CLI 확인 — claude·opencode는 npm 전역 설치, codex는 PATH에 없고 %LOCALAPPDATA%/OpenAI/Codex/bin/<해시>/codex.exe(Codex 앱 번들)만 있음. 셋 다 유지(서로 다른 회사 CLI). union-alpha-worker는 도우미 경로가 깨져(자기 폴더에 scripts 없음, 실제는 opencode/scripts/union_worker.py) 보관 — 필요하면 경로만 고쳐 복구. opencode·codex 번들 스킬은 이 PC 전용 내용(Union 섹션, codex.exe 위치)이 있거나 필요하니 번들 업데이트 때 덮이는지 주의."
+ ],
+ [
+  "L6",
+  "봇 조직 묶음(multi-agent-control-plane·multi-bot-orchestration·agentos-* 6개): 실제 운영은 AgentOS(Paperclip+Hermes 프로필) — agentos-* 6개가 역할별로 잘 나뉘어 모두 유지. multi-bot-orchestration은 옛 일반론(9/4 생성, 패치 0)이라 2문장만 agentos-bot-profile-config로 옮기고 보관. multi-agent-control-plane은 교훈 104회 패치라 유지하되 10/03 이후 안 쓰임 — 다음 정리 때 Paperclip 함정들을 agentos-dashboard-development / agentos-paperclip-admin-api로 나눠 옮길지 검토."
+ ],
+ [
+  "L6",
+  "스킬 관리 묶음: find-skills(유지, Hermes 맞춤 메모 有) vs omh-skill-scout(사용 1) — find-skills가 주력. 단 본문 Step 6의 `npx skills add -g -y`는 ~/.agents 경유로 다른 에이전트 폴더(Hermes 포함 가능)에 링크를 만들 수 있어 D1 같은 충돌 원인 경로 — SKILL.md:6 주석의 'Hermes엔 skill_manage로 설치' 규칙을 따를 것. hermes-agent-skill-authoring은 hermes-agent 저장소 기여 전용이라 끄기."
+ ],
+ [
+  "L6",
+  "외부 앱 묶음: 연결된 계정/CLI가 하나도 없음 — gws·himalaya·ntn·box·airtable·obsidian 실행 파일 없음, NOTION/AIRTABLE/BOX/OBSIDIAN/GOOGLE 관련 환경변수 이름 없음, google_token.json 없음. google-workspace·notion·airtable·box·obsidian·himalaya·email-inbox-triage·weekly-review-planning 모두 끄기(연결을 만들 때 다시 켬). maps는 키 없이 동작하니 유지(낮은 확신). apple-* 4개는 macOS 전용이라 끄기."
+ ],
+ [
+  "L7",
+  "[경로힌트 연동 — 핵심 경고] OMH 플러그인의 경로힌트는 awareness.py 안에 하드코딩된 규칙표(_ROUTE_HINT_RULES, 1594행~; 검색·파일 도구 전 체크포인트 GENERIC_TOOL_CHECKPOINT_ROUTES, 689행~)로 만들어지며, Hermes skills.disabled도 OMH capability_policy도 읽지 않음(플러그인 전체에서 'disabled'/'capability_policy' 그렙 결과: setup-profile.json은 runtime_reader.py:757 HUD 표시용으로만 읽음). 반면 Hermes는 꺼진 스킬을 skill_view하면 \"Skill 'X' is disabled\" 오류를 냄(hermes-agent/tools/skills_tool.py:587-589). 즉 skills.disabled로 끄면 OMH가 계속 그 워크플로 이름을 힌트로 내고, 모델은 헛호출 1번 후 기본 도구로 넘어감 — 고장은 아니지만 잡음. 이 레인에서 규칙이 있는 꺼짐 후보: apps·browser·content-operator·data-analysis·external-connector-readiness·files·gateway-intent-card·live-info·media-input·prompt-import-readiness·terminal·voice-input·ai-slop-cleaner·decision-recall·memory-new·memory-sync·rules-distill·codebase-onboarding·codegraph-refresh·product-brief·jit-learn·paper-learning·research-department·source-finder(2)·ulw-interview·ulw-loop·ulw-plan(2)·ulw-qa. 규칙 0개라 꺼도 깨끗한 것: meta-router·model-setup·morning-brief·parallel-tools·websearch-setup·wiki·autoresearch-goal·best-practice-research·research-brief·ulw-context."
+ ],
+ [
+  "L7",
+  "[OMH 자체 끄기 장치] 'omh capability-policy disable <가족>'(omh.cmd: C:/Users/tahar/AppData/Local/omh/bin, setup-profile.json에 기록, --dry-run 있음, 되돌리기 enable)이 있으나 ① 가족 6개 단위라 너무 굵음(operate_and_observe 안에 끌 것과 둘 것이 섞임, plan_and_decide 안에 omh-plan·ulw-plan·ulw-interview가 같이 있음) ② 스킬 파일을 지우거나 Hermes 목록에서 숨기지 않음(files_removed=false) ③ 반영되는 곳은 'omh capabilities' CLI 투영과 메모리뿐 — 플러그인 경로힌트는 여전히 그대로. ④ 주의: retain_knowledge 가족을 끄면 OMH 프로젝트 메모리 자체가 꺼짐(omh/workflows/memory.py:485-491 mode='off'), 사장님 config는 memory.provider=omh라 영향 큼 → 이 가족은 절대 정책으로 끄지 말 것. 'omh skill-profile reconcile --to core'는 수정 안 된 비핵심 93개 파일을 실제 삭제(dry-run 확인)하므로 더 거칠고 'omh update'로 되살아날 수 있음. 결론: 개별 스킬 끄기는 Hermes skills.disabled가 가장 정밀하고 되돌리기 쉬움. 경로힌트 잡음은 감수하거나, OMH 측 개선(힌트가 skills.disabled를 존중) 요청이 필요."
+ ],
+ [
+  "L7",
+  "[omh-routing은 절대 끄지 말 것] 다른 OMH 스킬 102개가 'omh-routing/references/skill-common-rail.md'를 공통 규칙으로 참조. ulw-work는 'ulw-loop/references/goal-constraint-discipline.md'와 ulw-maestro 계약을 참조 — ulw-loop를 끄면 그 참조는 read_file로만 접근 가능."
+ ],
+ [
+  "L7",
+  "[계획 묶음] 생존자 omh-plan(116회, 사장님 현장 규칙 38줄). ulw-plan·ulw-interview·omh-product-brief·ulw-context는 끄기. ulw-interview의 '한 턴 1질문'은 omh-plan 109행 '선택지를 한 폼에 모아 묻기' 규칙과 정면 충돌. omh-plan은 매니페스트 해시와 달라 '로컬 수정' 상태 — 'omh update --force'가 덮어씀(guidance_projection.py:272) → 현장 규칙 섹션 백업 또는 로컬 스킬로 복제 권장. 실행 단계는 ulw-work(5회) 유지, 외부 코딩 위임용 ulw-maestro·omh-executor-runtime-readiness는 낮은 확신으로 유지."
+ ],
+ [
+  "L7",
+  "[조사 묶음] 실사용 생존자는 로컬 multi-source-research-survey(16회). OMH 쪽은 플러그인이 검색 도구 전에 'research'를 기본 지목하므로 ulw-research 하나만 남기고 research-brief·best-practice-research·autoresearch-goal·research-department·source-finder·jit-learn·paper-learning은 끄기. multi-source-research-survey에 '논쟁 주장은 독립 출처 2곳+반대 근거 검색 1회' 규칙만 옮길 가치 있음(현재 그렙 0건)."
+ ],
+ [
+  "L7",
+  "[기억 묶음] 생존자 hermes-memory-curation(로컬, 5회, 적용까지 하는 흐름, omh_memory status 재고 조사 포함). omh-memory-sync는 자신이 diff 준비만 한다고 명시 → 끄기. omh-memory-new·decision-recall·omh-wiki·rules-distill도 끄기(기각 결정 기록 0건, 위키는 llm-wiki/obsidian). 단 이 가족을 OMH capability-policy로 끄는 것은 금지(메모리 공급자 꺼짐)."
+ ],
+ [
+  "L7",
+  "[정책 덮개 묶음] guide 역할 덮개(browser·files·terminal·live-info·apps·media-input·voice-input·content-operator·data-analysis)는 설명 자체가 '기본 도구를 먼저 쓰라'고 적힌 공통 틀(약 120줄 중 실질 3~5줄). 확인 후 실행·경로 범위 같은 안전 규칙은 Hermes 기본 시스템 규칙이 이미 강제. omh-files 7회·omh-terminal 4회 사용은 경로힌트 유입으로 보이며 local-file-cleanup류가 실제 담당. 설정 마법사형(model-setup·parallel-tools·websearch-setup·morning-brief)은 hermes-agent 스킬 영역이고 API 키를 채팅/.env로 다루는 흐름이 금고 규칙과 어긋남."
+ ],
+ [
+  "L7",
+  "[문맥 비용 근거] OMH 매니페스트 추정: core 10개 색인 2,853바이트 vs 전체 103개 추가분 31,875바이트(매 요청마다 붙음, 'omh skill-profile reconcile --dry-run --json'의 prompt_cost). 이 레인 끄기 38개만으로도 색인 부담이 크게 줄어듦."
+ ],
+ [
+  "L7",
+  "[학원 관련 예외] omh-curriculum-design은 사용 0회지만 요리학원 과정 설계와 직접 맞닿아 낮은 확신으로 유지 — 실제 쓰게 되면 학원 전용 규칙(국가자격 실기 과제 등) 보강 필요."
+ ],
+ [
+  "L8",
+  "[분류 이름 충돌] OMH 'operator' 폴더(C:/Users/tahar/.omh/skills/operator, 30개)와 Hermes 로컬 'operator' 분류(skills/operator/agent-pipeline-diagnosis 1개)가 같은 이름. 스킬맵에서는 OMH 쪽을 'OMH 운영 카드'처럼 따로 묶고, agent-pipeline-diagnosis는 agents-hermes로 옮기는 게 혼동이 적음."
+ ],
+ [
+  "L8",
+  "[공통 사실] 30개 모두 같은 OMH 틀(Why/Do Not Use/Examples/Catalog Metadata/Runtime Evidence)이며 '실행하지 말고 준비 카드만, 관찰 증거 없으면 완료라 하지 말 것'이 핵심. 모두 `omh runtime record` CLI를 부르라고 하지만 omh CLI는 PATH에 없음. 실내용이 있는 참고파일은 omh-frontend(5개), omh-design-quality-gate(평가표), omh-idea-to-deploy(새 저장소 6단계), finance/sales(확인 질문 목록)뿐."
+ ],
+ [
+  "L8",
+  "[끄는 방법] OMH 플러그인이 관리하므로 파일 삭제는 업데이트 때 되살아남. Hermes 스킬 비활성화(config skills disabled) 또는 OMH capability toggle(omh-capability-toggle)로 끄는 게 맞음 — 결정은 부모 작업에서."
+ ],
+ [
+  "L8",
+  "[웹 디자인 묶음] omh-frontend·omh-design-quality-gate·omh-design-orchestration vs interface-design(hub, 15회, 최근)·frontend-design(local, 14회)·design-taste-frontend·academy-design-variants(51회). 생존: interface-design(일반) + academy-design-variants(학원). omh-frontend는 9/28 이후 사용 0 — 끄기 전에 DESIGN.md 선행 규칙, 1440/768/375 스크린샷 반복, Blocker/High/Medium/Nit 분류, 한글 줄바꿈 규칙을 로컬 frontend-design(또는 academy-design-variants)에 옮길 것(hub인 interface-design은 직접 수정 비권장)."
+ ],
+ [
+  "L8",
+  "[화면 검증 묶음] omh-visual-qa vs live-web-change-verification(local, 주인 노하우 다수)·dogfood. 생존: live-web-change-verification. 옮길 것: 전 페이지·상태 열거(표본 금지), 콘솔·네트워크 오류 기록, 운영 사이트 결제·삭제 동작 금지, 자동 접근성 검사만으로 합격 금지."
+ ],
+ [
+  "L8",
+  "[에이전트 디버그 묶음] omh-agent-debug vs agent-pipeline-diagnosis(local)·systematic-debugging(bundled). 생존: agent-pipeline-diagnosis. 옮길 것: 경쟁 가설 2개 유지, 가장 싼 판별 검사 먼저, 되돌려 확인(revert-verify) 후에만 원인 단정."
+ ],
+ [
+  "L8",
+  "[문서·보고서 묶음] omh-report-package·omh-materials-package·omh-deliverable-package·omh-image-cards는 'PPT·발표자료·이미지 생성·배경 제거' 같은 넓은 트리거로 요청을 가로채면서 실제 파일·이미지 생성은 금지 → 실작업 스킬(illustrated-design-report, desktop-report-folder, pdf/docx/xlsx/powerpoint, ai-image-print-design, chatgpt-desktop-image-gen)과 충돌. 모두 끄기 권장."
+ ],
+ [
+  "L8",
+  "[환경 불일치] 개발조직·B2B·하드웨어 전제: omh-cto-loop, omh-operating-rhythm, omh-reliability-review, omh-github-event-ops, omh-physical-device-readiness, omh-sales-development, omh-provider-profile-posture — 학원 원장 환경과 무관, 끄기(high)."
+ ],
+ [
+  "L8",
+  "[스킬 관리 묶음] omh-skill-health·omh-skill-scout·omh-workspace-audit는 이번 스킬맵 작업과 find-skills(28회)·hermes curator가 실제로 대체. 모두 끄기."
+ ],
+ [
+  "L8",
+  "[유지] omh-decide만 유지(low): 선택지 비교·결정 메모를 맡는 유일한 스킬이고 최근(10-19) 사용. 결과가 쓸모없었다면 끄기로 바꿔도 무방."
+ ],
+ [
+  "L9",
+  "OMH 배관(유지·workflow): omh-doctor, omh-cancel, omh-skill, omh-agent-ops-review는 ~/.omh/setup-profile.json retained_core_skills(doctor가 검사하는 바닥)라 끄면 안 됨. omh-capability-toggle은 이번 정리를 실제로 실행하는 `omh capability-policy` 명령의 안내라 유지."
+ ],
+ [
+  "L9",
+  "끄기 방법 주의: OMH 스킬은 ~/.omh/skills가 skills.external_dirs로 붙은 것. 파일 삭제 대신 Hermes 쪽 개별 비활성 또는 `omh capability-policy disable <family>`(기능군 단위, 되돌릴 수 있음) 사용. 현재 skill_profile=full(103개, core 10개 대비 93개 추가로 매 요청 맥락 비용 증가 — manifest context_cost_warning). `omh skill-profile reconcile --to core`는 너무 많이 지우므로(핵심 외 전부) 쓰지 말 것. omh.exe는 bash PATH에 없음: C:/Users/tahar/AppData/Local/omh/venv/Scripts/omh.exe."
+ ],
+ [
+  "L9",
+  "검증 클러스터: unlazy(허브 use 181) = 작업 게이트 생존자, live-web-change-verification(로컬 use 8) = 실사이트 증명 생존자. omh-verification-gate·omh-production-audit·omh-build-failure-triage는 명령 없는 양식이라 끄기. unlazy가 'stale 출력은 증거 아님' 문장을 흡수할 것."
+ ],
+ [
+  "L9",
+  "코드리뷰 클러스터: omh-code-review(use 6, 참조 파일에 merge-base/HEAD~1 금지 규칙) 유지. requesting-code-review(번들, use 2)는 39행 'git diff HEAD~1 HEAD' 대체가 이 규칙과 충돌 — 다른 레인에서 정리 시 참고. 학원 사이트 전용 감사는 academy-code-audit이 계속 담당."
+ ],
+ [
+  "L9",
+  "접근성 클러스터: web-accessibility-wcag(로컬, 실제 Lighthouse/axe 절차) 생존, omh-accessibility-audit 끄기. 목표 크기 24x24 CSS px 규칙만 흡수 필요."
+ ],
+ [
+  "L9",
+  "에이전트 현황판 클러스터: multi-agent-control-plane(use 132)·agentos-org-verification(use 38)·orca-status 플러그인이 실제 담당. omh-agent-board, omh-running-work-board, omh-harness-session-inventory, omh-ops-observability-card, omh-run-efficiency, omh-toolbelt-readiness는 서로도 겹치는 양식뿐 → 끄기."
+ ],
+ [
+  "L9",
+  "학습 저장 클러스터: Hermes skill_manage·curator·hermes-memory-curation이 실제 수행. omh-instinct-ledger·omh-workflow-learning(+L7 omh-rules-distill)은 3중 중복 → 끄기."
+ ],
+ [
+  "L9",
+  "환경 불일치: omh-achievements(hermes-achievements 플러그인 미활성), omh-buzz(buzz CLI·설정 없음), omh-localization-review(한국어 단일 시장) → 끄기."
+ ],
+ [
+  "L9",
+  "애매(유지·low): omh-legal-compliance-review(일반 계약 검토 대체재 없음 — 주인이 계약서 검토를 Hermes에 맡기는지로 결정), omh-context-budget-review(캐시 배치 규칙 실속 있으나 09-12 이후 미사용), omh-security-safety-review(봇·플러그인 안전 검토 고유하지만 내용은 양식)."
+ ]
+]

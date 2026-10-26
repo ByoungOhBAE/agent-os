@@ -1,0 +1,132 @@
+[
+ {
+  "id": "R1-1",
+  "decision": "반영",
+  "why": "유지하는 OMH 스킬 15개는 OMH 폴더를 건드리지 않고, 기본 프로필 폴더의 새 분류에 같은 이름 사본을 둔다(Hermes는 기본 폴더 쪽을 먼저 씀 → OMH 분류 이름 7개가 목록에서 사라짐). 봇 프로필은 계속 OMH 원본을 씀. 대가: 이 15개는 OMH 업데이트가 기본 프로필에 안 들어옴 → 검사기가 원본이 바뀌면 알림. omh-plan의 사장님 교훈도 OMH 덮어쓰기에서 보호됨."
+ },
+ {
+  "id": "R1-2",
+  "decision": "반영",
+  "why": "지도에서 「유지」인 직접 만든·허브·OMH 사본 스킬 91개를 실행 첫 단계로 고정(pin) — 큐레이터가 몰래 보관하지 못하게. 새로 생기는 스킬만 큐레이터가 계속 관리. 승인 직후 가장 먼저 실행."
+ },
+ {
+  "id": "R1-3",
+  "decision": "반영",
+  "why": "기준을 하나로: 판정은 능력만 보고, OMH 추천 문구(경로 힌트)가 가리킨다는 이유로는 남기지 않음 → ulw-research·omh-executor-runtime-readiness도 끄기. 추천 문구는 끌 설정이 없음(llm_hooks.py:110 호스트 값). 대신 workflow 분류 설명에 \"추천 문구가 가리킨 OMH 워크플로가 목록에 없으면 불러오지 말고 지도에서 고른다\" 한 줄. 계획 8장의 capability-toggle 대비책 문구 삭제. A8 시험에 엑셀·PPT·이미지·공지 문구 요청 추가하고 disabled 오류 수를 셈."
+ },
+ {
+  "id": "R1-4",
+  "decision": "반영",
+  "why": "교훈이 있는 끄기·보관·병합 행 전부에 port_to(옮길 곳, 유지 스킬) 필드를 넣고, 글에만 있던 교훈 3건(design-taste-frontend, requesting-code-review, meeting-action-items)을 목록으로 옮김. 관문에 두 규칙 추가. 옮길 곳이 허브(unlazy)·OMH(omh-code-review)면 로컬 사본으로 바꾼 뒤 그 사본에 씀."
+ },
+ {
+  "id": "R1-5",
+  "decision": "반영",
+  "why": "academy-code-audit는 병합 취소 → 학원 분류에 유지, 겹치는 1~7단계만 \"delegated-code-audit 절차를 따른다\" 한 줄로 줄임. 관문에 \"다른 분류로 합치면 경고\" 추가."
+ },
+ {
+  "id": "R1-6",
+  "decision": "반영",
+  "why": "baoyu-diagram→visual-content, document-to-action-items→documents, OMH 관리 스킬 5개→agents-hermes/omh, 코딩 위임 4개→agents-hermes, apps 분류 없앰(maps→research, 12분류), agentos 7개→agents-hermes/agentos. 학원은 하위 폴더 6개가 2~8개씩이라 오히려 줄만 늘어 하나의 academy(21개)로 합침."
+ },
+ {
+  "id": "R1-7",
+  "decision": "반영",
+  "why": "같은 분류 안 비슷한 스킬은 분류 설명(DESCRIPTION.md)과 지도의 \"이럴 때/대신 쓰지 말 것\" 칸에 고르는 기준을 한 줄씩 적음(예: 홈페이지·랜딩=frontend-design / 관리 화면=interface-design / 시안 HTML=claude-design / 배색=ui-ux-pro-max). ulw-perf는 \"웹이 아닌 프로그램 느림\"으로 경계. ulw-research는 R1-3으로 끔."
+ },
+ {
+  "id": "R1-8",
+  "decision": "반영",
+  "why": "실행 순서 고정: opt-out 표시 파일 확인 → 그다음 폴더 이동. 이동 직후 hermes update 금지 후 표시 파일 재확인. 검사기에 \"옛 분류 폴더 재생성\"·\"번들 원본 새 버전 있음\" 알림 추가. 번들 스킬에 새 버전이 자동으로 안 들어온다는 점을 보고서에 쉬운 말로 적음."
+ },
+ {
+  "id": "R1-9",
+  "decision": "반영",
+  "why": "Orca 사본 2개 출처를 orca로 고침. 큐레이터 안 씀: 진짜 폴더(computer-use/)는 백업 폴더로 옮기고, 링크(computer-use.rollback-broken)는 링크만 지움(-r 없이). 검사기에 \"스킬 폴더 안 링크\"·\"같은 이름 2개 이상\" 검사 추가. A5 복구 시험 대상에서 이 둘은 뺌. Orca 설정 변경은 묻지 않고 검사기 알림으로 대응."
+ },
+ {
+  "id": "R1-10",
+  "decision": "반영",
+  "why": "orchestration 끄기 유지, 지도의 꺼진 것 표에 \"Orca 조율 필요하면 켜기\" 기록, 링크 검사 예외로 등록."
+ },
+ {
+  "id": "R1-11",
+  "decision": "반영",
+  "why": "hermes-skill-library-curation 판정 행 추가(유지, agents-hermes). 승인 직전과 실행 직전에 관문 재실행, \"판정 이후 새로 생기거나 바뀐 SKILL.md\" 확인으로 8장 문구 확대."
+ },
+ {
+  "id": "R1-12",
+  "decision": "반영",
+  "why": "omh-capability-toggle 끄기로 변경(기능군 통째 끄기 위험, OMH 기억 공급자)."
+ },
+ {
+  "id": "R1-13",
+  "decision": "반영",
+  "why": "끄기 유지, 지도에 \"칸반 리뷰를 쓰면 sdlc-review·requesting-code-review 다시 켜기\" 기록. 칸반 설정은 이번 범위 밖이라 묻지 않음."
+ },
+ {
+  "id": "R1-14",
+  "decision": "반영",
+  "why": "review-animations/STANDARDS.md → design-motion-principles/references/, orchestrator-soul-template.md → agentos-bot-profile-config/references/ 로 옮김(행에 기록)."
+ },
+ {
+  "id": "R1-15",
+  "decision": "반영",
+  "why": "승인 보고서에 쉬운 말로 명시: 에이전트는 여전히 전체 목록을 보지만 분류가 줄고 설명이 선명해져 맞는 분류를 바로 찾게 됨. 목표 숫자를 A4에 미리 적음."
+ },
+ {
+  "id": "R2-1",
+  "decision": "반영",
+  "why": "academy-content-truth-audit 옮길 교훈에 :13·:15·:40·:45·:47 다섯 줄 추가(:48은 accuracy:102와 합칠 때 함께)."
+ },
+ {
+  "id": "R2-2",
+  "decision": "반영",
+  "why": "R1-9와 같이 처리. 사용 횟수는 이름 공유라 측정 불가로 비움, 번들판 경로 키 patch 3 메모."
+ },
+ {
+  "id": "R2-3",
+  "decision": "반영",
+  "why": "R1-3과 같은 결정(능력 기준 하나)."
+ },
+ {
+  "id": "R2-4",
+  "decision": "반영",
+  "why": "web-perf 사유 문구 수정(preconnect는 추가 권장만 있음), references 사본 누락을 missing_refs로 옮김. 병합 판정은 그대로."
+ },
+ {
+  "id": "R2-5",
+  "decision": "반영",
+  "why": "사용·패치 숫자를 사용 기록에서 다시 읽어 갱신(실행 직전에도 한 번 더), 새 스킬 행 추가."
+ },
+ {
+  "id": "R2-6",
+  "decision": "반영",
+  "why": "product-price-monitor 사용 1회 = 감사 중 열람 추정이라고 메모. 지도에는 기준선(10-26 이전) 숫자를 함께 적음."
+ },
+ {
+  "id": "R2-7",
+  "decision": "반영",
+  "why": "multi-bot-orchestration \"패치 0회\" 오기 메모."
+ },
+ {
+  "id": "R2-8",
+  "decision": "반영",
+  "why": "union-alpha-worker의 고유 운용 규칙 2줄(:30 union-chat 작업 폴더, :49 1+1 확인)을 opencode로 옮김(port_to)."
+ },
+ {
+  "id": "R2-9",
+  "decision": "반영",
+  "why": "omh-voice-input·omh-people-ops 끄기 유지. 근거를 \"내용 없는 OMH 공통 틀(사용자 수정 없음)\"로 명시하고 판정 기준 5장에 이 규칙을 추가."
+ },
+ {
+  "id": "R2-10",
+  "decision": "반영",
+  "why": "계획 1장 수치에 \"목록에 보이는 것 기준\" 표시, 설치 기준(번들 60·안 쓴 98)과 현재값(258개·250줄·24,084자) 병기."
+ },
+ {
+  "id": "R2-11",
+  "decision": "반영",
+  "why": "표본 밖(유지 100행·OMH 끄기 70행)은 확인 안 됨을 계획에 기록. OMH 끄기는 파일을 안 지우고 설정 한 줄이라 틀려도 즉시 되돌릴 수 있어 추가 표본 없이 진행."
+ }
+]

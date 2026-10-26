@@ -1,0 +1,149 @@
+{
+  "reviewer": "R1",
+  "checked": [
+    "계획서 skill-map-plan.md 0~10장 전체 읽음",
+    "verdicts.json 257행 전체를 코드로 집계: 판정·출처·분류별 개수, 병합 방향(원본/대상 사용 횟수·분류), lessons_to_port와 merge_into 짝, reason에만 적힌 '흡수' 문구",
+    "cluster_notes.json 74건 중 결정·경고 문구 확인 (L7 경로힌트·capability-policy, L8 operator 이름 충돌, L9 academy-code-audit 언급)",
+    "병합 원본 15개의 SKILL.md와 딸린 파일(references/scripts/STANDARDS.md) 목록을 lessons_to_port와 대조 (hero-studio-figma-export는 본문 전체 대조)",
+    "Hermes 목록 생성 코드: prompt_builder.py(분류=폴더 경로, 외부 폴더도 같은 규칙, DESCRIPTION.md 읽기, 표시 방식), skill_utils.py(skills.disabled·ESSENTIAL_SKILLS), skills_tool.py(꺼진 스킬 skill_view 거절), coding_context.py(focus 모드 압축 분류)",
+    "skills.disabled가 external_dirs(OMH) 스킬에도 먹는지: 목록(prompt_builder.py:1568 is_disabled_entry)과 skill_view(skills_tool.py:587-589) 둘 다 적용됨을 확인",
+    "OMH 플러그인 awareness.py의 Route Hint 생성부(4857~, 5540~5590)와 GENERIC_TOOL_CHECKPOINT_ROUTES(689~760), 플러그인 전체에서 disabled/capability_policy 읽는 곳 검색(HUD 표시용 runtime_reader.py:757뿐)",
+    "skills_sync.py(opt-out 때 동작, _recover_renamed_skill, 분류 설명 재생성), skills_hub.py do_opt_out, skill_usage.py archive_skill/restore_skill, curator.py 자동 보관 기준(14일 stale/30일 보관)",
+    "번들 원본과 현재 사본의 해시 비교(Hermes venv로 _dir_hash 실행, 읽기만): 유지 번들 다수가 원본 그대로",
+    ".usage.json의 state(stale)·pinned, .curator_state 마지막 실행, .hub/lock.json 설치 경로",
+    "크론 jobs.json 3건과 봇 프로필 config.yaml 15개에서 정리 대상 이름 참조 검색 + 봇별로 켜져 있는 OMH 유지 스킬 집계",
+    "computer-use 3벌·orchestration의 실제 형태(심볼릭 링크 대상 ~/.agents/skills), 칸반 리뷰 자동 배정 코드(sdlc-review·requesting-code-review)",
+    "판정 관문 gates/verdicts_gate.py 재실행(읽기만)과 판정 이후 새로 생기거나 바뀐 SKILL.md 확인"
+  ],
+  "not_checked": [
+    "lessons_to_port 문장이 대상 스킬에 정말 없는지 하나하나 grep 재확인은 안 함 (감사자 grep 결과를 믿음, 원본 쪽 누락만 표본 확인)",
+    "병합 원본 15개 중 hero-studio-figma-export 외에는 본문 전체 줄 단위 대조를 하지 않음",
+    "OMH 갱신(omh update)이 ~/.omh/skills 안에 사용자가 추가한 DESCRIPTION.md를 지우는지 — 코드 미확인",
+    "omh capability-policy가 봇 프로필마다 따로인지(프로필별 omh 폴더 존재) 전체 공유인지 — 코드 미확인",
+    "Orca 앱이 다음 스킬 업데이트 때 Hermes 폴더에 링크를 다시 만드는지 — Orca 코드 미확인",
+    "실제 대화에서 지도대로 고르는지(A8) — 아직 실행 단계 전이라 시험 불가",
+    "번들 스킬의 상류(새 버전) 변경 내용 — 업데이트 서버를 조회하지 않음"
+  ],
+  "findings": [
+    {
+      "id": "R1-1",
+      "severity": "high",
+      "target": "전체 (OMH 유지 18개)",
+      "finding": "Hermes는 스킬이 들어 있는 폴더 이름을 분류 이름으로 쓴다. OMH 스킬은 OMH가 관리하는 폴더(~/.omh/skills)에 있어서 옮길 수 없다. 그래서 정리 뒤에도 목록에 OMH 분류 7개(tracker 6, ultrawork 4, reviewer 3, planner 2, guide 1, handoff-guide 1, operator 1)가 13분류 옆에 그대로 남는다. 판정표는 이 18개를 workflow·coding·academy 같은 새 분류로 적었고 실행 방법을 'keep+move'로 적었지만 옮기면 안 된다. 봇 프로필 13개가 같은 폴더(~/.omh/skills)의 이 스킬들을 실제로 쓰고 있다(pc-ebb0943f 14개, pc-59bd3c1d 11개 등). 사장님이 처음에 지적한 'operator·guide처럼 뜻이 겹치는 분류 이름' 문제가 그대로 남는다. 판정 관문도 판정표에 적은 분류만 보고 실제 폴더는 보지 않아서 이 문제를 잡지 못한다.",
+      "evidence": "hermes-agent/agent/prompt_builder.py:1264(category = 폴더 경로), 1560-1562(외부 폴더도 같은 규칙, DESCRIPTION.md는 외부 폴더 것도 읽음) · config.yaml:115-116 external_dirs=C:/Users/tahar/.omh/skills · verdicts.json OMH 유지 18행 전부 action=keep+move · 봇 config.yaml 15개에 같은 external_dirs, skills.disabled에 없는 OMH 유지 스킬 집계 결과 · cluster_notes L8 'operator 분류 이름 충돌' · gates/verdicts_gate.py:36(category 필드만 검사)",
+      "suggestion": "2단계 승인 전에 셋 중 하나를 정해 계획서에 적을 것: (a) OMH 폴더 이름은 그대로 두고, workflow 분류 설명과 SKILLS_MAP.md에 'planner·reviewer·tracker·ultrawork·guide·handoff-guide·operator = OMH 작업 방식(workflow)'이라고 적는다. A2 기준도 '13 + OMH 7'로 고친다. (b) ~/.omh/skills/<폴더>/DESCRIPTION.md를 추가한다(Hermes는 외부 폴더의 분류 설명을 읽음). 단 omh update 뒤에도 남는지 먼저 시험해야 한다. (c) Hermes 폴더에 같은 이름의 로컬 사본을 두어 덮어 보이게 한다. 이 경우 OMH 갱신이 기본 프로필에는 안 들어오는 것을 감수한다. 어느 쪽이든 OMH 18행의 action을 'keep(in place)'로 바꾸고, Hermes 쪽 skills/operator 폴더는 agents-hermes로 옮겨 이름이 겹치지 않게 한다."
+    },
+    {
+      "id": "R1-2",
+      "severity": "high",
+      "target": "전체 (유지 판정 로컬·허브 스킬)",
+      "finding": "Hermes 큐레이터는 직접 만든 스킬이 14일 안 쓰이면 '오래됨(stale)'으로 표시하고, 30일 안 쓰이면 자동으로 보관한다. 지금 '유지' 판정 중 6개가 이미 stale 상태다: multi-agent-control-plane(132회 사용), delegated-code-audit(academy-code-audit 병합 대상), agent-pipeline-diagnosis, agentos-org-verification, video-visual-analysis, academy-content-generator. 또 vercel-react-best-practices(vercel-composition-patterns 병합 대상)는 만든 지 30일째인데 한 번도 쓰이지 않았다. 다음 큐레이터 실행(최근 실행 10-24, 그때 '4개 stale, 1개 보관')에서 바로 보관될 수 있다. 그러면 병합 대상이 사라지고 지도와 실제가 어긋난다. 계획 8장에 'pin'이 언급만 돼 있을 뿐 판정표에 pin 목록이 없다. 허브 등록을 풀어 로컬로 바꾸는 rss-feeds(사용 0회, 9/12 설치)도 로컬이 되는 순간 자동 보관 대상이 된다.",
+      "evidence": "hermes-agent/agent/curator.py:32 DEFAULT_STALE_AFTER_DAYS, DEFAULT_ARCHIVE_AFTER_DAYS = 14, 30 · skills/.usage.json state=stale 6건(위 이름) · vercel-react-best-practices created_at 2026-09-26, last_used_at null · skills/.curator_state last_run_at 2026-10-24, summary 'auto: 4 marked stale, 1 archived', paused=false · .hub/lock.json rss-feeds install_path research/rss-feeds · skill_usage.py:626-627(허브는 보관 안 함 → 해제하면 보관 대상)",
+      "suggestion": "판정표에 'pin' 필드를 추가하고, 실행 첫 단계(병합보다 먼저)로 `hermes curator pin`을 건다. 대상은 위 7개와, 사용이 드물어 30일 안에 안 쓰일 수 있는 core-web-vitals, web-quality-audit, information-architecture, shopping-part-finder, baoyu-diagram, rss-feeds, reddit-reading이다. 아니면 정리 기간 동안 큐레이터를 멈추는 것(curator pause)을 사장님께 묻는다. 승인이 늦어지면 실행 전에 이미 보관될 수 있으므로, 승인 보고서에 '승인 후 가장 먼저 할 일'로 적는다."
+    },
+    {
+      "id": "R1-3",
+      "severity": "medium",
+      "target": "OMH 끄기 85개 / 계획 8장",
+      "finding": "OMH 플러그인이 메시지마다 붙이는 Route Hint는 플러그인 코드 안에 고정된 표로 만들어진다. 이 표는 Hermes의 skills.disabled도, OMH의 capability_policy도 읽지 않는다. 그래서 끈 워크플로를 계속 추천하고, 에이전트가 그 스킬을 열려고 하면 'disabled' 오류가 나서 한 번 헛걸음한다. 특히 도구를 쓰기 전마다 붙는 힌트의 기본값 가운데 data-analysis(데이터 도구), materials-package(파일 도구), content-operator(글 도구), img-summary(이미지 도구)가 모두 끄기 대상이다. 엑셀·PPT·이미지·문구 작업 때마다 이 잡음이 생긴다. 계획 8장의 대비책 '필요하면 capability-toggle로 함께 끔'은 효과가 없다(L7 감사 결론과도 같음). 판정 기준도 서로 다르다. ulw-research와 omh-executor-runtime-readiness는 '힌트가 가리키니까' 유지했는데, 같은 사정인 30여 개는 껐다.",
+      "evidence": "plugins/omh/awareness.py:689-760 GENERIC_TOOL_CHECKPOINT_ROUTES primary_workflow(img-summary, materials-package, research, data-analysis, content-operator) · awareness.py:5540-5590 Route Hint 문구 생성, 필터 없음 · grep 'disabled|capability_policy|get_disabled_skill_names' plugins/omh 전체: 결과 없음, setup-profile.json은 runtime_reader.py:757(HUD)만 읽음 · hermes-agent/tools/skills_tool.py:587-589 \"Skill 'X' is disabled\" · cluster_notes L7 [경로힌트 연동 — 핵심 경고] · verdicts ulw-research·omh-executor-runtime-readiness reason",
+      "suggestion": "① 계획 8장의 대비책 문구를 고친다: capability-toggle은 힌트를 끄지 못함. ② 기준을 하나로 정한다. 권장안은 '힌트 때문에 유지'를 없애고 ulw-research·omh-executor-runtime-readiness도 능력 기준으로만 판정하는 것이다(ulw-research는 multi-source-research-survey와 겹침). ③ Hermes 본체를 고치지 않고 할 수 있는 완화책: workflow 분류 DESCRIPTION.md나 사용자 메모리에 'OMH Route Hint가 가리킨 워크플로가 목록에 없으면 불러오지 말고 지도 분류에서 고른다' 한 줄을 넣는다. ④ A8 시험 문장에 힌트를 일으키는 요청(엑셀 표 분석, PPT 만들기, 홍보 이미지 생성, 공지 문구 쓰기)을 추가하고 'disabled' 오류 횟수를 센다. ⑤ OMH 쪽에 '힌트가 skills.disabled를 존중'하도록 개선을 요청하는 메모를 남긴다."
+    },
+    {
+      "id": "R1-4",
+      "severity": "medium",
+      "target": "omh-frontend, omh-visual-qa, omh-agent-debug, omh-design-quality-gate, omh-accessibility-audit, omh-verification-gate, competitor-profiling, design-taste-frontend, requesting-code-review, meeting-action-items",
+      "finding": "끄거나 보관하는 스킬 가운데 옮겨야 할 교훈이 있는데, 어디로 옮길지가 판정표 필드에 없는 것이 많다. ① lessons_to_port는 있는데 merge_into가 비어 있는 경우: omh-frontend 5줄, omh-visual-qa 4줄, omh-agent-debug 3줄, omh-design-quality-gate 2줄, competitor-profiling 3줄. omh-accessibility-audit와 omh-verification-gate는 대상이 문장 안에만 적혀 있다. ② 옮길 교훈이 reason에만 적혀 있고 lessons_to_port는 빈 경우: design-taste-frontend('화면 분위기 한 줄 선언', 'URL·메뉴·폼 이름·로고·법적 문구를 승인 없이 바꾸지 말 것', 'min-h-[100dvh]'), requesting-code-review('diff만 주고 fail-closed JSON 판정' 패턴), meeting-action-items('회의록도 문서로 취급'). 실행자가 필드만 보고 일하면 이 교훈들이 사라진다. 판정 관문도 이 경우를 검사하지 않는다. ③ 일부 대상은 갱신 때 덮어써지는 스킬이다: unlazy(허브), omh-code-review(OMH), interface-design(허브), document-to-action-items(원본 그대로인 번들).",
+      "evidence": "verdicts.json 해당 행의 lessons_to_port 개수와 merge_into=null · design-taste-frontend reason '끄기 전 frontend-design이 흡수할 것: ①…②…③' (LTP 0) · requesting-code-review reason '남길 스킬이 흡수할 점' (LTP 0) · gates/verdicts_gate.py:41-45(병합만 merge_into 검사) · cluster_notes L7(omh-plan 'omh update --force'가 덮어씀)",
+      "suggestion": "교훈이 있는 모든 행에 'port_to' 필드를 추가한다(유지 스킬 이름, 로컬 스킬 우선). 예: omh-frontend·omh-design-quality-gate → frontend-design 또는 academy-design-variants, omh-visual-qa → live-web-change-verification, omh-agent-debug → agent-pipeline-diagnosis, competitor-profiling → multi-source-research-survey. ②의 3개는 lessons_to_port를 채운다. 관문에 두 규칙을 더한다: 'lessons_to_port가 있으면 port_to는 유지 스킬', 'reason에 흡수·옮길이 있으면 lessons_to_port는 비면 안 됨'. 대상이 허브·OMH·원본 그대로인 번들이면 로컬 스킬로 바꾸거나, 허브→로컬 전환 뒤에 옮긴다. OMH 파일에는 옮기지 않는다."
+    },
+    {
+      "id": "R1-5",
+      "severity": "medium",
+      "target": "academy-code-audit",
+      "finding": "병합 방향이 '분류만 보고 고르기' 원칙과 맞지 않는다. 학원 전용 점검 스킬(academy/site, 11회 사용)을 범용 delegated-code-audit(coding 분류, 1회 사용, 이미 stale)에 합치면, '학원 홈페이지 점검해 줘' 요청 때 에이전트가 academy 분류만 보면 맞는 스킬이 없다. 감사 묶음 메모 L9는 '학원 사이트 전용 감사는 academy-code-audit이 계속 담당'이라고 적어 판정과 서로 어긋난다. 병합 대상은 R1-2 때문에 자동 보관될 위험도 있다.",
+      "evidence": "verdicts.json academy-code-audit(use 11, category academy/site, merge_into delegated-code-audit) vs delegated-code-audit(use 1, coding, .usage.json state=stale) · cluster_notes L9 '학원 사이트 전용 감사는 academy-code-audit이 계속 담당' · 같은 행 reason의 '(반대안: 학원판 래퍼로 남기고 파이프라인만 지워 delegated-code-audit 링크로 대체)'",
+      "suggestion": "판정을 '유지(얇게)'로 바꾼다. 겹치는 1~7단계 절차만 지우고 'delegated-code-audit 절차를 따른다' 한 줄로 바꾼 뒤 학원 교훈은 그대로 둔다. nas-docker-deployment·academy-design-variants로 가는 교훈 줄은 현재 계획대로 옮긴다. 비슷한 분류 간 병합이 더 있는지 검사하는 규칙(원본과 대상의 분류가 다르면 경고)을 관문에 추가한다."
+    },
+    {
+      "id": "R1-6",
+      "severity": "medium",
+      "target": "분류 배치 (baoyu-diagram, document-to-action-items, OMH 배관 5개, 위임 스킬 5개, maps, agents-hermes)",
+      "finding": "몇몇 스킬의 분류가 계획 3장 표와 다르다. 이대로면 분류 설명만 보고는 찾기 어렵다. ① baoyu-diagram(도식)이 data-viz에 들어가 있다. 3장은 도식을 visual-content로 정했다. 이걸 옮기면 data-viz에는 kpi-dashboard-design 1개만 남는다. ② document-to-action-items가 workflow에 있다. 3장은 '회의록·할 일 뽑기'를 documents로 정했다. ③ omh-cancel·omh-doctor·omh-skill·omh-capability-toggle·omh-agent-ops-review는 OMH 자체 관리용인데 '작업 방식(workflow)'에 들어가 있다. ④ claude-code·codex·opencode·ulw-maestro·omh-executor-runtime-readiness(코딩 위임)가 coding에 있다. 3장은 '위임'을 agents-hermes에 넣었다. ⑤ apps에는 maps 1개만 남아 사실상 단독 분류다(A2 위반에 가깝다). ⑥ agents-hermes는 15개이고 ③을 옮기면 20개가 된다. 그중 agentos-* 7개와 multi-agent-control-plane이 한 덩어리다.",
+      "evidence": "verdicts.json 유지 행 category 집계: coding 17, agents-hermes 15, research 11, workflow 11, design 9, web-quality 8, documents 7, marketing 7, academy 20(하위 포함), pc-ops 5, visual-content 2, data-viz 2(baoyu-diagram, kpi-dashboard-design), apps 1(maps) · skill-map-plan.md:66-78(3장 표)",
+      "suggestion": "baoyu-diagram → visual-content. document-to-action-items → documents. OMH 배관 5개 → agents-hermes(지도 표시만; 폴더는 R1-1 참고). 위임 5개는 coding으로 둘지 agents-hermes로 둘지 하나로 정하고 두 분류의 DESCRIPTION.md에 '코딩 위임은 ○○'를 적는다. apps 분류는 없애고 maps를 research로 옮겨 12분류로 한다(나중에 메일·구글 연결을 켜면 그때 다시 만듦). data-viz는 사장님이 직접 예로 든 분류이니 남기되, 포함 범위에 'xlsx 차트, illustrated-design-report의 수치 그림은 여기'처럼 경계를 적는다. agents-hermes는 academy처럼 agents-hermes/agentos 하위 분류로 나눈다."
+    },
+    {
+      "id": "R1-7",
+      "severity": "medium",
+      "target": "같은 분류 안 비슷한 유지 스킬 묶음",
+      "finding": "같은 분류 안에서 비슷한 일을 하는 유지 스킬이 여럿 남는 묶음이 있다. 구분 기준을 지도에 명확히 적지 않으면 에이전트가 고르기 어렵다. design: 화면을 만드는 스킬 4개(frontend-design=홈페이지·랜딩, interface-design=관리 화면, claude-design=한 번 쓰는 HTML 시안, ui-ux-pro-max=업종별 배색·글꼴 검색)와 움직임 2개(design-motion-principles, game-feel). web-quality: 속도 3개(core-web-vitals 0회, web-quality-audit 0회, ulw-perf 3회). research: 조사 3개(multi-source-research-survey, ulw-research, grounded-citations). workflow: 계획·관문·실행 3개(omh-plan, unlazy, ulw-work). 감사 메모에는 경계가 적혀 있지만 판정표의 when 필드만으로는 둘 중 무엇을 고를지 정해지지 않는 쌍이 있다.",
+      "evidence": "verdicts.json 유지 행의 overlap_with(예: frontend-design ↔ interface-design·claude-design·ui-ux-pro-max, core-web-vitals ↔ web-quality-audit·ulw-perf) · cluster_notes L1(화면 디자인은 frontend-design/interface-design 둘로 나눔)",
+      "suggestion": "SKILLS_MAP.md의 '이럴 때'와 '대신 쓰지 말 것' 칸을 이 묶음부터 채우고, 분류 DESCRIPTION.md에도 한 줄씩 넣는다(예: '홈페이지·랜딩=frontend-design / 관리자 화면=interface-design / 발표·시안 HTML=claude-design / 배색만=ui-ux-pro-max'). 속도 묶음은 core-web-vitals(웹 지표 측정·수정)와 web-quality-audit(종합 점검)만 웹용으로 두고, ulw-perf는 '웹이 아닌 프로그램 느림'으로 경계를 적는다. 아니면 R1-3에 따라 끈다. ulw-research는 R1-3 기준에 따라 끄기를 검토한다."
+    },
+    {
+      "id": "R1-8",
+      "severity": "medium",
+      "target": "번들 opt-out + 폴더 이동",
+      "finding": "번들 스킬 자동 추가·갱신을 끄면(opt-out) 부작용이 있다. ① 유지하는 번들 중 원본 그대로인 것(claude-code, codex, github, xlsx, powerpoint, maps, systematic-debugging, test-driven-development, dogfood, claude-design, design-md, grounded-citations 등)도 이후 Hermes 업데이트의 수정분을 못 받는다. 9/23 업데이트 때는 실제로 12개가 갱신됐다. ② 순서가 중요하다. opt-out보다 폴더 이동을 먼저 하면, 원본 그대로인 사본은 다음 업데이트 때 원래 자리로 되돌아간다. Hermes 데스크톱은 업데이트가 자동으로 돈 기록이 있다. ③ opt-out 상태에서도 필수 스킬 hermes-agent는 계속 동기화된다. 수정본이라 되돌려지지는 않지만, 옛 폴더(autonomous-ai-agents)의 DESCRIPTION.md가 다시 생길 수 있다(스킬이 없으니 목록엔 안 나옴). ④ 코딩 집중 모드의 '이름만 보이기' 대상은 creative·productivity·media·email 같은 옛 폴더 이름으로 정해져 있다. 새 이름으로 바꾸면 이 기능이 안 먹는다. 지금 설정에서는 쓰지 않으므로 영향은 작다.",
+      "evidence": "hermes-agent/tools/skills_sync.py:225-260(_recover_renamed_skill: 원본 해시와 같은 사본만 새 위치로 옮김), 396-457(opt-out이면 ESSENTIAL_SKILLS만 시드, _seed_category_descriptions 호출) · hermes_cli/skills_hub.py:1220-1235(do_opt_out은 표시 파일만 씀) · 해시 비교 결과: hermes-agent·opencode·docx·pdf·computer-use는 modified, 나머지 유지 번들 다수 pristine · logs/update.log:1357 '12 updated: findmy, claude-code, codex, …' · agent/coding_context.py:139-142",
+      "suggestion": "실행 계획 3단계에 순서를 명시한다: 'opt-out 표시 파일 확인 → 그다음 이동'. 이동 직후 `hermes update`를 하지 말고, 표시 파일(.no-bundled-skills)이 있는지 다시 확인한다. 검사 스크립트(skill-map-check)에 두 가지를 더한다: '원본 그대로인 번들의 상류 변경 알림'(hermes skills check/diff 결과 요약), '옛 분류 폴더가 다시 생겼는지'. 사장님께는 '번들 스킬은 이제 자동으로 새 버전이 안 들어온다'를 쉬운 말로 알린다."
+    },
+    {
+      "id": "R1-9",
+      "severity": "medium",
+      "target": "computer-use (Orca 사본 2개)",
+      "finding": "정리 방향(Hermes 번들판만 남김)은 맞다. 다만 실행 방법에 함정이 있다. ① 판정표는 Orca 사본 2개의 출처를 'bundled'로 적었는데 실제 출처는 Orca다. ② 큐레이터 보관 명령은 이름으로 동작하는데, 'computer-use'는 번들 이름이라 거절된다. 큐레이터의 번들 정리 옵션(prune_builtins)이 켜져 있으면 오히려 실제로 쓰는 번들 쪽을 보관할 수 있다. 계획 A5의 'curator restore로 복구'도 번들 이름이라 거절된다. ③ computer-use.rollback-broken은 ~/.agents/skills/computer-use로 가는 링크다. 링크 대상을 지우면 Claude Code가 쓰는 원본이 사라진다. ④ Orca가 다음 스킬 업데이트 때 링크를 다시 만들면 이름 충돌이 되살아난다.",
+      "evidence": "ls -la skills: computer-use.rollback-broken -> /c/Users/tahar/.agents/skills/computer-use, computer-use(실제 폴더, 9/5 07:38) · verdicts.json computer-use 보관 2행 prov='bundled', action='remove-orca-link' · hermes-agent/tools/skill_usage.py:617-628(archive_skill: 번들 이름 거절, prune_builtins), 647-653(restore_skill: 번들 이름 거절) · .bundled_manifest:15 computer-use",
+      "suggestion": "두 행의 prov를 'orca'로 고친다. action은 '수동 처리(큐레이터 사용 금지)'로 바꾼다. 링크는 링크만 지운다(rm에 -r을 붙이지 않고 끝 슬래시도 붙이지 않음). 실제 폴더는 skills 폴더 밖 백업(예: hermes/backups/skill-map-…/orca-computer-use)으로 옮긴다. A5의 복구 시험 대상에서는 이 둘을 빼고 '백업 폴더에서 되돌려 놓기'로 적는다. 검사 스크립트에 '스킬 폴더 안 심볼릭 링크'와 '같은 이름(frontmatter name)이 2개 이상' 검사를 넣는다. 사장님께 Orca 설정에서 스킬 설치 대상 중 Hermes를 빼도 되는지 묻는다."
+    },
+    {
+      "id": "R1-10",
+      "severity": "low",
+      "target": "orchestration",
+      "finding": "이름으로 끄는 방식(skills.disabled)은 Orca가 링크를 다시 만들어도 계속 숨겨지므로 적절하다. 남는 위험은 작다. Hermes를 Orca 작업 공간(C:/Users/tahar/orca/workspaces)에서 돌리고 있어서, 나중에 'Orca로 여러 에이전트를 조율해 줘'라고 하면 안내가 없다. 다만 이 스킬 자체도 Hermes에 없는 orca-cli 스킬을 가리키는 껍데기라 원래 불완전하다. 본문의 '비-Orca 하위 에이전트 도구로 대신하지 말 것'은 Hermes delegate_task와 충돌한다.",
+      "evidence": "skills/orchestration -> /c/Users/tahar/.agents/skills/orchestration · ~/.agents/skills/orchestration/SKILL.md 앞부분('Use orca-cli instead…', 'never substitute a non-Orca subagent tool') · verdicts.json orchestration reason(Hermes 세션 orca 호출 0건)",
+      "suggestion": "끄기를 유지한다. SKILLS_MAP.md의 '꺼진 것' 표에 'Orca 다중 에이전트 조율이 필요하면 켜기'를 적는다. 검사 스크립트의 링크 검사(R1-9)에서 이 링크는 '알려진 예외'로 등록한다."
+    },
+    {
+      "id": "R1-11",
+      "severity": "medium",
+      "target": "hermes-skill-library-curation (판정표 최신성)",
+      "finding": "판정표를 만든 시각(04:04) 이후 새 스킬 hermes-skill-library-curation이 생겼다(04:08, autonomous-ai-agents, 이번 정리 작업을 하는 스킬). 판정 관문을 다시 돌리면 실패한다. 이 스킬은 find-skills·omh-skill·hermes-memory-curation과 같은 '스킬·기억 관리' 묶음인데 판정이 없다. OMH omh-plan SKILL.md도 판정 뒤(04:07)에 고쳐졌다.",
+      "evidence": "python gates/verdicts_gate.py 실행 결과: \"FAIL no verdict for ('hermes', 'autonomous-ai-agents/hermes-skill-library-curation/SKILL.md')\", rows=257 disk=258 errors=1 · skills/.curator_ledger.jsonl 2026-10-26T19:08:27Z create hermes-skill-library-curation · ~/.omh/skills/planner/omh-plan/SKILL.md 수정 시각 10-27 04:07",
+      "suggestion": "새 스킬의 판정 행을 추가한다(권장: 유지, agents-hermes, '스킬 목록 정리·분류 감사'; find-skills=외부 설치, omh-skill=OMH 팩 관리와의 경계를 적음). 2단계 승인 보고 직전과 3단계 실행 직전에 관문을 다시 돌린다. 계획 8장의 '최근 5분 내 수정 SKILL.md 확인'을 '판정 이후 새로 생기거나 바뀐 SKILL.md 확인'으로 넓힌다."
+    },
+    {
+      "id": "R1-12",
+      "severity": "medium",
+      "target": "omh-capability-toggle",
+      "finding": "유지 이유가 '이번 정리(OMH 끄기)의 실행 수단'으로 적혀 있다. 하지만 감사 결론(L7)은 OMH 기능군 끄기를 쓰지 않고 skills.disabled로 끄는 것이다. 기능군 끄기는 단위가 너무 굵다. 'retain_knowledge' 기능군을 끄면 OMH 메모리 공급자가 꺼지는데, 사장님 설정은 memory.provider=omh다. 이 스킬을 목록에 남겨 두면 에이전트가 '쓸데없는 OMH 기능 꺼줘' 같은 말에 이 경로로 기능군을 꺼 버릴 위험이 있다. OMH 핵심 바닥 스킬(retained_core_skills) 목록에도 없다.",
+      "evidence": "verdicts.json omh-capability-toggle reason '이번 정리(OMH 스킬 끄기)의 실행 수단' · cluster_notes L7 [OMH 자체 끄기 장치] ④ 'retain_knowledge 가족을 끄면 OMH 프로젝트 메모리 자체가 꺼짐' · config.yaml:111 memory.provider: omh · ~/.omh/setup-profile.json capability_policy.retained_core_skills 5개(agent-ops-review, cancel, doctor, oh-my-hermes, skill)",
+      "suggestion": "판정을 '끄기'로 바꾼다. 남길 경우에는 reason을 고치고 SKILLS_MAP.md에 '쓰지 말 것: retain_knowledge 기능군은 절대 끄지 않음, 봇 프로필도 같은 OMH 폴더를 씀'을 적는다."
+    },
+    {
+      "id": "R1-13",
+      "severity": "low",
+      "target": "sdlc-review, requesting-code-review",
+      "finding": "Hermes 칸반은 '검토' 칸 작업을 자동으로 맡길 때 sdlc-review를 강제로 불러오고(설정 kanban.review_dispatch: true), 여러 작업자 방식의 검증 작업에는 requesting-code-review를 붙인다. 둘 다 끄면 그런 작업이 생겼을 때 스킬 없이 돈다(오류는 아니고 '없음'으로 처리). 지금 기본 프로필 칸반은 보관된 작업 4건뿐이라 영향은 작다.",
+      "evidence": "hermes-agent/hermes_cli/kanban_db_dispatch.py:2117-2119(review 칸이면 sdlc-review 강제 추가) · hermes_cli/kanban_swarm.py:238 skills=[\"requesting-code-review\"] · agent/skill_commands.py:826-850(꺼진 스킬은 missing으로 처리) · config.yaml kanban.review_dispatch: true · kanban.db 작업 상태 archived 4",
+      "suggestion": "끄기는 유지한다. SKILLS_MAP.md에 '칸반 리뷰를 쓰게 되면 sdlc-review를 다시 켤 것'을 적는다. 칸반을 쓰지 않을 거라면 사장님께 review_dispatch를 끌지 물어본다(설정 변경은 사장님 승인 후)."
+    },
+    {
+      "id": "R1-14",
+      "severity": "low",
+      "target": "review-animations, multi-bot-orchestration",
+      "finding": "병합 원본에 딸린 파일 중 판정표에 처리 방법이 없는 것이 있다: review-animations/STANDARDS.md(약 10KB), multi-bot-orchestration/references/orchestrator-soul-template.md(약 3.6KB). 보관하면 복구는 가능하지만, 교훈 옮기기(A6) 검사 범위에서 빠진다. 나머지 병합 원본의 딸린 파일(local-file-library-cleanup의 references 3개, academy-content-truth-audit의 scripts 2개)은 lessons_to_port에 옮길 곳이 적혀 있다.",
+      "evidence": "skills/creative/review-animations/STANDARDS.md 9988바이트 · skills/multi-bot-orchestration/references/orchestrator-soul-template.md 3654바이트 · verdicts.json 두 행 lessons_to_port에 해당 파일 언급 없음",
+      "suggestion": "두 행에 '딸린 파일: 옮김(대상 경로) / 버림(이유)'을 한 줄씩 추가한다. 관문에 '병합 원본의 SKILL.md 외 파일은 lessons_to_port나 reason에 이름이 나와야 함' 규칙을 넣는다."
+    },
+    {
+      "id": "R1-15",
+      "severity": "low",
+      "target": "전체 (사용자 기대와 실제 동작)",
+      "finding": "Hermes에는 '분류를 먼저 고르고 그 분류만 펼쳐 보는' 기능이 없다. 정리 뒤에도 매번 유지 스킬 약 116개의 이름과 설명이 분류별로 한꺼번에 보인다(이름만 보이게 줄이는 기능은 코딩 집중 모드 전용). 그래서 '다른 분류는 뒤지지 않도록'은 기능으로 막는 것이 아니다. 분류 이름·설명을 선명하게 하고 목록을 줄여서 그렇게 하기 '쉽게' 만드는 것이다. 계획 0장도 이 점을 적었지만, 승인 보고서에서 사장님이 오해하지 않게 다시 알려야 한다.",
+      "evidence": "hermes-agent/agent/prompt_builder.py:1451-1457(분류마다 설명 + 스킬 줄 전부 출력), 1438(names-only는 compact_categories일 때만) · agent/system_prompt.py:301-314(focus 모드에서만 compact) · verdicts.json 유지 115행 + 새 스킬 1",
+      "suggestion": "2단계 승인 보고서에 쉬운 말로 적는다: '에이전트는 여전히 전체 목록을 보지만, 분류가 13개(+OMH)로 줄고 분류마다 넣는 것과 넣지 않는 것이 적혀 있어 맞는 분류를 바로 찾게 된다. 목록은 249개에서 약 116개로 준다.' A4에 목표 숫자(스킬 수·글자 수)를 미리 적는다. 실제로 그렇게 고르는지는 A8에서 확인한다."
+    }
+  ]
+}
