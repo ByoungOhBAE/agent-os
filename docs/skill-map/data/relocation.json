@@ -1,0 +1,716 @@
+[
+ {
+  "name": "chatgpt-desktop-image-gen",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/chatgpt-desktop-image-gen",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/visual-content/chatgpt-desktop-image-gen"
+ },
+ {
+  "name": "claude-code",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/claude-code",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/claude-code"
+ },
+ {
+  "name": "codex",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/codex",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/codex"
+ },
+ {
+  "name": "computer-use",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/computer-use",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/pc-ops/computer-use"
+ },
+ {
+  "name": "hermes-agent",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/hermes-agent",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/hermes-agent"
+ },
+ {
+  "name": "hermes-memory-curation",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/hermes-memory-curation",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/hermes-memory-curation"
+ },
+ {
+  "name": "multi-agent-control-plane",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/multi-agent-control-plane",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/multi-agent-control-plane"
+ },
+ {
+  "name": "opencode",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/opencode",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/opencode"
+ },
+ {
+  "name": "ai-image-print-design",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/ai-image-print-design",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/visual-content/ai-image-print-design"
+ },
+ {
+  "name": "baoyu-diagram",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/baoyu-diagram",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/visual-content/baoyu-diagram"
+ },
+ {
+  "name": "claude-design",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/claude-design",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/claude-design"
+ },
+ {
+  "name": "design-md",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/design-md",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/design-md"
+ },
+ {
+  "name": "design-motion-principles",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/design-motion-principles",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/design-motion-principles"
+ },
+ {
+  "name": "figma-mcp-design",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/figma-mcp-design",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/figma-mcp-design"
+ },
+ {
+  "name": "frontend-design",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/frontend-design",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design"
+ },
+ {
+  "name": "game-feel",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/game-feel",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/game-feel"
+ },
+ {
+  "name": "illustrated-design-report",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/illustrated-design-report",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/documents/illustrated-design-report"
+ },
+ {
+  "name": "information-architecture",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/information-architecture",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/information-architecture"
+ },
+ {
+  "name": "interface-design",
+  "prov": "hub",
+  "mode": "copy",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/interface-design",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/interface-design"
+ },
+ {
+  "name": "kpi-dashboard-design",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/kpi-dashboard-design",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/data-viz/kpi-dashboard-design"
+ },
+ {
+  "name": "ui-ux-pro-max",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/ui-ux-pro-max",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/design/ui-ux-pro-max"
+ },
+ {
+  "name": "ux-heuristics",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/creative/ux-heuristics",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/ux-heuristics"
+ },
+ {
+  "name": "nas-docker-deployment",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/devops/nas-docker-deployment",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/pc-ops/nas-docker-deployment"
+ },
+ {
+  "name": "security-advisory-triage",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/devops/security-advisory-triage",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/pc-ops/security-advisory-triage"
+ },
+ {
+  "name": "windows-resource-triage",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/devops/windows-resource-triage",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/pc-ops/windows-resource-triage"
+ },
+ {
+  "name": "gateway-platform-toggle",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/gateway-platform-toggle",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/gateway-platform-toggle"
+ },
+ {
+  "name": "video-visual-analysis",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/media/video-visual-analysis",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/research/video-visual-analysis"
+ },
+ {
+  "name": "youtube-content",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/media/youtube-content",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/research/youtube-content"
+ },
+ {
+  "name": "agent-pipeline-diagnosis",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/operator/agent-pipeline-diagnosis",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agent-pipeline-diagnosis"
+ },
+ {
+  "name": "academy-admin-structure",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-admin-structure",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-admin-structure"
+ },
+ {
+  "name": "academy-ai-chat",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-ai-chat",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-ai-chat"
+ },
+ {
+  "name": "academy-channel-feed",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-channel-feed",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-channel-feed"
+ },
+ {
+  "name": "academy-code-audit",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-code-audit",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-code-audit"
+ },
+ {
+  "name": "academy-consult-alert-app",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-consult-alert-app",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-consult-alert-app"
+ },
+ {
+  "name": "academy-content-accuracy",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-content-accuracy",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy"
+ },
+ {
+  "name": "academy-content-generator",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-content-generator",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-generator"
+ },
+ {
+  "name": "academy-design-variants",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-design-variants",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-design-variants"
+ },
+ {
+  "name": "academy-detail-blocks",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-detail-blocks",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks"
+ },
+ {
+  "name": "academy-discount-policy-revision",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-discount-policy-revision",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-discount-policy-revision"
+ },
+ {
+  "name": "academy-hero-studio",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-hero-studio",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-hero-studio"
+ },
+ {
+  "name": "academy-lms-accounts",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-lms-accounts",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-lms-accounts"
+ },
+ {
+  "name": "academy-lms-development",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-lms-development",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-lms-development"
+ },
+ {
+  "name": "academy-school-partnership",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-school-partnership",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-school-partnership"
+ },
+ {
+  "name": "academy-search-visibility",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-search-visibility",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-search-visibility"
+ },
+ {
+  "name": "coupang-price-refresh",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/coupang-price-refresh",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/coupang-price-refresh"
+ },
+ {
+  "name": "desktop-report-folder",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/desktop-report-folder",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/documents/desktop-report-folder"
+ },
+ {
+  "name": "document-to-action-items",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/document-to-action-items",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/documents/document-to-action-items"
+ },
+ {
+  "name": "docx",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/docx",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/documents/docx"
+ },
+ {
+  "name": "local-file-cleanup",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/local-file-cleanup",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/pc-ops/local-file-cleanup"
+ },
+ {
+  "name": "maps",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/maps",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/research/maps"
+ },
+ {
+  "name": "pdf",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/pdf",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/documents/pdf"
+ },
+ {
+  "name": "powerpoint",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/powerpoint",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/documents/powerpoint"
+ },
+ {
+  "name": "privacy-policy-revision",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/privacy-policy-revision",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/privacy-policy-revision"
+ },
+ {
+  "name": "project-todo-refresh",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/project-todo-refresh",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/workflow/project-todo-refresh"
+ },
+ {
+  "name": "shopping-part-finder",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/shopping-part-finder",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/research/shopping-part-finder"
+ },
+ {
+  "name": "xlsx",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/xlsx",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/documents/xlsx"
+ },
+ {
+  "name": "academy-competitor-discount-survey",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/research/academy-competitor-discount-survey",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-competitor-discount-survey"
+ },
+ {
+  "name": "academy-exam-reference-sourcing",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/research/academy-exam-reference-sourcing",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-exam-reference-sourcing"
+ },
+ {
+  "name": "find-skills",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/research/find-skills",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/find-skills"
+ },
+ {
+  "name": "reddit-reading",
+  "prov": "hub",
+  "mode": "copy",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/social-media/reddit-reading",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/research/reddit-reading"
+ },
+ {
+  "name": "academy-course-scheduler",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/academy-course-scheduler",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-course-scheduler"
+ },
+ {
+  "name": "agentos-bot-profile-config",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/agentos-bot-profile-config",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-bot-profile-config"
+ },
+ {
+  "name": "agentos-dashboard-development",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/agentos-dashboard-development",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-dashboard-development"
+ },
+ {
+  "name": "agentos-guard-plugin",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/agentos-guard-plugin",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-guard-plugin"
+ },
+ {
+  "name": "agentos-ops-hardening",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/agentos-ops-hardening",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-ops-hardening"
+ },
+ {
+  "name": "agentos-org-verification",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/agentos-org-verification",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-org-verification"
+ },
+ {
+  "name": "agentos-paperclip-admin-api",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/agentos-paperclip-admin-api",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-paperclip-admin-api"
+ },
+ {
+  "name": "codebase-inspection",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/codebase-inspection",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/codebase-inspection"
+ },
+ {
+  "name": "delegated-code-audit",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/delegated-code-audit",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/delegated-code-audit"
+ },
+ {
+  "name": "dogfood",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/dogfood",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/dogfood"
+ },
+ {
+  "name": "github",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/github",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/github"
+ },
+ {
+  "name": "live-web-change-verification",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/live-web-change-verification",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/live-web-change-verification"
+ },
+ {
+  "name": "mirror-ledger-development",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/mirror-ledger-development",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/mirror-ledger-development"
+ },
+ {
+  "name": "nextjs-development",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/nextjs-development",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/nextjs-development"
+ },
+ {
+  "name": "playwright-best-practices",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/playwright-best-practices",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/playwright-best-practices"
+ },
+ {
+  "name": "simplify-code",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/simplify-code",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/simplify-code"
+ },
+ {
+  "name": "software-reverse-engineering",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/software-reverse-engineering",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/software-reverse-engineering"
+ },
+ {
+  "name": "spike",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/spike",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/spike"
+ },
+ {
+  "name": "systematic-debugging",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/systematic-debugging",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/systematic-debugging"
+ },
+ {
+  "name": "test-driven-development",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/test-driven-development",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/test-driven-development"
+ },
+ {
+  "name": "vercel-react-best-practices",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-react-best-practices",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices"
+ },
+ {
+  "name": "web-accessibility-wcag",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/web-accessibility-wcag",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/web-accessibility-wcag"
+ },
+ {
+  "name": "unlazy",
+  "prov": "hub",
+  "mode": "copy",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/unlazy",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/workflow/unlazy"
+ },
+ {
+  "name": "blocked-page-recovery",
+  "prov": "bundled",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/web/blocked-page-recovery",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/research/blocked-page-recovery"
+ },
+ {
+  "name": "core-web-vitals",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/web/core-web-vitals",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals"
+ },
+ {
+  "name": "web-quality-audit",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/web/web-quality-audit",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/web-quality-audit"
+ },
+ {
+  "name": "omh-routing",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/guide/omh-routing",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/omh/omh-routing"
+ },
+ {
+  "name": "omh-decide",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/operator/omh-decide",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/workflow/omh-decide"
+ },
+ {
+  "name": "omh-curriculum-design",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/planner/omh-curriculum-design",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/academy/omh-curriculum-design"
+ },
+ {
+  "name": "omh-plan",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/planner/omh-plan",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/workflow/omh-plan"
+ },
+ {
+  "name": "omh-code-review",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/reviewer/omh-code-review",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/coding/omh-code-review"
+ },
+ {
+  "name": "omh-legal-compliance-review",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/reviewer/omh-legal-compliance-review",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/documents/omh-legal-compliance-review"
+ },
+ {
+  "name": "omh-security-safety-review",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/reviewer/omh-security-safety-review",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/omh-security-safety-review"
+ },
+ {
+  "name": "omh-agent-ops-review",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/tracker/omh-agent-ops-review",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/omh/omh-agent-ops-review"
+ },
+ {
+  "name": "omh-cancel",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/tracker/omh-cancel",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/omh/omh-cancel"
+ },
+ {
+  "name": "omh-context-budget-review",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/tracker/omh-context-budget-review",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/omh-context-budget-review"
+ },
+ {
+  "name": "omh-doctor",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/tracker/omh-doctor",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/omh/omh-doctor"
+ },
+ {
+  "name": "omh-skill",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/tracker/omh-skill",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/omh/omh-skill"
+ },
+ {
+  "name": "ulw-maestro",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/ultrawork/ulw-maestro",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/ulw-maestro"
+ },
+ {
+  "name": "ulw-perf",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/ultrawork/ulw-perf",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/ulw-perf"
+ },
+ {
+  "name": "ulw-work",
+  "prov": "omh",
+  "mode": "copy",
+  "src": "C:/Users/tahar/.omh/skills/ultrawork/ulw-work",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/workflow/ulw-work"
+ },
+ {
+  "name": "hermes-skill-library-curation",
+  "prov": "local",
+  "mode": "move",
+  "src": "C:/Users/tahar/AppData/Local/hermes/skills/autonomous-ai-agents/hermes-skill-library-curation",
+  "dst": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/hermes-skill-library-curation"
+ }
+]

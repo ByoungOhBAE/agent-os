@@ -1,0 +1,17 @@
+academy-content-truth-audit :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\academy-content-truth-audit
+academy-detail-image-block :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\academy-detail-image-block
+build-dashboard :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\build-dashboard
+calendar-ux-benchmark :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\calendar-ux-benchmark
+class-platform-ui-benchmark :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\class-platform-ui-benchmark
+competitor-profiling :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\competitor-profiling
+data-visualization :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\data-visualization
+hero-studio-figma-export :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\hero-studio-figma-export
+local-file-library-cleanup :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\local-file-library-cleanup
+multi-bot-orchestration :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\multi-bot-orchestration
+naver-blog-photo-sourcing :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\naver-blog-photo-sourcing
+redesign-existing-projects :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\redesign-existing-projects
+review-animations :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\review-animations
+union-alpha-worker :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\union-alpha-worker
+vercel-composition-patterns :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\vercel-composition-patterns
+web-design-guidelines :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\web-design-guidelines
+web-perf :: curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\web-perf

@@ -1,0 +1,370 @@
+[
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "first explain in plain Korean what 실사표 is and why it is done",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "When the owner asks only to LOCATE a phrase or claim, change nothing",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Report as a visual dashboard (`::preview`), not a decision widget",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 3,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "The cause is usually an instruction source rather than the live data.",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 4,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "One shared code constant can fan a sentence out to many surfaces",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 5,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Measure before/after with a BAD-phrase regex, not the bare topic word",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 6,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Text baked into hero/banner IMAGES: download the HeroSlide images",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 7,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Other sessions edit the same copy in parallel, so never recommend",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 8,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "A committed but undeployed fix is still visible to visitors",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 9,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Scan for `소수|정예|선착|밀착|일대일|1:1`, then read the context.",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 10,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Also check our Naver blog (blog.naver.com/a5445380; b2750838 is a competitor)",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 11,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "「조리기능장 직강」 is true and stays",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 12,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Regenerate it from FRESH live data every time",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 13,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "the widget's `data-rec` is the decision",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 14,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Release that code BEFORE the data change, so the live page is never blank",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 15,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "## Item checklist (where untrue content hides)",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 16,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/SKILL.md",
+  "key_phrase": "this skill's `scripts/claim-scan.mjs`",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 17,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/SKILL.md",
+  "key_phrase": "Only the owner knows what is true. Never guess-delete",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 18,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/SKILL.md",
+  "key_phrase": "Treat \"we don't run X\" as a site-wide purge of X",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 19,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "ask per claim group in ONE clarify form",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 20,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Repo `docs/**` work files that other sessions feed into copy",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "lesson_index": 21,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/references/audit-and-report.md",
+  "key_phrase": "Also read the ChatLog assistant rows (`role='assistant'` only",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-content-truth-audit/scripts/claim-scan.mjs",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/scripts/claim-scan.mjs",
+  "key_phrase": "Find a phrase/claim on the LIVE academy site",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-content-truth-audit/scripts/instruction-source-scan.py",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/scripts/instruction-source-scan.py",
+  "key_phrase": "Read-only scan of every LOCAL place an agent can re-learn a claim",
+  "already_present": false
+ },
+ {
+  "source": "academy-content-truth-audit",
+  "target": "academy-content-accuracy",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-content-truth-audit/SKILL.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-content-accuracy/SKILL.md",
+  "key_phrase": "`references/audit-and-report.md` (scripts `scripts/claim-scan.mjs`",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "Do not reintroduce zoom without asking.",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "Keep `tests/fixtures/detail-blocks-photo.html` byte-identical",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "`!important` is required to beat the inline PC ratio",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 3,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "`touch-action: pan-x pan-y pinch-zoom` (not bare `pinch-zoom`",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 4,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "Editor must not import `@/lib/upload-limits` etc.",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 5,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "Never put side effects (rAF/scroll) inside a setState updater",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 6,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "never test `folder.length === 3` again",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 7,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "Add `esModuleInterop: true` to transpile options",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 8,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "jsdom drops CSS `max()`/`calc()` style values",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 9,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "`scrollIntoView` each `img` before `waitForFunction(complete)`",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 10,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/references/image-block.md",
+  "key_phrase": "Measure pre-load box via `page.route` holding `/uploads/test-long-` requests",
+  "already_present": false
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "lesson_index": 11,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/SKILL.md",
+  "key_phrase": "`thumbnailImages` (`CourseThumbRotator`); always save",
+  "already_present": true
+ },
+ {
+  "source": "academy-detail-image-block",
+  "target": "academy-detail-blocks",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/academy-detail-image-block/SKILL.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-detail-blocks/SKILL.md",
+  "key_phrase": "Image block (`DetailImage`, no-zoom consult link",
+  "already_present": false
+ },
+ {
+  "source": "hero-studio-figma-export",
+  "target": "academy-hero-studio",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-hero-studio/references/figma-export.md",
+  "key_phrase": "`'detail'`(폭 1240 고정, 높이 400~6000 가변)",
+  "already_present": false
+ },
+ {
+  "source": "hero-studio-figma-export",
+  "target": "academy-hero-studio",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-hero-studio/references/figma-export.md",
+  "key_phrase": "레이어를 배열 순서(=z순서, 뒤 레이어가 앞)로 `frame.appendChild`",
+  "already_present": false
+ },
+ {
+  "source": "hero-studio-figma-export",
+  "target": "academy-hero-studio",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-hero-studio/references/figma-export.md",
+  "key_phrase": "'Noto Sans KR' 시도→실패 시 'Inter' 폴백",
+  "already_present": false
+ },
+ {
+  "source": "hero-studio-figma-export",
+  "target": "academy-hero-studio",
+  "lesson_index": 3,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-hero-studio/references/figma-export.md",
+  "key_phrase": "파일은 `<repo>/public/uploads/`에 있음",
+  "already_present": false
+ },
+ {
+  "source": "hero-studio-figma-export",
+  "target": "academy-hero-studio",
+  "lesson_index": 4,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-hero-studio/references/figma-export.md",
+  "key_phrase": "image 노드 fill이 `type:IMAGE` + `imageHash`인지 `use_figma`로 직접 조회",
+  "already_present": false
+ },
+ {
+  "source": "hero-studio-figma-export",
+  "target": "academy-hero-studio",
+  "lesson_index": 5,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-hero-studio/references/figma-export.md",
+  "key_phrase": "file_key `mzyfqOX4Y7wqky7pR7C8kR`",
+  "already_present": false
+ },
+ {
+  "source": "hero-studio-figma-export",
+  "target": "academy-hero-studio",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/productivity/hero-studio-figma-export/SKILL.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-hero-studio/SKILL.md",
+  "key_phrase": "Figma로 내보내는 별개 작업(객체별 편집 가능한 파일, 단방향)은 `references/figma-export.md`",
+  "already_present": false
+ },
+ {
+  "source": "(self)",
+  "target": "academy-code-audit",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-code-audit/SKILL.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/academy/academy-code-audit/SKILL.md",
+  "key_phrase": "follows the `delegated-code-audit` procedure (load it with skill_view)",
+  "already_present": false
+ }
+]

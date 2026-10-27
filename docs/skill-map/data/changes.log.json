@@ -22,17 +22,24 @@
  },
  {
   "finding": "R2-5",
+  "skill": "unlazy",
+  "field": "use",
+  "old": 181,
+  "new": 182
+ },
+ {
+  "finding": "R2-5",
   "skill": "omh-plan",
   "field": "use",
   "old": 117,
-  "new": 119
+  "new": 120
  },
  {
   "finding": "R2-5",
   "skill": "omh-plan",
   "field": "patch",
   "old": 15,
-  "new": 18
+  "new": 19
  },
  {
   "finding": "R1-11",

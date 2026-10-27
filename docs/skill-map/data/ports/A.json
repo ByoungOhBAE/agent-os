@@ -1,0 +1,322 @@
+[
+ {
+  "source": "design-taste-frontend",
+  "target": "frontend-design",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Reading this as: <page kind> for <audience>, with a <vibe> language.",
+  "already_present": false
+ },
+ {
+  "source": "design-taste-frontend",
+  "target": "frontend-design",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "never change URLs/route slugs, primary nav labels, form field names",
+  "already_present": false
+ },
+ {
+  "source": "design-taste-frontend",
+  "target": "frontend-design",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Full-height sections use `min-h-[100dvh]`",
+  "already_present": false
+ },
+ {
+  "source": "redesign-existing-projects",
+  "target": "frontend-design",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Do not migrate frameworks or styling libraries during a redesign",
+  "already_present": false
+ },
+ {
+  "source": "redesign-existing-projects",
+  "target": "frontend-design",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Do not break existing functionality. Test after every change.",
+  "already_present": false
+ },
+ {
+  "source": "redesign-existing-projects",
+  "target": "frontend-design",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "small, targeted improvements over big rewrites",
+  "already_present": false
+ },
+ {
+  "source": "redesign-existing-projects",
+  "target": "frontend-design",
+  "lesson_index": 3,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Redesign order, most visual impact for least risk: 1. font swap",
+  "already_present": false
+ },
+ {
+  "source": "omh-design-quality-gate",
+  "target": "frontend-design",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "tiny copy, and overflow are blockers, not polish",
+  "already_present": false
+ },
+ {
+  "source": "omh-design-quality-gate",
+  "target": "frontend-design",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Don't call the result high-quality unless it was compared",
+  "already_present": false
+ },
+ {
+  "source": "omh-frontend",
+  "target": "frontend-design",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "No component code before `DESIGN.md` exists",
+  "already_present": false
+ },
+ {
+  "source": "omh-frontend",
+  "target": "frontend-design",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "capture the affected pages and states at 1440px, 768px, and 375px wide",
+  "already_present": false
+ },
+ {
+  "source": "omh-frontend",
+  "target": "frontend-design",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Label each difference [Blocker] / [High] / [Medium] / Nit and attach the capture",
+  "already_present": false
+ },
+ {
+  "source": "omh-frontend",
+  "target": "frontend-design",
+  "lesson_index": 3,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Latin-tuned line-height and truncation don't carry over unchanged",
+  "already_present": false
+ },
+ {
+  "source": "omh-frontend",
+  "target": "frontend-design",
+  "lesson_index": 4,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/frontend-design/SKILL.md",
+  "key_phrase": "Awkward line breaks, clipped glyphs, orphaned particles",
+  "already_present": false
+ },
+ {
+  "source": "review-animations",
+  "target": "design-motion-principles",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/design-motion-principles/references/audit-checklist.md",
+  "key_phrase": "Hover motion is gated behind `@media (hover: hover) and (pointer: fine)`",
+  "already_present": false
+ },
+ {
+  "source": "review-animations",
+  "target": "design-motion-principles",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/design-motion-principles/references/audit-checklist.md",
+  "key_phrase": "Symmetric timing on a press-and-release or hold interaction is a finding",
+  "already_present": false
+ },
+ {
+  "source": "review-animations",
+  "target": "design-motion-principles",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/design-motion-principles/workflows/audit.md",
+  "key_phrase": "Close either mode with an explicit decision:",
+  "already_present": false
+ },
+ {
+  "source": "review-animations",
+  "target": "design-motion-principles",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/creative/review-animations/STANDARDS.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/design-motion-principles/references/review-animations-standards.md",
+  "key_phrase": "# Animation Standards Reference",
+  "already_present": false
+ },
+ {
+  "source": "review-animations",
+  "target": "design-motion-principles",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/creative/review-animations/STANDARDS.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/design/design-motion-principles/SKILL.md",
+  "key_phrase": "[Review Standards](references/review-animations-standards.md)",
+  "already_present": false
+ },
+ {
+  "source": "build-dashboard",
+  "target": "kpi-dashboard-design",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/data-viz/kpi-dashboard-design/SKILL.md",
+  "key_phrase": "under 1,000 rows embed directly; 1,000-10,000 rows embed but pre-aggregate",
+  "already_present": false
+ },
+ {
+  "source": "build-dashboard",
+  "target": "kpi-dashboard-design",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/data-viz/kpi-dashboard-design/SKILL.md",
+  "key_phrase": "embed their data as JavaScript variables, with no external data fetches",
+  "already_present": false
+ },
+ {
+  "source": "data-visualization",
+  "target": "kpi-dashboard-design",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/data-viz/kpi-dashboard-design/SKILL.md",
+  "key_phrase": "**Don't start bar charts above zero** - A bar from 95 to 100 exaggerates",
+  "already_present": false
+ },
+ {
+  "source": "data-visualization",
+  "target": "kpi-dashboard-design",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/data-viz/kpi-dashboard-design/SKILL.md",
+  "key_phrase": "**Title states the insight** - \"Revenue grew 23% YoY\" beats \"Revenue by Month\"",
+  "already_present": false
+ },
+ {
+  "source": "data-visualization",
+  "target": "kpi-dashboard-design",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/data-viz/kpi-dashboard-design/SKILL.md",
+  "key_phrase": "**Don't rely on color alone** - Add pattern fills, line styles, or direct labels",
+  "already_present": false
+ },
+ {
+  "source": "data-visualization",
+  "target": "kpi-dashboard-design",
+  "lesson_index": 3,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/data-viz/kpi-dashboard-design/SKILL.md",
+  "key_phrase": "**Don't use pie charts for 6+ categories** - Use bars",
+  "already_present": false
+ },
+ {
+  "source": "data-visualization",
+  "target": "kpi-dashboard-design",
+  "lesson_index": 4,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/data-viz/kpi-dashboard-design/SKILL.md",
+  "key_phrase": "**Keep scales consistent across panels**",
+  "already_present": false
+ },
+ {
+  "source": "omh-accessibility-audit",
+  "target": "web-accessibility-wcag",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/web-accessibility-wcag/SKILL.md",
+  "key_phrase": "Interactive targets must be at least **24 × 24 CSS pixels** (AA)",
+  "already_present": true
+ },
+ {
+  "source": "omh-accessibility-audit",
+  "target": "web-accessibility-wcag",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/web-accessibility-wcag/SKILL.md",
+  "key_phrase": "Only evidence captured after the last UI edit counts toward a pass",
+  "already_present": false
+ },
+ {
+  "source": "omh-visual-qa",
+  "target": "live-web-change-verification",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/live-web-change-verification/SKILL.md",
+  "key_phrase": "Cover every page, viewport, and state the change touches",
+  "already_present": false
+ },
+ {
+  "source": "omh-visual-qa",
+  "target": "live-web-change-verification",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/live-web-change-verification/SKILL.md",
+  "key_phrase": "critical console errors, failed requests, and status codes",
+  "already_present": false
+ },
+ {
+  "source": "omh-visual-qa",
+  "target": "live-web-change-verification",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/live-web-change-verification/SKILL.md",
+  "key_phrase": "Never run destructive journeys (checkout, payment, delete, mass update)",
+  "already_present": false
+ },
+ {
+  "source": "omh-visual-qa",
+  "target": "live-web-change-verification",
+  "lesson_index": 3,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/live-web-change-verification/SKILL.md",
+  "key_phrase": "An automated accessibility scan is not accessibility evidence on its own",
+  "already_present": false
+ },
+ {
+  "source": "web-perf",
+  "target": "core-web-vitals",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals/SKILL.md",
+  "key_phrase": "Confirm something is unused before suggesting removal.",
+  "already_present": false
+ },
+ {
+  "source": "web-perf",
+  "target": "core-web-vitals",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals/SKILL.md",
+  "key_phrase": "Don't prioritize changes with 0ms impact.",
+  "already_present": false
+ },
+ {
+  "source": "web-perf",
+  "target": "core-web-vitals",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals/SKILL.md",
+  "key_phrase": "**Skip non-issues**: If render-blocking resources have 0ms estimated impact",
+  "already_present": false
+ },
+ {
+  "source": "web-perf",
+  "target": "core-web-vitals",
+  "lesson_index": 3,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals/SKILL.md",
+  "key_phrase": "**Be specific**: Say \"compress hero.png (450KB) to WebP\", not \"optimize images\".",
+  "already_present": false
+ },
+ {
+  "source": "web-perf",
+  "target": "core-web-vitals",
+  "lesson_index": 4,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals/SKILL.md",
+  "key_phrase": "**Prioritize ruthlessly**: A site with 200ms LCP and 0 CLS is already excellent",
+  "already_present": false
+ },
+ {
+  "source": "web-perf",
+  "target": "core-web-vitals",
+  "lesson_index": 5,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals/SKILL.md",
+  "key_phrase": "check whether ANY request went to that origin",
+  "already_present": false
+ },
+ {
+  "source": "web-perf",
+  "target": "core-web-vitals",
+  "lesson_index": 6,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals/SKILL.md",
+  "key_phrase": "Speed Index < 3.4s / < 5.8s / > 5.8s",
+  "already_present": false
+ },
+ {
+  "source": "web-perf",
+  "target": "core-web-vitals",
+  "lesson_index": 7,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/web-quality/core-web-vitals/references/CODEBASE-ANALYSIS.md",
+  "key_phrase": "Skip if auditing a third-party site without codebase access.",
+  "already_present": false
+ }
+]

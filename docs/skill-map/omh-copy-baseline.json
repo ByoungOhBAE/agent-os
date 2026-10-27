@@ -1,0 +1,92 @@
+{
+ "omh-routing": {
+  "omh_rel": "guide/omh-routing/SKILL.md",
+  "sha256": "984f3888758dcd964753116052da9067601b53ec29936f60052f1d9a88d336c2",
+  "copy": "/AppData/Local/hermes/skills/agents-hermes/omh/omh-routing/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-decide": {
+  "omh_rel": "operator/omh-decide/SKILL.md",
+  "sha256": "b5982dbfd64b74b60bc640fe5843d31063b40dfbf92a979a70b612dcd421deee",
+  "copy": "/AppData/Local/hermes/skills/workflow/omh-decide/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-curriculum-design": {
+  "omh_rel": "planner/omh-curriculum-design/SKILL.md",
+  "sha256": "a8f2aff93ac3a5398973a0e31812753ae378e4ecd5d294e72c718efa6bb18e1b",
+  "copy": "/AppData/Local/hermes/skills/academy/omh-curriculum-design/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-plan": {
+  "omh_rel": "planner/omh-plan/SKILL.md",
+  "sha256": "afb83cb58eb3345cf5ea4456dcd2fb19214e51faf05e57ab2500e560bced9963",
+  "copy": "/AppData/Local/hermes/skills/workflow/omh-plan/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-code-review": {
+  "omh_rel": "reviewer/omh-code-review/SKILL.md",
+  "sha256": "1b034504e729e7a3491acd8fe5ae67b547f151723efd5857d504fb50d09566c3",
+  "copy": "/AppData/Local/hermes/skills/coding/omh-code-review/SKILL.md",
+  "copy_equal_at_creation": false
+ },
+ "omh-legal-compliance-review": {
+  "omh_rel": "reviewer/omh-legal-compliance-review/SKILL.md",
+  "sha256": "83c8ba65047a463cb560948574f3357cfadbf9c997bffa33d3a99ac0ae60beae",
+  "copy": "/AppData/Local/hermes/skills/documents/omh-legal-compliance-review/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-security-safety-review": {
+  "omh_rel": "reviewer/omh-security-safety-review/SKILL.md",
+  "sha256": "7325897b48debebd9bac29b826aa5e5741cc01325e3c20349930b88bd4acb236",
+  "copy": "/AppData/Local/hermes/skills/agents-hermes/omh-security-safety-review/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-agent-ops-review": {
+  "omh_rel": "tracker/omh-agent-ops-review/SKILL.md",
+  "sha256": "9d431fd2eda0e8931da5da9420a14f79d4288c4f55e684869a809028f7bfe7ec",
+  "copy": "/AppData/Local/hermes/skills/agents-hermes/omh/omh-agent-ops-review/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-cancel": {
+  "omh_rel": "tracker/omh-cancel/SKILL.md",
+  "sha256": "e96557a83e6d4e16f16cd23c9eb999ebf5b61336dc3ec81928f02fe975d6a0ce",
+  "copy": "/AppData/Local/hermes/skills/agents-hermes/omh/omh-cancel/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-context-budget-review": {
+  "omh_rel": "tracker/omh-context-budget-review/SKILL.md",
+  "sha256": "210df707c92a570fc1457668694863a6f4df55a8e203f1ccc128299f107a5849",
+  "copy": "/AppData/Local/hermes/skills/agents-hermes/omh-context-budget-review/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-doctor": {
+  "omh_rel": "tracker/omh-doctor/SKILL.md",
+  "sha256": "8b724be41faaa267cc47f541bc1f0e2a7ff3cc5a156082edc4783ca72e30c342",
+  "copy": "/AppData/Local/hermes/skills/agents-hermes/omh/omh-doctor/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "omh-skill": {
+  "omh_rel": "tracker/omh-skill/SKILL.md",
+  "sha256": "8db00ecbcb5e72077e697d549d836e031b41aee94c8f4449206b687a0d4ebe9a",
+  "copy": "/AppData/Local/hermes/skills/agents-hermes/omh/omh-skill/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "ulw-maestro": {
+  "omh_rel": "ultrawork/ulw-maestro/SKILL.md",
+  "sha256": "8d61bf759b039b794724fae71918aab60d69a956317d0fdb86116632496d8295",
+  "copy": "/AppData/Local/hermes/skills/agents-hermes/ulw-maestro/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "ulw-perf": {
+  "omh_rel": "ultrawork/ulw-perf/SKILL.md",
+  "sha256": "599bf27984ee25803e8cd5ffb949e1d069ab6413291db7bee7a912a245fb902c",
+  "copy": "/AppData/Local/hermes/skills/web-quality/ulw-perf/SKILL.md",
+  "copy_equal_at_creation": true
+ },
+ "ulw-work": {
+  "omh_rel": "ultrawork/ulw-work/SKILL.md",
+  "sha256": "e634c16d5a38fc6f8d88007d5f9a77db113fa3264dae39064093410cebefb9f3",
+  "copy": "/AppData/Local/hermes/skills/workflow/ulw-work/SKILL.md",
+  "copy_equal_at_creation": true
+ }
+}

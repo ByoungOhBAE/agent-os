@@ -1,0 +1,202 @@
+[
+ {
+  "source": "union-alpha-worker",
+  "target": "opencode",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/opencode/SKILL.md",
+  "key_phrase": "pass `%LOCALAPPDATA%/Temp/union-chat` as `--cwd`, never a real repository",
+  "already_present": false
+ },
+ {
+  "source": "union-alpha-worker",
+  "target": "opencode",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/opencode/SKILL.md",
+  "key_phrase": "forward a fixed prompt (`1+1 결과는?`) and confirm the worker actually ran",
+  "already_present": false
+ },
+ {
+  "source": "multi-bot-orchestration",
+  "target": "agentos-bot-profile-config",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-bot-profile-config/SKILL.md",
+  "key_phrase": "Never create profile directories manually — use `hermes profile create`.",
+  "already_present": false
+ },
+ {
+  "source": "multi-bot-orchestration",
+  "target": "agentos-bot-profile-config",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-bot-profile-config/SKILL.md",
+  "key_phrase": "delete `.no-bundled-skills` in the profile directory to opt back into skill sync",
+  "already_present": false
+ },
+ {
+  "source": "multi-bot-orchestration",
+  "target": "agentos-bot-profile-config",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/multi-bot-orchestration/references/orchestrator-soul-template.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-bot-profile-config/references/orchestrator-soul-template.md",
+  "key_phrase": "# Orchestrator SOUL.md Template",
+  "already_present": false
+ },
+ {
+  "source": "multi-bot-orchestration",
+  "target": "agentos-bot-profile-config",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/multi-bot-orchestration/references/orchestrator-soul-template.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agentos/agentos-bot-profile-config/SKILL.md",
+  "key_phrase": "SOUL starter is `references/orchestrator-soul-template.md`",
+  "already_present": false
+ },
+ {
+  "source": "requesting-code-review",
+  "target": "omh-code-review",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/omh-code-review/SKILL.md",
+  "key_phrase": "give the reviewer only the diff (plus any static-scan results)",
+  "already_present": false
+ },
+ {
+  "source": "omh-agent-debug",
+  "target": "agent-pipeline-diagnosis",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agent-pipeline-diagnosis/SKILL.md",
+  "key_phrase": "a diagnosis that never named a rival hypothesis is a guess",
+  "already_present": false
+ },
+ {
+  "source": "omh-agent-debug",
+  "target": "agent-pipeline-diagnosis",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agent-pipeline-diagnosis/SKILL.md",
+  "key_phrase": "Order probes cheapest-discriminating-first",
+  "already_present": false
+ },
+ {
+  "source": "omh-agent-debug",
+  "target": "agent-pipeline-diagnosis",
+  "lesson_index": 2,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/agents-hermes/agent-pipeline-diagnosis/SKILL.md",
+  "key_phrase": "Name a cause only after revert-verify",
+  "already_present": false
+ },
+ {
+  "source": "omh-verification-gate",
+  "target": "unlazy",
+  "lesson_index": 0,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/workflow/unlazy/SKILL.md",
+  "key_phrase": "record each result's command, time, exit code, and whether it is stale",
+  "already_present": false
+ },
+ {
+  "source": "omh-verification-gate",
+  "target": "unlazy",
+  "lesson_index": 1,
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/workflow/unlazy/SKILL.md",
+  "key_phrase": "Report build, lint, test, security, CI, and merge as separate states",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/AGENTS.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/AGENTS.md",
+  "key_phrase": "# React Composition Patterns",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/SKILL.md",
+  "key_phrase": "one rule per file under `references/composition/rules/`",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/AGENTS.md (pointer)",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/SKILL.md",
+  "key_phrase": "live in `references/composition/AGENTS.md`",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/_sections.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/_sections.md",
+  "key_phrase": "This file defines all sections, their ordering, impact levels, and descriptions.",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/_template.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/_template.md",
+  "key_phrase": "title: Rule Title Here",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/architecture-avoid-boolean-props.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/architecture-avoid-boolean-props.md",
+  "key_phrase": "title: Avoid Boolean Prop Proliferation",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/architecture-compound-components.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/architecture-compound-components.md",
+  "key_phrase": "title: Use Compound Components",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/patterns-children-over-render-props.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/patterns-children-over-render-props.md",
+  "key_phrase": "title: Prefer Composing Children Over Render Props",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/patterns-explicit-variants.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/patterns-explicit-variants.md",
+  "key_phrase": "title: Create Explicit Component Variants",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/react19-no-forwardref.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/react19-no-forwardref.md",
+  "key_phrase": "title: React 19 API Changes",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/state-context-interface.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/state-context-interface.md",
+  "key_phrase": "title: Define Generic Context Interfaces for Dependency Injection",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/state-decouple-implementation.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/state-decouple-implementation.md",
+  "key_phrase": "title: Decouple State Management from UI",
+  "already_present": false
+ },
+ {
+  "source": "vercel-composition-patterns",
+  "target": "vercel-react-best-practices",
+  "file": "C:/Users/tahar/AppData/Local/hermes/skills/software-development/vercel-composition-patterns/rules/state-lift-state.md",
+  "target_file": "C:/Users/tahar/AppData/Local/hermes/skills/coding/vercel-react-best-practices/references/composition/rules/state-lift-state.md",
+  "key_phrase": "title: Lift State into Provider Components",
+  "already_present": false
+ }
+]

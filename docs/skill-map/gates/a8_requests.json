@@ -1,0 +1,11 @@
+[
+ {"id": "R1", "text": "학원 여름 특강 홍보 배너를 홈페이지 첫 화면용으로 만들어줘", "expect": ["academy", "visual-content", "design"]},
+ {"id": "R2", "text": "네이버·카카오 광고 성과를 한눈에 보는 대시보드 화면 만들어줘", "expect": ["data-viz", "marketing"]},
+ {"id": "R3", "text": "근처 경쟁 요리학원들 수강료랑 할인 이벤트 조사해줘", "expect": ["academy", "research"]},
+ {"id": "R4", "text": "홈페이지 수정한 거 NAS에 배포해줘", "expect": ["pc-ops", "academy"]},
+ {"id": "R5", "text": "홈페이지에 상담 예약 기능 추가하려는데 계획 세워줘", "expect": ["workflow", "academy"]},
+ {"id": "R6", "text": "수강생 출석 엑셀 표 분석해서 결석 많은 사람 뽑아줘", "expect": ["documents", "data-viz", "academy"]},
+ {"id": "R7", "text": "학교 제휴 설명회용 PPT 만들어줘", "expect": ["documents", "academy"]},
+ {"id": "R8", "text": "인스타그램에 올릴 학원 홍보 이미지 하나 만들어줘", "expect": ["visual-content", "academy"]},
+ {"id": "R9", "text": "다음 달 휴강 안내 공지 문구 써줘", "expect": ["marketing", "academy", "(none)"]}
+]

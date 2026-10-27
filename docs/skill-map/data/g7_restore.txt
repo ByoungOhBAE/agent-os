@@ -1,0 +1,7 @@
+## G7 restore test 2026-10-27 09:48:28
+curator: restored to C:\Users\tahar\AppData\Local\hermes\skills\web-design-guidelines
+skills/web-design-guidelines/SKILL.md
+ls: cannot access 'skills/.archive/web-design-guidelines': No such file or directory
+curator: archived to C:\Users\tahar\AppData\Local\hermes\skills\.archive\web-design-guidelines
+0
+SKILL.md
