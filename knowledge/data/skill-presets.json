@@ -23,7 +23,6 @@
       "categories": [],
       "skills": [
         "humanizer",
-        "academy-content-generator",
         "document-to-action-items",
         "omh-content-operator",
         "omh-ai-slop-cleaner",
@@ -40,7 +39,6 @@
       ],
       "skills": [
         "humanizer",
-        "academy-content-generator",
         "pdf",
         "omh-content-operator",
         "omh-media-input",
@@ -113,7 +111,6 @@
         "dogfood",
         "codebase-inspection",
         "humanizer",
-        "academy-content-generator",
         "omh-browser",
         "omh-visual-qa",
         "omh-ai-slop-cleaner",
@@ -171,7 +168,6 @@
     "pc-ebb0943f": {
       "preset": "planning",
       "extra": [
-        "academy-content-generator",
         "youtube-content",
         "figma-mcp-design"
       ]

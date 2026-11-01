@@ -102,13 +102,8 @@
       "source": "claude-subscription"
     },
     "574bd31bb86f": {
-      "ko": "academy-homepage 관례: 에이전트/스킬 정의는 .claude/skills와 .claude/agents에서만 수정한 뒤 `npm run agents:sync`로 .agents/와 .codex/ 미러를 재생성합니다; `npm run agents:check`는 드리프트가 없는지 확인합니다(pretest에서 실행됨). npm test(node --test), npx tsc --noEmit, npx eslint로 검증하세요. 콘텐츠 생성기 프롬프트는 src/lib/prompt-defaults.ts의 applyGrounding()을 통해서만 조립되며, 서버 액션과 local-worker가 이를 공유합니다.",
-      "en": "academy-homepage conventions: edit agent/skill definitions only under .claude/skills and .claude/agents, then `npm run agents:sync` regenerates the .agents/ and .codex/ mirrors; `npm run agents:check` asserts zero drift (runs in pretest). Verify with npm test (node --test), npx tsc --noEmit, npx eslint. Content-generator prompts are assembled only through applyGrounding() in src/lib/prompt-defaults.ts, shared by server actions and local-worker.",
-      "source": "claude-subscription"
-    },
-    "1c7204fd335c": {
-      "ko": "academy-homepage 현황: 구독 콘텐츠 생성은 폴백 없이 엄격하게 동작합니다(local-worker/strict_subscription.py는 선택된 제공업체를 한 번만 호출하며 실패 시 그대로 실패). Gemini API(gemini-3.8-flash)는 웹 상담 채팅에만 쓰입니다. 히어로 배너 AI 스튜디오(2880x1125, hero-studio)는 배포 완료 상태입니다: 모델 선택, 흰색 캔버스 위 자유 배치와 8방향 회전 인식 리사이즈, 폴더형 사진 선택기, 부위별 생성/보존 정책. 핵심 파일: src/components/admin/HeroBannerStudio.tsx, HeroPhotoPicker.tsx, src/lib/hero-studio/*, scripts/hero-studio-inspect.mjs(독립 브라우저 QA; UI가 바뀌면 셀렉터를 업데이트하세요). 자세한 내용은 academy-hero-studio와 academy-content-generator 스킬을 참고하세요.",
-      "en": "academy-homepage status: subscription content generation is strict with no fallback (local-worker/strict_subscription.py calls only the chosen provider once, fail-closed). The Gemini API (gemini-3.8-flash) serves only the web consultation chat. The hero banner AI studio (2880x1125, hero-studio) is deployed: model choice, free placement on a white canvas with 8-way rotation-aware resize, folder-style photo picker, per-part create/preserve policy. Key files: src/components/admin/HeroBannerStudio.tsx, HeroPhotoPicker.tsx, src/lib/hero-studio/*, scripts/hero-studio-inspect.mjs (isolated browser QA; update its selectors when the UI changes). Details: academy-hero-studio and academy-content-generator skills.",
+      "ko": "academy-homepage 관례: 에이전트/스킬 정의는 .claude/skills와 .claude/agents에서만 수정한 뒤 `npm run agents:sync`로 .agents/와 .codex/ 미러를 재생성합니다; `npm run agents:check`는 드리프트가 없는지 확인합니다(pretest에서 실행됨). npm test(node --test), npx tsc --noEmit, npx eslint로 검증하세요.",
+      "en": "academy-homepage conventions: edit agent/skill definitions only under .claude/skills and .claude/agents, then `npm run agents:sync` regenerates the .agents/ and .codex/ mirrors; `npm run agents:check` asserts zero drift (runs in pretest). Verify with npm test (node --test), npx tsc --noEmit, npx eslint.",
       "source": "claude-subscription"
     },
     "5d1962cf8de4": {

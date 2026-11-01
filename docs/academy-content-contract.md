@@ -1,3 +1,5 @@
+> 2026-11-02 폐기 — 홈페이지 쪽 기능 삭제(academy `docs/content-agent-studio/plan.md`)
+
 # 학원 콘텐츠 생성기 ↔ AgentOS 연동 계약 (v1.1)
 
 계획: `docs/academy-content-generator-port-plan.md` (A안 원격 조종형). 세 작업(홈페이지 API · BFF 중계 · 플러그인)은 이 문서의 JSON 모양만 공유한다. 바꾸려면 이 문서를 먼저 고친다.

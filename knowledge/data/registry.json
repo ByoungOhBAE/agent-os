@@ -422,17 +422,7 @@
       "from": [
         "hermes-root/MEMORY.md#fbe1068561bd"
       ],
-      "en": "academy-homepage conventions: edit agent/skill definitions only under .claude/skills and .claude/agents, then `npm run agents:sync` regenerates the .agents/ and .codex/ mirrors; `npm run agents:check` asserts zero drift (runs in pretest). Verify with npm test (node --test), npx tsc --noEmit, npx eslint. Content-generator prompts are assembled only through applyGrounding() in src/lib/prompt-defaults.ts, shared by server actions and local-worker."
-    },
-    {
-      "id": "k-content-hero",
-      "scope": "project:academy",
-      "kind": "knowledge",
-      "from": [
-        "hermes-root/MEMORY.md#962cdb130995",
-        "uacc4-ud68d-uc218-ub9bd-uac00/MEMORY.md#7d66984d043c"
-      ],
-      "en": "academy-homepage status: subscription content generation is strict with no fallback (local-worker/strict_subscription.py calls only the chosen provider once, fail-closed). The Gemini API (gemini-3.8-flash) serves only the web consultation chat. The hero banner AI studio (2880x1125, hero-studio) is deployed: model choice, free placement on a white canvas with 8-way rotation-aware resize, folder-style photo picker, per-part create/preserve policy. Key files: src/components/admin/HeroBannerStudio.tsx, HeroPhotoPicker.tsx, src/lib/hero-studio/*, scripts/hero-studio-inspect.mjs (isolated browser QA; update its selectors when the UI changes). Details: academy-hero-studio and academy-content-generator skills."
+      "en": "academy-homepage conventions: edit agent/skill definitions only under .claude/skills and .claude/agents, then `npm run agents:sync` regenerates the .agents/ and .codex/ mirrors; `npm run agents:check` asserts zero drift (runs in pretest). Verify with npm test (node --test), npx tsc --noEmit, npx eslint."
     },
     {
       "id": "k-ui-data-checks",
