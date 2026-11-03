@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>업무 시스템 허브 — 화면 시안 A/B/C (예시 데이터)</title>
+<style>
+:root{--foreground:#1d2433;--muted-foreground:#5d6472;--border:#d8d2c4;--card:#fff;--accent:#2f7d6d}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:var(--foreground);background:#ece8df;font-size:14px;line-height:1.5}
+.note{margin:10px 14px 0;font-size:12.5px;color:var(--muted-foreground)}
+.app{margin:10px 14px 70px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg);color:var(--ink);
+  --bg:#f7f4ee;--ink:#1d2433;--mute:#5d6472;--line:#d8d2c4;--card:#fff;--acc:#2f7d6d;--acc2:#3b5ba5;--warn:#b5662a;--bad:#b23a3a;--soft:#eef5f2}
+.top{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card)}
+.brand{font-weight:800;letter-spacing:-.02em}
+.brand small{font-weight:400;color:var(--mute);margin-left:6px}
+.date{margin-left:auto;color:var(--mute);font-size:13px;white-space:nowrap}
+.shell{display:flex;flex-direction:column;min-height:560px}
+nav.tabs{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--card);overflow-x:auto}
+nav.tabs button{border:0;background:none;padding:8px 14px;border-radius:8px;font:inherit;color:var(--mute);cursor:pointer;white-space:nowrap;min-height:40px}
+nav.tabs button[aria-selected=true]{background:var(--ink);color:#fff;font-weight:700}
+main{flex:1;padding:16px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.card h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.card h3 .sub{font-weight:400;color:var(--mute);font-size:12.5px;margin-left:auto}
+.c4{grid-column:span 4}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.kpi{display:flex;gap:10px;flex-wrap:wrap}
+.kpi div{flex:1;min-width:90px;background:var(--bg);border-radius:10px;padding:10px}
+.kpi b{display:block;font-size:24px}
+.kpi span{font-size:12px;color:var(--mute)}
+.ex{font-size:11px;color:var(--warn);font-weight:700;border:1px solid var(--warn);border-radius:6px;padding:0 5px}
+.row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.row:last-child{border-bottom:0}
+.row .t{flex:1;min-width:0}
+.row .t small{display:block;color:var(--mute);font-size:12px}
+.chip{font-size:11.5px;border-radius:999px;padding:1px 8px;white-space:nowrap;border:1px solid var(--line);background:var(--bg)}
+.chip.ok{color:#1f6b42;border-color:#9fd0b4;background:#e3f3ea}
+.chip.pc{color:#8a5d00;border-color:#e8c97a;background:#fbf0d6}
+.chip.nas{color:#2c4f9e;border-color:#a9bde9;background:#e6edfb}
+.chip.bad{color:var(--bad);border-color:#e3aaaa;background:#fbe9e9}
+.chip.none{color:var(--mute);border-style:dashed}
+.run{border:1px solid var(--acc);color:var(--acc);background:none;border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer;min-height:36px;white-space:nowrap}
+.run:hover{background:var(--acc);color:#fff}
+.search{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:var(--card);color:var(--ink)}
+.views{display:flex;gap:4px;margin:10px 0}
+.views button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer;min-height:36px}
+.views button[aria-pressed=true]{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.brainwrap{display:grid;grid-template-columns:1fr 300px;gap:12px}
+.brainwrap>*{min-width:0}
+.preview{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.preview h4{margin:0 0 4px}
+.preview .path{font-size:12px;color:var(--mute);word-break:break-all}
+.preview ul{padding-left:18px;margin:8px 0}
+.metro svg{width:100%;height:auto;display:block;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.metro .st{cursor:pointer}
+.metro .st circle{fill:#fff;stroke-width:4}
+.metro .st.sel circle{fill:var(--ink)}
+.metro text{font-size:12px;fill:var(--ink);font-family:inherit}
+.metro text.inv{fill:#fff}.metro text.dim{fill:#c9cfdb;font-size:11px}
+.only-c{display:none}.app.v-c .only-c{display:block}.app.v-c .not-c{display:none}
+.flow{position:relative;padding-left:70px}
+.flow:before{content:"";position:absolute;left:58px;top:6px;bottom:6px;width:3px;background:var(--line);border-radius:2px}
+.flow .fi{position:relative;padding:6px 0 10px 12px}
+.flow .fi time{position:absolute;left:-70px;width:50px;text-align:right;font-weight:700;color:var(--mute)}
+.flow .fi:before{content:"";position:absolute;left:-17px;top:11px;width:11px;height:11px;border-radius:50%;background:var(--card);border:3px solid var(--acc)}
+.flow .fi.now:before{background:var(--acc)}
+.flow .fi.now{font-weight:800;color:var(--acc)}
+.flow .fi.done{color:var(--mute)}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cols .col{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px;min-height:260px;min-width:0}
+.cols button{display:block;width:100%;text-align:left;border:0;background:none;padding:8px;border-radius:8px;font:inherit;cursor:pointer;color:var(--ink)}
+.cols button.sel{background:var(--soft);font-weight:700}
+.list table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.list td,.list th{padding:8px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
+.list tr{cursor:pointer}
+.shelf{display:flex;flex-direction:column;gap:10px}
+.shelf .sh{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.shelf .sh b{display:block;margin-bottom:6px}
+.shelf .books{display:flex;gap:4px;flex-wrap:wrap;align-items:flex-end}
+.shelf .bk{border:0;border-radius:4px 4px 2px 2px;color:#fff;font:inherit;font-size:12px;padding:6px 8px;cursor:pointer;min-height:36px}
+.routine table{width:100%;border-collapse:collapse}
+.routine td,.routine th{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}
+.toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:var(--foreground);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:30}
+.switcher{position:fixed;left:0;right:0;bottom:0;background:#1d2433;color:#fff;display:flex;gap:6px;align-items:center;justify-content:center;padding:8px;z-index:20}
+.switcher button{border:1px solid #6b7488;background:none;color:#fff;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer;min-height:36px}
+.switcher button[aria-pressed=true]{background:#fff;color:#1d2433;font-weight:700}
+.switcher .lbl{font-size:12.5px;color:#c9cfdb}
+/* ── 시안 B: 작업대(왼쪽 메뉴·초록) ── */
+.app.v-b{--bg:#f4f6f5;--ink:#17322b;--mute:#5a6b66;--line:#d3ddd9;--card:#fff;--acc:#1f7a5c;--acc2:#1f7a5c;--soft:#e2f1ea}
+.app.v-b .shell{flex-direction:row}
+.app.v-b nav.tabs{flex-direction:column;border-bottom:0;border-right:1px solid var(--line);width:170px;padding:12px 8px;background:#e9efec}
+.app.v-b nav.tabs button{text-align:left}
+.app.v-b nav.tabs button[aria-selected=true]{background:var(--acc)}
+.app.v-b .card{border-radius:6px;box-shadow:0 1px 0 var(--line)}
+/* ── 시안 C: 하루 흐름(모래색·큰 글씨·주황 포인트) ── */
+.app.v-c{--bg:#faf6ef;--ink:#2b2118;--mute:#7a6a58;--line:#e6dccb;--card:#fffdf9;--acc:#c0622b;--acc2:#7a4fa0;--soft:#f6e9dc}
+.app.v-c .top{background:#2b2118;color:#faf6ef;border-bottom:0}
+.app.v-c .top .date{color:#d9c9b4}
+.app.v-c nav.tabs{background:#2b2118;border-bottom:0}
+.app.v-c nav.tabs button{color:#d9c9b4}
+.app.v-c nav.tabs button[aria-selected=true]{background:#faf6ef;color:#2b2118}
+.app.v-c .card{border-radius:18px}
+.app.v-c .kpi b{font-size:30px}
+@media (max-width:720px){
+ .app{margin:6px 6px 64px}
+ .c4,.c6,.c8{grid-column:span 12}
+ .brainwrap{grid-template-columns:1fr}
+ .cols{grid-template-columns:1fr}
+ .cols .col{min-height:0}
+ .app.v-b .shell{flex-direction:column}
+ .app.v-b nav.tabs{flex-direction:row;width:auto;border-right:0;border-bottom:1px solid var(--line)}
+ .metro{overflow-x:auto}.metro svg{min-width:640px}
+ .routine{overflow-x:auto}.routine table{min-width:560px}
+ .switcher .lbl{display:none}
+}
+</style>
+</head>
+<body>
+<p class="note">화면 시안 — <b>숫자·이름은 예시</b>(표시 <span class="ex">예시</span>). 세컨드 브레인 분야별 파일 수만 2026-11-03 실제 셈. 아래 막대에서 A/B/C를 바꿔 보세요.</p>
+<div class="app v-a" id="app">
+  <div class="top"><span class="brand">우리 업무 시스템 <small>한국조리기능장요리발효학원</small></span><span class="date">11월 3일 (화) 12:30</span></div>
+  <div class="shell">
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="today" aria-selected="true">오늘</button>
+      <button role="tab" data-tab="brain" aria-selected="false">세컨드 브레인</button>
+      <button role="tab" data-tab="routine" aria-selected="false">루틴</button>
+      <button role="tab" data-tab="skill" aria-selected="false">스킬·연결</button>
+    </nav>
+    <main>
+      <!-- 오늘 -->
+      <section data-panel="today">
+        <div class="grid">
+          <div class="card c8"><h3>학원 오늘 <span class="ex">예시</span><span class="sub">학원 관리자 '오늘'에서 가져옴</span></h3>
+            <div class="kpi"><div><b>3</b><span>새 상담</span></div><div><b>2반</b><span>오늘 수업</span></div><div><b>1</b><span>출석 미입력</span></div><div><b>기록 전</b><span>어제 광고비</span></div></div></div>
+          <div class="card c4"><h3>AI 시스템 상태</h3>
+            <div class="row"><span class="t">루틴 7개<small>오늘 실패 0 · 멈춤 위험 5</small></span><span class="chip pc">PC 켜짐</span></div>
+            <div class="row"><span class="t">세컨드 브레인<small>색인 오늘 03:40 갱신 <span class="ex">예시</span></small></span><span class="chip ok">최신</span></div>
+            <div class="row"><span class="t">봇 조직<small>Paperclip 응답 없음</small></span><span class="chip bad">꺼짐</span></div></div>
+          <div class="card c6 only-c"><h3>하루 흐름 <span class="ex">예시</span><span class="sub">루틴·수업·상담을 시간 순서로</span></h3><div class="flow" id="flow"></div></div>
+          <div class="card c6 not-c"><h3>다음 루틴</h3><div id="nextRoutines"></div></div>
+          <div class="card c6"><h3>자주 쓰는 스킬</h3><div id="quickSkills"></div></div>
+        </div>
+      </section>
+      <!-- 세컨드 브레인 -->
+      <section data-panel="brain" hidden>
+        <input class="search" id="q" placeholder="제목·설명으로 찾기 (예: 할인, 광고, 백업)">
+        <div class="views" role="group" aria-label="보기 바꾸기">
+          <button data-view="metro" aria-pressed="true">노선도</button>
+          <button data-view="cols" aria-pressed="false">계층</button>
+          <button data-view="shelf" aria-pressed="false">책장</button>
+          <button data-view="list" aria-pressed="false">목록</button>
+        </div>
+        <div class="brainwrap">
+          <div>
+            <div class="metro" data-v="metro"><svg id="metroSvg" viewBox="0 0 760 360" role="img" aria-label="분야 노선도"></svg></div>
+            <div class="cols" data-v="cols" hidden><div class="col" id="c1"></div><div class="col" id="c2"></div><div class="col" id="c3"></div></div>
+            <div class="shelf" data-v="shelf" hidden id="shelf"></div>
+            <div class="list" data-v="list" hidden><table><thead><tr><th>길잡이</th><th>분야</th><th>파일</th></tr></thead><tbody id="listBody"></tbody></table></div>
+          </div>
+          <aside class="preview" id="preview"><h4>역을 눌러 보세요</h4><p class="path">길잡이 문서를 고르면 여기 미리보기가 뜹니다.</p></aside>
+        </div>
+      </section>
+      <!-- 루틴 -->
+      <section data-panel="routine" hidden>
+        <div class="card"><h3>루틴 한눈판<span class="sub">Hermes 예약 · 윈도 작업 · 봇 조직 루틴을 한 표에</span></h3>
+          <div class="routine"><table><thead><tr><th>이름</th><th>언제</th><th>어디서 돎</th><th>마지막</th><th>다음</th></tr></thead><tbody id="routineBody"></tbody></table></div>
+          <p style="font-size:12.5px;color:var(--mute)">'PC' = 이 컴퓨터가 꺼지면 멈춤 · 'NAS' = 24시간 · 마지막 실행 기록이 없으면 '기록 전'(숫자를 지어내지 않음)</p></div>
+      </section>
+      <!-- 스킬·연결 -->
+      <section data-panel="skill" hidden>
+        <div class="grid">
+          <div class="card c6"><h3>스킬 <span class="sub">전체 171 · 분류 26</span></h3><input class="search" id="sq" placeholder="스킬 찾기"><div id="skillList" style="margin-top:8px"></div></div>
+          <div class="card c6"><h3>연결</h3><div id="conn"></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="switcher" role="group" aria-label="시안 바꾸기"><span class="lbl">시안</span>
+  <button data-variant="a" aria-pressed="true">A<span class="lbl"> 종이 노선도</span></button>
+  <button data-variant="b" aria-pressed="false">B<span class="lbl"> 작업대</span></button>
+  <button data-variant="c" aria-pressed="false">C<span class="lbl"> 하루 흐름</span></button>
+</div>
+<script>
+// ── 예시 데이터 (분야별 파일 수 n 은 2026-11-03 실제 셈, 나머지는 예시) ──
+const FIELDS = [
+  {id:"academy", name:"학원 운영", color:"#2f7d6d", n:980, guides:[
+    {id:"a1", name:"홈페이지 관리", desc:"관리자 메뉴·상세 블록·배포", path:"academy homepage/docs/admin-structure-review.md", items:["관리자 구조","상세 블록","NAS 배포"]},
+    {id:"a2", name:"할인·교습비", desc:"할인 세칙과 교습비표", path:"academy homepage/docs/discount-policy/", items:["할인 시행세칙","교습비표","경쟁 학원 조사"]},
+    {id:"a3", name:"수업·LMS", desc:"학생·출석·시험", path:"academy homepage/docs/plans/", items:["출석 규칙","시험 일정","수료 기준"]},
+    {id:"a4", name:"상담", desc:"상담 알림 앱·AI 상담", path:"academy homepage/docs/consult-record/", items:["상담알림 앱","AI 상담 지침"]}]},
+  {id:"ads", name:"광고", color:"#b5662a", n:42, guides:[
+    {id:"d1", name:"네이버 검색광고", desc:"키워드·입찰 자동조정", path:"academy homepage/docs/ads-audit-1031/", items:["입찰 규칙","주간 점검"]},
+    {id:"d2", name:"카카오·당근", desc:"키워드 광고·지역 광고", path:"academy homepage/docs/kakao-kanana-plan.md", items:["카카오 키워드","당근 공지"]}]},
+  {id:"agent", name:"AI 조직", color:"#3b5ba5", n:784, guides:[
+    {id:"g1", name:"봇 조직(AgentOS)", desc:"봇 설정·권한·대시보드", path:"agent os/docs/", items:["봇 기억 정리","권한 지킴이","백업"]},
+    {id:"g2", name:"Hermes 설정", desc:"로컬 패치·기억·스킬 지도", path:"agent os/docs/hermes-local-patches.md", items:["로컬 패치","기억 격리","스킬 지도"]}]},
+  {id:"skill", name:"스킬", color:"#8a4f9e", n:987, guides:[
+    {id:"s1", name:"스킬 지도", desc:"171개 스킬을 26분류로", path:"hermes/skills/SKILLS_MAP.md", items:["분류 설명","이럴 때 고르기"]}]},
+  {id:"hub", name:"자료실", color:"#1d2433", n:3987, guides:[
+    {id:"h1", name:"보고서", desc:"사장님이 열어 보는 결과물", path:"바탕 화면/학원 프로젝트 자료실/1_보고서", items:["통합 보고서","지난 보고서"]},
+    {id:"h2", name:"이미지·인쇄물", desc:"전단·배너·사진", path:"바탕 화면/학원 프로젝트 자료실/2_이미지·인쇄물", items:["전단","배너"]},
+    {id:"h3", name:"서식·표", desc:"동의서·교습비표", path:"바탕 화면/학원 프로젝트 자료실/4_서식·표", items:["개인정보 동의서","교습비표"]}]},
+  {id:"company", name:"회사", color:"#7a7468", n:79, guides:[
+    {id:"r1", name:"Mirror Ledger", desc:"회사 프로젝트 저장소", path:"rimbus company project/", items:["설계 문서"]}]},
+];
+const ROUTINES = [
+  {name:"네이버 파워링크 입찰 자동조정", when:"매일 08:30", where:"pc", last:"ok", next:"내일 08:30"},
+  {name:"콘텐츠 주문 확인", when:"5분마다", where:"pc", last:"ok", next:"12:35"},
+  {name:"봇 기억 정리", when:"이틀마다 10:00", where:"pc", last:"none", next:"11/4 10:00"},
+  {name:"스킬 지도 주간 점검", when:"월 09:00", where:"pc", last:"ok", next:"11/10 09:00"},
+  {name:"AgentOS 매일 백업", when:"매일 03:30", where:"pc", last:"ok", next:"내일 03:30"},
+  {name:"커밋 활동 새로고침", when:"5분마다", where:"pc", last:"bad", next:"12:35"},
+  {name:"NAS 이미지 정리", when:"매주", where:"nas", last:"none", next:"기록 전"},
+];
+const SKILLS = [["가격 최신화","재료 가격을 쿠팡에서 다시 확인"],["광고 점검","네이버·카카오·당근 광고 상태"],["경쟁 학원 조사","주변 학원 교습비·할인"],["보고서 자료실에 넣기","결과물을 바탕화면 자료실로"],["스킬 지도 점검","스킬 목록과 지도 차이"],["영상 분석","유튜브 화면+자막 분석"]];
+const CONN = [["피그마","연결됨","ok"],["GitHub","연결됨","ok"],["네이버 광고","열쇠 있음","ok"],["카카오 광고","열쇠 있음","ok"],["지메일","없음","none"],["구글 캘린더","없음","none"]];
+const LAST = {ok:["완료","ok"], bad:["실패","bad"], none:["기록 전","none"]};
+const $ = (s, r=document) => r.querySelector(s);
+const app = $("#app");
+function toast(t){ const d=document.createElement("div"); d.className="toast"; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),1800); }
+// 오늘
+$("#nextRoutines").innerHTML = ROUTINES.slice(0,4).map(r=>`<div class="row"><span class="t">${r.name}<small>${r.when} · 다음 ${r.next}</small></span><span class="chip ${r.where}">${r.where==="pc"?"PC":"NAS"}</span></div>`).join("");
+$("#quickSkills").innerHTML = SKILLS.slice(0,4).map(s=>`<div class="row"><span class="t">${s[0]}<small>${s[1]}</small></span><button class="run" data-skill="${s[0]}">▶ 실행</button></div>`).join("");
+// 하루 흐름(시안 C)
+const FLOW = [["03:30","AgentOS 매일 백업","done"],["08:30","네이버 입찰 자동조정","done"],["10:00","오전반 수업","done"],["12:30","지금","now"],["14:00","상담 예약 1건",""],["18:30","저녁반 수업",""],["21:00","출석 입력 확인",""]];
+$("#flow").innerHTML = FLOW.map(f=>`<div class="fi ${f[2]}"><time>${f[0]}</time>${f[1]}</div>`).join("");
+// 루틴
+$("#routineBody").innerHTML = ROUTINES.map(r=>{const L=LAST[r.last]; return `<tr data-last="${r.last}"><td><b>${r.name}</b></td><td>${r.when}</td><td><span class="chip ${r.where}">${r.where==="pc"?"PC (꺼지면 멈춤)":"NAS 24시간"}</span></td><td><span class="chip ${L[1]} lastcell">${L[0]}</span> <span class="ex">예시</span></td><td>${r.next}</td></tr>`}).join("");
+// 스킬·연결
+function drawSkills(q=""){ $("#skillList").innerHTML = SKILLS.filter(s=>(s[0]+s[1]).includes(q)).map(s=>`<div class="row"><span class="t">${s[0]}<small>${s[1]}</small></span><button class="run" data-skill="${s[0]}">▶ 실행</button></div>`).join("") || '<p style="color:var(--mute)">맞는 스킬 없음</p>'; }
+drawSkills(); $("#sq").addEventListener("input", e=>drawSkills(e.target.value.trim()));
+$("#conn").innerHTML = CONN.map(c=>`<div class="row"><span class="t">${c[0]}</span><span class="chip ${c[2]}">${c[1]}</span></div>`).join("");
+document.addEventListener("click", e=>{ const b=e.target.closest("[data-skill]"); if(b) toast(`예시 화면 — '${b.dataset.skill}' 실제로 실행하지 않음`); });
+// 세컨드 브레인
+FIELDS.forEach(f=>f.guides.forEach(g=>{ g.field = f; }));
+const ALL = FIELDS.flatMap(f=>f.guides);
+let selId = null, query = "";
+function match(g){ return !query || (g.name+g.desc+g.field.name+g.items.join("")).includes(query); }
+function select(id){
+  selId = id; const g = ALL.find(x=>x.id===id); const p = $("#preview");
+  p.innerHTML = `<h4 data-sel="${g.id}">${g.name}</h4><p class="path">${g.field.name} › ${g.path}</p><p>${g.desc}</p><ul>${g.items.map(i=>`<li>${i} <span class="ex">예시</span></li>`).join("")}</ul><button class="run" data-skill="이 길잡이로 AI에게 묻기">AI에게 이 분야로 묻기</button>`;
+  drawBrain();
+}
+function drawMetro(){
+  const svg = $("#metroSvg"); let s = ""; const y0 = 40, gap = 54;
+  FIELDS.forEach((f, i)=>{
+    const y = y0 + i*gap; const gs = f.guides; const x0 = 170, step = 140;
+    s += `<text x="12" y="${y+4}" font-weight="700">${f.name}</text><text x="12" y="${y+19}" fill="#5d6472" font-size="11">파일 ${f.n.toLocaleString()}</text>`;
+    s += `<line x1="${x0-20}" y1="${y}" x2="${x0 + (gs.length-1)*step + 20}" y2="${y}" stroke="${f.color}" stroke-width="7" stroke-linecap="round" opacity="${gs.some(match)?1:.25}"/>`;
+    gs.forEach((g, j)=>{ const x = x0 + j*step; const on = match(g);
+      s += `<g class="st${g.id===selId?" sel":""}" data-id="${g.id}" opacity="${on?1:.25}"><circle cx="${x}" cy="${y}" r="8" stroke="${f.color}"/><text x="${x}" y="${y-13}" text-anchor="middle">${g.name}</text></g>`; });
+  });
+  // 갈아타는 역: AGENTS.md(대문) — 모든 노선이 대문으로 모임
+  FIELDS.forEach((f,i)=>{ const y=y0+i*gap; const xe=170+(f.guides.length-1)*140+20; s = `<path d="M${xe} ${y} C ${xe+60} ${y}, 600 172, 640 172" fill="none" stroke="${f.color}" stroke-width="2" stroke-dasharray="4 4" opacity=".55"/>` + s; });
+  s += `<g><rect x="640" y="150" width="108" height="44" rx="10" fill="#1d2433"/><text x="694" y="170" text-anchor="middle" class="inv" font-weight="700">대문</text><text x="694" y="186" text-anchor="middle" class="dim">AGENTS.md</text></g>`;
+  svg.innerHTML = s;
+  svg.querySelectorAll(".st").forEach(n=>n.addEventListener("click", ()=>select(n.dataset.id)));
+}
+function drawCols(){
+  const sel = ALL.find(x=>x.id===selId); const fid = sel ? sel.field.id : FIELDS[0].id;
+  $("#c1").innerHTML = FIELDS.map(f=>`<button data-f="${f.id}" class="${f.id===fid?"sel":""}" style="border-left:4px solid ${f.color}">${f.name}</button>`).join("");
+  const F = FIELDS.find(f=>f.id===fid);
+  $("#c2").innerHTML = F.guides.filter(match).map(g=>`<button data-g="${g.id}" class="${g.id===selId?"sel":""}">${g.name}</button>`).join("") || '<p style="padding:8px;color:var(--mute)">찾는 말에 맞는 길잡이 없음</p>';
+  $("#c3").innerHTML = sel && sel.field.id===fid ? sel.items.map(i=>`<button>${i}</button>`).join("") : '<p style="padding:8px;color:var(--mute)">가운데에서 길잡이를 고르세요</p>';
+  $("#c1").querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click", ()=>{ const g = FIELDS.find(f=>f.id===b.dataset.f).guides[0]; select(g.id); }));
+  $("#c2").querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click", ()=>select(b.dataset.g)));
+}
+function drawShelf(){
+  $("#shelf").innerHTML = FIELDS.map(f=>`<div class="sh"><b>${f.name} <span style="font-weight:400;color:var(--mute);font-size:12px">파일 ${f.n.toLocaleString()}</span></b><div class="books">${f.guides.map(g=>`<button class="bk" data-g="${g.id}" style="background:${f.color};height:${36+g.items.length*8}px;opacity:${match(g)?1:.25};outline:${g.id===selId?"3px solid #1d2433":"none"}">${g.name}</button>`).join("")}</div></div>`).join("");
+  $("#shelf").querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click", ()=>select(b.dataset.g)));
+}
+function drawList(){
+  $("#listBody").innerHTML = ALL.filter(match).map(g=>`<tr data-g="${g.id}" style="${g.id===selId?"background:var(--soft)":""}"><td><b>${g.name}</b><br><small style="color:var(--mute)">${g.desc}</small></td><td>${g.field.name}</td><td>${g.items.length}</td></tr>`).join("") || '<tr><td colspan="3">찾는 말에 맞는 길잡이 없음</td></tr>';
+  $("#listBody").querySelectorAll("[data-g]").forEach(r=>r.addEventListener("click", ()=>select(r.dataset.g)));
+}
+function drawBrain(){ drawMetro(); drawCols(); drawShelf(); drawList(); }
+function setView(v){
+  document.querySelectorAll("[data-view]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.view===v)));
+  document.querySelectorAll("[data-v]").forEach(el=>el.hidden = el.dataset.v!==v);
+}
+document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click", ()=>setView(b.dataset.view)));
+$("#q").addEventListener("input", e=>{ query = e.target.value.trim(); drawBrain(); });
+drawBrain();
+// 탭
+function setTab(t){
+  document.querySelectorAll("[data-tab]").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.tab===t)));
+  document.querySelectorAll("[data-panel]").forEach(p=>p.hidden = p.dataset.panel!==t);
+}
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click", ()=>setTab(b.dataset.tab)));
+// 시안: A 노선도 · B 계층 · C 책장 을 기본 보기로
+const DEFAULT_VIEW = {a:"metro", b:"cols", c:"shelf"};
+function setVariant(v){
+  app.className = "app v-" + v;
+  document.querySelectorAll("[data-variant]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.variant===v)));
+  setView(DEFAULT_VIEW[v]);
+}
+document.querySelectorAll("[data-variant]").forEach(b=>b.addEventListener("click", ()=>setVariant(b.dataset.variant)));
+const P = new URLSearchParams(location.search);
+setVariant(P.get("v") || "a"); if (P.get("tab")) setTab(P.get("tab"));
+</script>
+</body>
+</html>
