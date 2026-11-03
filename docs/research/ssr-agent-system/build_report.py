@@ -530,7 +530,7 @@ def build():
 </section>''')
 
     p.append(f'''<section id="s8"><h2><span class="no">8</span>구현 방향 — 디자인은 다르게</h2>
-<p class="lead">자세한 계획·승인 질문은 계획서(docs/plans/ssr-업무시스템-구현-계획.md)와 화면 시안(mock.html)에.</p>
+<div class="callout warn"><b>바뀜(v2):</b> 업무 시스템은 학원·AgentOS 같은 프로젝트의 메뉴가 아니라 <b>모든 프로젝트 아래 깔리는 바탕</b>, 프로젝트는 그 자식. 기준 계획 = docs/plans/업무시스템-바탕-계획-v2.md, 시안 = mock-v2.html. 아래는 1차 안 기록.</div>
 {fig(fig_stages(), "그림 10. 단계 지도. 점선 = 새로 만들 것. 1단계(길잡이)가 나머지의 바탕.", "f10")}
 {table(["","영상","우리 안"], [
  ["바탕", "검정 + 주황 불꽃", "밝은 종이색 + 진남색 글씨(세 가지 시안)"],

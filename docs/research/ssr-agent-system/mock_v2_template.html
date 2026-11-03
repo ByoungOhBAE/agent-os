@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>업무 시스템(바탕) — 화면 시안 v2</title>
+<style>
+:root{--foreground:#1d2433;--muted-foreground:#5d6472;--border:#d8d2c4;--card:#fff;--accent:#2f7d6d}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:var(--foreground);background:#ece8df;font-size:14px;line-height:1.5}
+.note{margin:10px 14px 0;font-size:12.5px;color:var(--muted-foreground)}
+.app{margin:10px 14px 70px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg);color:var(--ink);
+ --bg:#f7f4ee;--ink:#1d2433;--mute:#5d6472;--line:#d8d2c4;--card:#fff;--acc:#2f7d6d;--root:#1d2433;--soft:#eef5f2;--warn:#b5662a}
+.top{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--root);color:#fff}
+.top b{font-size:16px}.top small{color:#c9cfdb}
+.top .new{margin-left:auto}
+button{font:inherit;cursor:pointer}
+.new{background:#fff;color:var(--root);border:0;border-radius:9px;padding:8px 14px;font-weight:700;min-height:40px;white-space:nowrap}
+.crumb{padding:10px 16px;border-bottom:1px solid var(--line);background:var(--card);font-size:13px;color:var(--mute)}
+.crumb a{color:var(--acc);cursor:pointer;text-decoration:underline}
+.body{display:flex;min-height:560px}
+aside.tree{width:230px;flex:none;border-right:1px solid var(--line);background:var(--card);padding:10px 8px;display:none}
+aside.tree button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 8px;border-radius:7px;color:var(--ink);min-height:34px}
+aside.tree button.on{background:var(--soft);font-weight:700}
+aside.tree .grp{font-size:11.5px;color:var(--mute);margin:10px 8px 2px}
+aside.tree .ind{padding-left:22px}
+main{flex:1;padding:16px;min-width:0}
+h2{font-size:17px;margin:0 0 10px}
+.shared{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.sh{flex:1;min-width:120px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.sh b{display:block;font-size:22px}.sh span{font-size:12px;color:var(--mute)}
+.lbl-shared{font-size:12px;color:var(--mute);margin:0 0 6px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:left;color:var(--ink);min-width:0;border-top:5px solid var(--c,#2f7d6d)}
+.pc:hover{outline:2px solid var(--acc)}
+.pc h3{margin:0 0 4px;font-size:15px}
+.pc .meta{font-size:12px;color:var(--mute)}
+.chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.chip{font-size:11.5px;border-radius:999px;padding:0 8px;border:1px solid var(--line);background:var(--bg);white-space:nowrap}
+.chip.pub{color:#8a5d00;border-color:#e8c97a;background:#fbf0d6}
+.chip.pri{color:#1f6b42;border-color:#9fd0b4;background:#e3f3ea}
+.chip.no{color:var(--mute);border-style:dashed}
+.chip.bad{color:#b23a3a;border-color:#e3aaaa;background:#fbe9e9}
+details.more{margin-top:12px}
+details.more summary{cursor:pointer;color:var(--mute);padding:6px 0}
+.drift{background:#fbf3e4;border:1px solid #e8c97a;border-radius:10px;padding:10px 12px;margin-top:14px}
+.drift li{margin:2px 0}
+.tree-svg svg{width:100%;height:auto;display:block;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.tree-svg text{font-family:inherit;font-size:12.5px;fill:var(--ink)}
+.tree-svg text.inv{fill:#fff}.tree-svg text.sm{font-size:11px;fill:var(--mute)}
+.tree-svg .node{cursor:pointer}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.board .col{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;min-width:0}
+.board .col h4{margin:2px 4px 8px;font-size:13px}
+.board .pc{margin-bottom:8px;width:100%}
+.detail .sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.detail .sec h4{margin:0 0 6px}
+.row{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+.row:last-child{border:0}.row .t{flex:1;min-width:0}
+.modal{position:fixed;inset:0;background:rgba(20,24,33,.45);display:flex;align-items:center;justify-content:center;z-index:40;padding:12px}
+.dlg{background:#fff;color:#1d2433;border-radius:14px;max-width:560px;width:100%;padding:18px;max-height:90vh;overflow:auto}
+.dlg h3{margin:0 0 10px}
+.dlg label{display:block;font-size:13px;color:#5d6472;margin:10px 0 4px}
+.dlg input,.dlg select{width:100%;padding:9px;border:1px solid #d8d2c4;border-radius:8px;font:inherit}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts button{border:1px solid #d8d2c4;background:#fff;border-radius:8px;padding:7px 12px;min-height:38px}
+.opts button[aria-pressed=true]{background:#1d2433;color:#fff;border-color:#1d2433}
+.dlg .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.dlg .acts button{border-radius:8px;padding:8px 14px;min-height:40px;border:1px solid #d8d2c4;background:#fff}
+.dlg .acts .go{background:#2f7d6d;color:#fff;border-color:#2f7d6d}
+.will li{margin:3px 0}
+.toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#1d2433;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:60}
+.switcher{position:fixed;left:0;right:0;bottom:0;background:#1d2433;color:#fff;display:flex;gap:6px;align-items:center;justify-content:center;padding:8px;z-index:20}
+.switcher button{border:1px solid #6b7488;background:none;color:#fff;border-radius:8px;padding:6px 12px;min-height:36px}
+.switcher button[aria-pressed=true]{background:#fff;color:#1d2433;font-weight:700}
+.switcher .l{font-size:12.5px;color:#c9cfdb}
+/* 시안별 바탕 화면 모양 */
+.v-a .only-b,.v-a .only-c,.v-b .only-a,.v-b .only-c,.v-c .only-a,.v-c .only-b{display:none!important}
+.app.v-b{--bg:#f4f6f5;--ink:#17322b;--mute:#5a6b66;--line:#d3ddd9;--acc:#1f7a5c;--root:#17322b;--soft:#e2f1ea}
+.app.v-b aside.tree{display:block}
+.app.v-c{--bg:#faf6ef;--ink:#2b2118;--mute:#7a6a58;--line:#e6dccb;--card:#fffdf9;--acc:#c0622b;--root:#2b2118;--soft:#f6e9dc}
+.app.v-c .pc{border-radius:16px}
+@media (max-width:720px){
+ .app{margin:6px 6px 64px}
+ .cards{grid-template-columns:1fr}
+ .board{grid-template-columns:1fr}
+ .app.v-b .body{flex-direction:column}
+ .app.v-b aside.tree{width:auto;border-right:0;border-bottom:1px solid var(--line);max-height:220px;overflow:auto}
+ .tree-svg{overflow-x:auto}.tree-svg svg{min-width:900px}
+ .top small{display:none}
+ .switcher .l{display:none}
+}
+</style>
+</head>
+<body>
+<p class="note">시안 v2 — <b>업무 시스템이 맨 아래 바탕, 프로젝트는 그 아래 자식.</b> 폴더·커밋 날짜·계획 수·루틴 수는 __MEASURED__ 실측, 「새 프로젝트」는 눌러도 실제로 만들지 않음.</p>
+<div class="app v-a" id="app">
+ <div class="top"><b>업무 시스템</b><small>모든 프로젝트의 바탕 · C:\Users\tahar\orca\workspaces</small><button class="new" id="newBtn">＋ 새 프로젝트</button></div>
+ <div class="crumb" id="crumb"></div>
+ <div class="body">
+  <aside class="tree" id="tree"></aside>
+  <main>
+   <section id="rootView">
+    <p class="lbl-shared">공용층 — 모든 프로젝트가 같이 쓰는 것</p>
+    <div class="shared" id="shared"></div>
+    <h2>프로젝트 <span style="font-weight:400;color:var(--mute);font-size:13px" id="pcount"></span></h2>
+    <div class="only-a tree-svg"><svg id="treeSvg" viewBox="0 0 1200 330" role="img" aria-label="바탕과 프로젝트 나무"></svg></div>
+    <div class="only-b cards" id="cardsB"></div>
+    <div class="only-c board" id="board"></div>
+    <details class="more only-a only-b"><summary id="moreSum"></summary><div class="cards" id="cardsMore" style="margin-top:8px"></div></details>
+    <div class="drift" id="drift"></div>
+   </section>
+   <section id="projView" class="detail" hidden></section>
+  </main>
+ </div>
+</div>
+<div class="modal" id="wiz" hidden><div class="dlg" role="dialog" aria-label="새 프로젝트 시작">
+ <h3>새 프로젝트 시작</h3>
+ <label for="pname">이름</label><input id="pname" value="요리 클래스 예약 앱">
+ <label>종류</label><div class="opts" data-g="kind"><button aria-pressed="true">사업</button><button>AI·도구</button><button>회사</button><button>실험</button></div>
+ <label>GitHub</label><div class="opts" data-g="gh"><button aria-pressed="true">비공개</button><button>공개</button><button>안 씀</button></div>
+ <label>배포</label><div class="opts" data-g="dep"><button aria-pressed="true">아직 없음</button><button>NAS</button></div>
+ <p style="margin:14px 0 4px;font-weight:700">누르면 한 번에 만들어지는 것</p>
+ <ol class="will" id="will"></ol>
+ <div class="acts"><button id="wizClose">닫기</button><button class="go" id="wizGo">만들기</button></div>
+</div></div>
+<div class="switcher" role="group" aria-label="시안 바꾸기"><span class="l">바탕 화면 시안</span>
+ <button data-variant="a" aria-pressed="true">A<span class="l"> 나무</span></button>
+ <button data-variant="b" aria-pressed="false">B<span class="l"> 탐색기</span></button>
+ <button data-variant="c" aria-pressed="false">C<span class="l"> 보드</span></button>
+</div>
+<script id="seed" type="application/json">__SEED__</script>
+<script>
+const S = JSON.parse(document.getElementById("seed").textContent);
+const $ = (s, r=document) => r.querySelector(s);
+const NAME = {"academy homepage":"학원 홈페이지","agent os":"AgentOS 봇 조직","rimbus company project":"회사 · Mirror Ledger","academy-list-c":"학원 홈페이지 작업 사본","androidgame":"안드로이드 게임","ai-automation-tools-report":"AI 자동화 도구 보고서","B":"B (실험)","bench2":"bench2 (측정)","guard-drill-review":"권한 지킴이 시험 검토","academy website":"academy website","rimbus 회사":"rimbus 회사","wpc-hd":"wpc-hd","_git-backups":"git 백업"};
+const COLOR = {"academy homepage":"#2f7d6d","agent os":"#3b5ba5","rimbus company project":"#7a7468","androidgame":"#8a4f9e"};
+const F = S.folders.filter(f => !f.folder.startsWith("."));
+const MAIN = F.filter(f => f.kind === "프로젝트");
+const OTHER = F.filter(f => f.kind !== "프로젝트" && f.kind !== "작업 사본");
+const nm = f => NAME[f.folder] || f.folder;
+function toast(t){ const d=document.createElement("div"); d.className="toast"; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
+function chips(f){
+  const c = [];
+  c.push(f.visibility==="공개" ? '<span class="chip pub">GitHub 공개</span>' : f.visibility==="비공개" ? '<span class="chip pri">GitHub 비공개</span>' : '<span class="chip no">GitHub 없음</span>');
+  if (f.rules.length) c.push('<span class="chip">규칙 파일 ✓</span>'); else c.push('<span class="chip bad">규칙 파일 없음</span>');
+  if (f.cron.length) c.push(`<span class="chip">루틴 ${f.cron.length}</span>`);
+  return `<div class="chips">${c.join("")}</div>`;
+}
+function card(f){
+  const kids = F.filter(x => x.worktree_of === f.folder);
+  return `<button class="pc" data-p="${f.folder}" style="--c:${COLOR[f.folder]||"#9a9284"}"><h3>${nm(f)}</h3>
+  <div class="meta">${f.kind}${f.last_commit?` · 마지막 커밋 ${f.last_commit}`:""}${f.plans?` · 계획 ${f.plans}(완료 ${f.plans_done})`:""}${kids.length?` · 작업 사본 ${kids.length}`:""}</div>${chips(f)}</button>`;
+}
+// 공용층
+const sh = S.shared;
+$("#shared").innerHTML = [[sh.skills,"스킬"],[`${sh.cron_total}`,`루틴 (켜짐 ${sh.cron_enabled} · 공용 ${sh.cron_shared.length})`],[`${sh.mcp.length}`,"외부 연결(MCP)"],["2","공용 기억 파일"],["1","자료실"]].map(x=>`<div class="sh"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("");
+$("#pcount").textContent = `${MAIN.length}개 · 그 밖의 폴더 ${OTHER.length}개`;
+// A 나무
+function drawTree(){
+  let s = `<rect x="510" y="14" width="180" height="46" rx="10" style="fill:var(--root)"/><text x="600" y="42" text-anchor="middle" class="inv" font-weight="700">업무 시스템(바탕)</text>`;
+  const all = [...MAIN, ...OTHER.filter(f=>f.kind==="실험·자료")];
+  const w = 1160 / all.length;
+  all.forEach((f, i) => {
+    const cx = 20 + w*i + w/2, y = f.kind==="프로젝트" ? 130 : 230;
+    s += `<path d="M600 60 V90 H${cx} V${y}" fill="none" stroke="${f.kind==="프로젝트"?"#1d2433":"#b9b4a8"}" stroke-width="${f.kind==="프로젝트"?2:1}" ${f.kind==="프로젝트"?"":'stroke-dasharray="4 4"'}/>`;
+    s += `<g class="node" data-p="${f.folder}"><rect x="${cx-w/2+6}" y="${y}" width="${w-12}" height="54" rx="9" fill="#fff" stroke="${COLOR[f.folder]||"#b9b4a8"}" stroke-width="${f.kind==="프로젝트"?3:1.5}"/>`;
+    const label = nm(f).length > 14 ? nm(f).slice(0, 13) + "…" : nm(f);
+    s += `<text x="${cx}" y="${y+23}" text-anchor="middle" font-weight="${f.kind==="프로젝트"?700:400}">${label}</text><text x="${cx}" y="${y+41}" text-anchor="middle" class="sm">${f.kind}</text></g>`;
+  });
+  s += `<text x="20" y="318" class="sm">굵은 선 = 프로젝트 · 점선 = 실험·자료 폴더(아래 '그 밖의 폴더'에 전체)</text>`;
+  $("#treeSvg").innerHTML = s;
+  $("#treeSvg").querySelectorAll(".node").forEach(n => n.addEventListener("click", () => openProject(n.dataset.p)));
+}
+drawTree();
+$("#cardsB").innerHTML = MAIN.map(card).join("");
+$("#moreSum").textContent = `그 밖의 폴더 ${OTHER.length}개 (실험·빈 폴더·보관)`;
+$("#cardsMore").innerHTML = OTHER.map(card).join("");
+const KCOL = [["프로젝트","프로젝트"],["실험·자료","실험·자료"],["빈 폴더","빈 폴더"],["보관","보관"]];
+$("#board").innerHTML = KCOL.map(([k,t]) => `<div class="col"><h4>${t} ${F.filter(f=>f.kind===k).length}</h4>${F.filter(f=>f.kind===k).map(card).join("")}</div>`).join("");
+// 명부 어긋남(실측에서 계산)
+const reg = S.other_registries;
+const proj = MAIN.map(f=>f.folder);
+const missHermes = proj.filter(p => !reg.hermes_desktop_projects.includes(p));
+const missWork = proj.filter(p => !reg.agentos_work_plan_folders.includes(p));
+const empty = F.filter(f=>f.kind==="빈 폴더").map(f=>f.folder);
+const drift = [
+  [`Hermes 프로젝트 목록에 없는 프로젝트`, missHermes],
+  [`AgentOS 작업계획에 안 보이는 프로젝트`, missWork],
+  [`거의 빈 폴더(명부에서 '보관' 후보)`, empty],
+];
+$("#drift").innerHTML = `<b>명부 어긋남</b> — 지금은 프로젝트 목록이 여러 곳에 따로 있어 서로 다름<ul>${drift.map(d=>`<li data-drift="${d[1].length}">${d[0]}: <b>${d[1].length}</b>개 — ${d[1].map(x=>NAME[x]||x).join(", ")||"없음"}</li>`).join("")}<li data-unknown="1">봇 조직(Paperclip) 프로젝트: <b>확인 불가</b> — 지금 꺼져 있음</li></ul>`;
+// 왼쪽 나무(B)
+function drawSide(sel){
+  $("#tree").innerHTML = `<button data-root class="${sel?"":"on"}">업무 시스템(바탕)</button><div class="grp">공용층</div><button class="ind" data-shared>스킬 · 루틴 · 연결 · 기억</button><div class="grp">프로젝트</div>${MAIN.map(f=>`<button class="ind ${sel===f.folder?"on":""}" data-p="${f.folder}">${nm(f)}</button>${F.filter(x=>x.worktree_of===f.folder).map(x=>`<button class="ind ${sel===x.folder?"on":""}" style="padding-left:38px" data-p="${x.folder}">└ ${nm(x)}</button>`).join("")}`).join("")}<div class="grp">그 밖의 폴더</div>${OTHER.map(f=>`<button class="ind ${sel===f.folder?"on":""}" data-p="${f.folder}">${nm(f)}</button>`).join("")}`;
+}
+// 프로젝트 상세
+function openProject(p){
+  const f = F.find(x => x.folder === p);
+  $("#rootView").hidden = true; const v = $("#projView"); v.hidden = false;
+  const kids = F.filter(x => x.worktree_of === f.folder);
+  v.innerHTML = `<h2 data-open="${f.folder}">${nm(f)}</h2>${chips(f)}<div style="height:10px"></div>
+  <div class="sec"><h4>대문(이 프로젝트 규칙 파일)</h4>${f.rules.length?f.rules.map(r=>`<div class="row"><span class="t">${r}<br><small style="color:var(--mute)">${S.root}\\${f.folder}\\${r}</small></span></div>`).join(""):'<p style="color:var(--mute)">없음 — 명부에 넣을 때 틀로 만들어 줌</p>'}</div>
+  <div class="sec"><h4>계획서</h4><p>${f.plans?`상태 줄 있는 계획 <b>${f.plans}</b>개 · 완료·확정 <b>${f.plans_done}</b>개`:"계획서 없음"}</p></div>
+  <div class="sec"><h4>이 프로젝트 루틴</h4>${f.cron.length?f.cron.map(c=>`<div class="row"><span class="t">${c}</span><span class="chip">PC</span></div>`).join(""):'<p style="color:var(--mute)">없음</p>'}</div>
+  ${kids.length?`<div class="sec"><h4>작업 사본</h4>${kids.map(k=>`<div class="row"><span class="t">${k.folder}</span><span class="chip">마지막 커밋 ${k.last_commit}</span></div>`).join("")}</div>`:""}
+  <div class="sec"><h4>공용층에서 쓰는 것</h4><p style="color:var(--mute)">스킬·기억·자료실은 바탕에 있고, 이 프로젝트는 빌려 씀 (예시: 학원 홈페이지 → 학원 분류 스킬 21개)</p></div>`;
+  $("#crumb").innerHTML = `<a data-root>업무 시스템</a> › ${nm(f)}`;
+  drawSide(p);
+}
+function openRoot(){ $("#rootView").hidden = false; $("#projView").hidden = true; $("#crumb").innerHTML = "업무 시스템"; drawSide(null); }
+document.addEventListener("click", e => {
+  const p = e.target.closest("[data-p]"); if (p && !p.closest(".tree-svg")) return openProject(p.dataset.p);
+  if (e.target.closest("[data-root]")) return openRoot();
+  if (e.target.closest("[data-shared]")) return toast("공용층 화면(스킬·루틴·연결·기억) — 다음 시안에서");
+});
+openRoot();
+// 새 프로젝트 마법사
+function willList(){
+  const gh = $('[data-g=gh] [aria-pressed=true]').textContent, dep = $('[data-g=dep] [aria-pressed=true]').textContent, n = $("#pname").value.trim() || "(이름)";
+  const items = [
+    `폴더 만들기 — ${S.root}\\${n}`,
+    "규칙 파일(.hermes.md) 틀 — 이 프로젝트 전용 사실·규칙 자리",
+    gh === "안 씀" ? "git 시작(내 컴퓨터만)" : `git 시작 + GitHub ${gh} 저장소 연결`,
+    "업무 시스템 명부에 등록(종류·공개 여부·배포)",
+    "Hermes 프로젝트 목록에 등록(채팅을 이 폴더에서 열 수 있게)",
+    "AgentOS 작업계획·커밋 화면에 나타나게",
+    "길잡이 색인에 자리 만들기",
+  ];
+  if (dep === "NAS") items.push("배포 메모 자리(NAS 절차 스킬 연결)");
+  $("#will").innerHTML = items.map(i => `<li>${i}</li>`).join("");
+}
+document.querySelectorAll(".opts").forEach(g => g.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); willList(); }));
+$("#pname").addEventListener("input", willList);
+$("#newBtn").addEventListener("click", () => { $("#wiz").hidden = false; willList(); });
+$("#wizClose").addEventListener("click", () => $("#wiz").hidden = true);
+$("#wizGo").addEventListener("click", () => { $("#wiz").hidden = true; toast("시안 화면 — 실제로 만들지 않음"); });
+// 시안
+function setVariant(v){ $("#app").className = "app v-" + v; document.querySelectorAll("[data-variant]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.variant === v))); }
+document.querySelectorAll("[data-variant]").forEach(b => b.addEventListener("click", () => setVariant(b.dataset.variant)));
+setVariant(new URLSearchParams(location.search).get("v") || "a");
+</script>
+</body>
+</html>

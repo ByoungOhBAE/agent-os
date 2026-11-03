@@ -1,0 +1,260 @@
+{
+ "measured_at": "2026-11-03T13:40",
+ "root": "C:\\Users\\tahar\\orca\\workspaces",
+ "folders": [
+  {
+   "folder": ".orca-preparing",
+   "kind": "빈 폴더",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [],
+   "last_commit": "",
+   "files": 0,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "_git-backups",
+   "kind": "보관",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [],
+   "last_commit": "",
+   "files": 5,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "academy homepage",
+   "kind": "프로젝트",
+   "git": true,
+   "remote": "academy-homepage.git",
+   "visibility": "비공개",
+   "worktree_of": "",
+   "rules": [
+    "AGENTS.md",
+    "CLAUDE.md"
+   ],
+   "last_commit": "2026-11-03",
+   "files": 20001,
+   "plans": 50,
+   "plans_done": 30,
+   "cron": [
+    "광고 점검 후속(11/03) — 판단 이르다 항목만",
+    "당근 공지 교체(11/01, P4)",
+    "광고 적용 확인(P1 검수·P3 공개)",
+    "상담알림 Jev 판정 11-10 시행 확인"
+   ]
+  },
+  {
+   "folder": "academy website",
+   "kind": "빈 폴더",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "",
+   "files": 2,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "academy-list-c",
+   "kind": "작업 사본",
+   "git": true,
+   "remote": "academy-homepage.git",
+   "visibility": "비공개",
+   "worktree_of": "academy homepage",
+   "rules": [
+    "AGENTS.md",
+    "CLAUDE.md"
+   ],
+   "last_commit": "2026-11-02",
+   "files": 6056,
+   "plans": 43,
+   "plans_done": 25,
+   "cron": []
+  },
+  {
+   "folder": "agent os",
+   "kind": "프로젝트",
+   "git": true,
+   "remote": "agent-os.git",
+   "visibility": "공개",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "2026-11-03",
+   "files": 20140,
+   "plans": 22,
+   "plans_done": 10,
+   "cron": [
+    "AgentOS 봇 기억 정리 (이틀마다)"
+   ]
+  },
+  {
+   "folder": "ai-automation-tools-report",
+   "kind": "실험·자료",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "",
+   "files": 155,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "androidgame",
+   "kind": "실험·자료",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "",
+   "files": 751,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "B",
+   "kind": "실험·자료",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "",
+   "files": 65,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "bench2",
+   "kind": "실험·자료",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "",
+   "files": 12,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "guard-drill-review",
+   "kind": "실험·자료",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "",
+   "files": 10,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "rimbus company project",
+   "kind": "프로젝트",
+   "git": true,
+   "remote": "rimbus-company-project.git",
+   "visibility": "비공개",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "2026-11-03",
+   "files": 839,
+   "plans": 3,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "rimbus 회사",
+   "kind": "빈 폴더",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "",
+   "files": 2,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  },
+  {
+   "folder": "wpc-hd",
+   "kind": "빈 폴더",
+   "git": false,
+   "remote": "",
+   "visibility": "",
+   "worktree_of": "",
+   "rules": [
+    ".hermes.md"
+   ],
+   "last_commit": "",
+   "files": 1,
+   "plans": 0,
+   "plans_done": 0,
+   "cron": []
+  }
+ ],
+ "shared": {
+  "skills": 172,
+  "cron_total": 8,
+  "cron_enabled": 5,
+  "cron_shared": [
+   "네이버 파워링크 입찰 자동조정 (매일 08:30)",
+   "스킬 지도 주간 점검 (월 09:00)",
+   "콘텐츠 주문 확인"
+  ],
+  "connectors_connected": 0,
+  "mcp": [
+   "figma"
+  ]
+ },
+ "other_registries": {
+  "hermes_desktop_projects": [
+   "agent os",
+   "androidgame"
+  ],
+  "agentos_work_plan_folders": [
+   "agent os",
+   "academy homepage"
+  ],
+  "paperclip_projects": "확인 불가 — 3100 응답 없음(2026-11-03)"
+ }
+}
